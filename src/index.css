@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-brand-green-main: #35B84A;
+  --color-brand-green-neon: #9BFF00;
+  --color-brand-green-dark: #0B3D2E;
+  --color-brand-blue-dark: #172B6B;
+  --color-brand-white: #ffffff;
+  
+  --font-sans: 'Montserrat', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Montserrat', 'Outfit', 'Inter', system-ui, sans-serif;
+}
+
+/* Custom cyber glowing animation for buttons and badges */
+@keyframes neonGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(155, 255, 0, 0.4), 0 0 12px rgba(155, 255, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(155, 255, 0, 0.8), 0 0 25px rgba(53, 184, 74, 0.4);
+  }
+}
+
+.animate-neon-glow {
+  animation: neonGlow 3s infinite;
+}
+
+/* Base style adjustments */
+html, body {
+  font-family: var(--font-sans);
+  background-color: #0B3D2E; /* Deep forest green/dark background per guidelines */
+  color: #ffffff;
+  scroll-behavior: smooth;
+}
+
+/* Modern minimalist line-art grid overlay pattern */
+.lineart-grid {
+  background-image: 
+    radial-gradient(ellipse at top right, rgba(0, 102, 204, 0.05), transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0, 179, 104, 0.04), transparent 60%),
+    linear-gradient(rgba(224, 239, 254, 0.2) 1px, transparent 1px), 
+    linear-gradient(90deg, rgba(224, 239, 254, 0.2) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+
+/* Custom dashed curves representing learning paths */
+.path-lineart {
+  stroke-dasharray: 8 6;
+  animation: dashmove 40s linear infinite;
+}
+
+@keyframes dashmove {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+/* Perfect line-thin borders for lineart theme */
+.border-line {
+  border: 1.5px solid #e2e8f0;
+}
+
+.border-line-blue {
+  border: 2px solid #0066cc;
+}
+
+.border-line-green {
+  border: 2px solid #00b368;
+}
+
+/* Fancy smooth transitions and scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+

@@ -1,0 +1,6 @@
+{
+  "name": "Parchate CUN",
+  "description": "Interfaz de onboarding institucional para estudiantes nuevos virtuales y presenciales.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
