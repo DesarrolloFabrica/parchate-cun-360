@@ -9,7 +9,7 @@ import { ArrowLeftRight, Play, Volume2, SkipForward, ArrowRight, ShieldAlert, Sp
 export const INTRO_PRESET_IMAGES = {
   // Imagen Lado Izquierdo (Modalidad Virtual)
   leftImage: "https://i.ibb.co/84jC2QhZ/8c1f68a1-0b15-4940-b6d3-a7a1ee0f85ad-2026-06-16-1.png",
-  
+
   // Imagen Lado Derecho (Modalidad Presencial)
   rightImage: "https://i.ibb.co/KpjFmppf/d08915fe-2757-49b1-9cdc-a2f9ffba0c53-2026-06-16.png"
 };

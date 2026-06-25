@@ -244,7 +244,7 @@ export interface CunInteractiveMaterial {
   description: string;
   iconName: string;
   interactiveAttributes: string[];
-  visualPreset: string; // Describes layout pattern to draw beautiful custom lineart widgets
+  visualPreset: string;
   downloadableName?: string;
 }
 

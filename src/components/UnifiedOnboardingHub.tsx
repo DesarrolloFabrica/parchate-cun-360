@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Building, Monitor, FileText, LifeBuoy, Users, Heart, Sparkles, 
@@ -8,8 +8,7 @@ import {
 import { DEFAULT_HUB_TAB, isHubTab, type HubTab } from '../navigation';
 import { useSearchParams } from 'react-router-dom';
 import VirtualTour360 from './VirtualTour360';
-import localPanoramaUrl from '../../assets/imagenes/Calle_A.png';
-import nextPanoramaUrl from '../../assets/imagenes/6SA.png';
+import { TOUR360_START_NODE_ID, tour360Nodes } from '../data/tour360Nodes';
 
 type StationType = 'video' | 'pdf' | 'infografia';
 
@@ -74,7 +73,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const cun360Stations: Station[] = [
     {
       id: 'c360-1', number: 1,
-      title: 'Sede Central Bogotá (Bloque F)', subtitle: 'Vídeo Orientación de Ingreso',
+      title: 'Sede Central Bogotá (Bloque F)', subtitle: 'Video Orientación de Ingreso',
       description: 'Entrada principal Bogotá. Ubica Admisiones, Ventanillas de Caja y Registro Académico para tus necesidades del primer día.',
       type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
       accentColor: '#9BFF00', extraTip: 'El carnet digital es obligatorio para ingresar de forma veloz al campus.',
@@ -105,7 +104,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     },
     {
       id: 'c360-4', number: 4,
-      title: 'Gimnasio y Zonas Lúdicas (Sede H)', subtitle: 'Vídeo Beneficios Físicos',
+      title: 'Gimnasio y Zonas Lúdicas (Sede H)', subtitle: 'Video Beneficios Físicos',
       description: 'Convenios deportivos, acondicionamiento físico guiado y torneos de microfútbol estudiantiles.',
       type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
       accentColor: '#FF2D55', extraTip: 'Inscríbete gratis los primeros 10 días hábiles del semestre.',
@@ -136,7 +135,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     },
     {
       id: 'c360-7', number: 7,
-      title: 'Bienestar y Apoyo Psicológico', subtitle: 'Vídeo Salud Estudiantil',
+      title: 'Bienestar y Apoyo Psicológico', subtitle: 'Video Salud Estudiantil',
       description: 'Línea de acompañamiento psicológico privado, talleres de manejo del estrés académico y tutorías emocionales.',
       type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
       accentColor: '#AF52DE', extraTip: 'Servicio 100% gratuito y confidencial para todo el Parche CUN.',
@@ -171,7 +170,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const cdigitalStations: Station[] = [
     {
       id: 'cdig-1', number: 1,
-      title: 'Ingreso Seguro al Aula Virtual', subtitle: 'Vídeo Tutorial Clave',
+      title: 'Ingreso Seguro al Aula Virtual', subtitle: 'Video Tutorial Clave',
       description: 'Aprende los pasos correctos para activar tu cuenta de correo @cun.edu.co e ingresar por primera vez al aula interactiva.',
       type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
       accentColor: '#9BFF00', extraTip: 'Configura tu autenticación de dos factores al primer ingreso para resguardar notas.',
@@ -202,7 +201,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     },
     {
       id: 'cdig-4', number: 4,
-      title: 'Soporte con Cami y Canal Ticket', subtitle: 'Vídeo de Trámites Rápidos',
+      title: 'Soporte con Cami y Canal Ticket', subtitle: 'Video de Trámites Rápidos',
       description: 'Conoce cómo levantar un ticket para solucionar problemas de inscripción o cambio de clave rápidamente.',
       type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
       accentColor: '#FF2D55', extraTip: 'Usa el agente de IA para solucionar dudas en 5 segundos sin filas.',
@@ -215,7 +214,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       type: 'pdf', pdfTitle: 'Guia_Estudio_Bloques.pdf',
       pdfPages: [
         'Página 1: Los bloques duran exactamente 8 semanas. Estudiarás 2 o 3 materias simultáneas para optimizar tu tiempo.',
-        'Página 2: Las tutorías presenciales/sincrónicas quedan grabadas en el aula por si no te puedes conectar en vivo.'
+        'Página 2: Las tutorías presenciales/sincrúnicas quedan grabadas en el aula por si no te puedes conectar en vivo.'
       ],
       accentColor: '#5856D6', extraTip: 'Dedica por lo menos 1 hora diaria a revisar el foro de anuncios corporativo.',
       coordinateX: 54, coordinateY: 45
@@ -233,7 +232,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     },
     {
       id: 'cdig-7', number: 7,
-      title: 'Framework de Aprendizaje Remoto', subtitle: 'Vídeo Tips de Alto Impacto',
+      title: 'Framework de Aprendizaje Remoto', subtitle: 'Video Tips de Alto Impacto',
       description: 'Metodologías de hábitos ágiles probadas por estudiantes virtuales de alto rendimiento en Colombia.',
       type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
       accentColor: '#AF52DE', extraTip: 'Crea un espacio físico libre de distracciones en casa para estudiar.',
@@ -241,7 +240,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     },
     {
       id: 'cdig-8', number: 8,
-      title: 'Estándares de Ética Estudiantil', subtitle: 'Compendio PDF Institucional',
+      title: 'Estándares de í‰tica Estudiantil', subtitle: 'Compendio PDF Institucional',
       description: 'Evita problemas de derechos de autor y aprende normas APA reglamentarias vigentes.',
       type: 'pdf', pdfTitle: 'Normograma_Etica_Academica.pdf',
       pdfPages: [
@@ -270,7 +269,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     { day: 8, title: 'Inauguración General del Semestre - Parche CUN', type: 'academic', desc: 'Discurso de directivos nacionales y entrega de credenciales a estudiantes.', hour: '06:00 PM - Sede Central/Streaming' },
     { day: 12, title: 'Cierre Inducción Presencial (Retos y Premiación)', type: 'wellness', desc: 'Retos presenciales por equipos de pregrado en Bogotá con incentivos tecnológicos.', hour: '02:00 PM - Bloque Central' },
     { day: 16, title: 'Día de Carnetización y Fotografía Oficial', type: 'wellness', desc: 'Entrega física de carnet escolar a estudiantes registrados para acceso prioritario.', hour: '08:00 AM a 05:00 PM - Hall Bloque F' },
-    { day: 20, title: 'Taller Sincrónico: Éxito en tu entrega ACA', type: 'tech', desc: 'Taller virtual dictado por tutores estrella de ingeniería para resolver dudas del ACA.', hour: '07:30 PM - Meet Virtual Aula' },
+    { day: 20, title: 'Taller Sincrónico: í‰xito en tu entrega ACA', type: 'tech', desc: 'Taller virtual dictado por tutores estrella de ingeniería para resolver dudas del ACA.', hour: '07:30 PM - Meet Virtual Aula' },
     { day: 24, title: 'Festival de la Creatividad y Música CUN', type: 'wellness', desc: 'Exhibiciones de arte estudiantil, stand-up comedy, bandas en vivo y food-trucks.', hour: '03:00 PM - Patio Ágora Sede Central' },
     { day: 28, title: 'Entrega Final del Primer ACA (Corte 1)', type: 'academic', desc: 'Fecha de subida obligatoria del archivo PDF o comprimido en la plataforma del Aula virtual.', hour: '11:59 PM - Aula Virtual SINU' }
   ];
@@ -318,9 +317,9 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 relative z-10 flex flex-col h-[calc(100vh-140px)] min-h-[640px] overflow-hidden" id="onboarding-viewport-fixed">
+    <div className="w-full max-w-[1500px] 2xl:max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 relative z-10 flex flex-col h-[calc(100vh-96px)] sm:h-[min(88vh,940px)] min-h-[620px] sm:min-h-[720px] lg:min-h-[760px] overflow-hidden" id="onboarding-viewport-fixed">
       
-      {/* 🌟 PREMIUM MINIMAL HEADER AREA - Compact heights, elegant design */}
+      {/* PREMIUM MINIMAL HEADER AREA - Compact heights, elegant design */}
       <div className="flex flex-col sm:flex-row items-center justify-between bg-slate-900/40 border border-[#9BFF00]/15 rounded-2xl p-3 sm:p-4 mb-4 gap-3 shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#9BFF00]/10 text-[#9BFF00] hidden sm:block shrink-0">
@@ -336,13 +335,9 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-2.5 bg-black/30 border border-white/5 py-1.5 px-3.5 rounded-full text-[10px] font-mono text-zinc-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-          <span>Onboarding Lineal Controlado 2026</span>
-        </div>
       </div>
 
-      {/* 📁 NEW FOLDER TAB SELECTOR LIST HEADER */}
+      {/* NEW FOLDER TAB SELECTOR LIST HEADER */}
       <div className="flex bg-transparent overflow-x-auto max-w-full scrollbar-none select-none z-10 -mb-[2px] items-end px-1 sm:px-4 shrink-0 gap-1 sm:gap-1.5">
         {tabsList.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -352,9 +347,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-mono font-black uppercase flex items-center gap-1.5 transition-all relative border-t border-x rounded-t-xl cursor-pointer ${
-                isActive
-                  ? 'bg-gradient-to-b from-[#1b233a] to-[#121824] border-[#9BFF00] text-white z-20 shadow-[0_-3px_10px_rgba(155,255,0,0.12)]'
-                  : 'bg-zinc-950/80 border-slate-800/80 text-zinc-500 hover:text-zinc-300 hover:bg-[#121824]/40 z-10'
+                isActive ? 'bg-gradient-to-b from-[#1b233a] to-[#121824] border-[#9BFF00] text-white z-20 shadow-[0_-3px_10px_rgba(155,255,0,0.12)]' : 'bg-zinc-950/80 border-slate-800/80 text-zinc-500 hover:text-zinc-300 hover:bg-[#121824]/40 z-10'
               }`}
             >
               <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#9BFF00]' : 'text-zinc-500'}`} />
@@ -364,12 +357,14 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
         })}
       </div>
 
-      {/* 📁 TAB WORKSPACE BOX - MODIFIED: NOT COMPLETELY DARK PURE BLACK (ELEGANT DEEP SLATE GRADIENT) */}
-      <div className="flex-1 bg-gradient-to-b from-[#121824] to-[#0d121c] border-2 border-[#1b233a] rounded-b-3xl rounded-tr-3xl relative overflow-hidden flex flex-col p-3 sm:p-5 shadow-2xl backdrop-blur-sm">
+      {/* TAB WORKSPACE BOX - MODIFIED: NOT COMPLETELY DARK PURE BLACK (ELEGANT DEEP SLATE GRADIENT) */}
+      <div className="flex-1 bg-gradient-to-b from-[#121824]/95 via-[#0f1726]/95 to-[#0b101a]/98 border-2 border-[#1b233a] rounded-b-3xl rounded-tr-3xl relative overflow-hidden flex flex-col p-3 sm:p-5 shadow-2xl backdrop-blur-xl min-h-0">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(155,255,0,0.08),transparent_32%),radial-gradient(circle_at_78%_12%,rgba(59,130,246,0.14),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_44%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-black/20" />
         
         <AnimatePresence mode="wait">
           
-          {/* TAB 1: PANOEE 360 ONLY VISOR */}
+          {/* TAB 1: LOCAL 360 TOUR */}
           {activeTab === 'recorrido360' && (
             <motion.div
               key="recorrido360"
@@ -381,55 +376,25 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 uppercase tracking-widest pb-1 border-b border-white/5 shrink-0 select-none">
                 <span className="flex items-center gap-1.5 text-[#9BFF00] font-black">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#9BFF00] animate-ping" />
-                  RECORRIDO 360 INTERACTIVO • VISOR PANOEE
+                  RECORRIDO 360 INTERACTIVO - PHOTO SPHERE VIEWER
                 </span>
-                <span className="hidden sm:inline">Panoee Platform Live View</span>
+                <span className="hidden sm:inline">Tour local navegable</span>
               </div>
 
               {/* Photo Sphere Viewer + VirtualTourPlugin integration */}
-              <div className="flex-1 bg-black rounded-xl overflow-hidden relative border border-slate-800/80 my-2 shadow-2xl">
+              <div className="flex-1 bg-black rounded-xl overflow-hidden relative border border-slate-800/80 my-2 shadow-2xl min-h-0 aspect-[16/11] md:aspect-[16/10] max-h-full">
                 <VirtualTour360
-                  scenes={[
-                    {
-                      id: 'pano-main',
-                      panoramaUrl: localPanoramaUrl,
-                      name: 'Recorrido CUN 360',
-                      yaw: 0,
-                      pitch: 0,
-                      hotspots: [
-                        { id: 'h-entrance', yaw: 0.35, pitch: -0.12, label: 'ENTRADA', targetSceneId: 'pano-6sa' }
-                      ],
-                      zones: [
-                        { id: 'zone-6sa', label: 'Entrada 6SA', yaw: 0.15, pitch: -0.08, targetSceneId: 'pano-6sa' }
-                      ]
-                    },
-                    {
-                      id: 'pano-6sa',
-                      panoramaUrl: nextPanoramaUrl,
-                      name: 'Entrada 6SA',
-                      yaw: 0,
-                      pitch: 0,
-                      hotspots: [
-                        { id: 'h-back', yaw: -1.5, pitch: 0.05, label: 'Regresar', targetSceneId: 'pano-main' }
-                      ],
-                      zones: [
-                        { id: 'zone-back', label: 'Volver a la calle', yaw: -1.5, pitch: 0.05, targetSceneId: 'pano-main' }
-                      ]
-                    }
-                  ]}
-                  onHotspotClick={(hotspotId: string, targetStationId?: string) => {
-                    const station = cun360Stations.find(s => s.id === targetStationId) || cdigitalStations.find(s => s.id === targetStationId);
-                    if (station) handleOpenStation(station);
-                  }}
+                  nodes={tour360Nodes}
+                  initialNodeId={TOUR360_START_NODE_ID}
                 />
               </div>
 
               <div className="flex items-center justify-between gap-2 shrink-0 select-none bg-[#172033]/60 p-2.5 rounded-xl border border-white/5 text-left">
                 <p className="text-[10px] font-mono text-slate-300 m-0">
-                  📍 Usa los botones para rotar y explora las zonas interactivas del tour local.
+                  Usa las flechas integradas en la escena para navegar por el tour 360 local.
                 </p>
                 <a 
-                  href={localPanoramaUrl}
+                  href={tour360Nodes[0].panorama}
                   target="_blank"
                   rel="noreferrer"
                   className="text-[9px] font-mono font-black text-black bg-[#9BFF00] hover:bg-white px-3 py-1.5 rounded-lg uppercase tracking-wider flex items-center gap-1.5 shrink-0 transition-all border-none"
@@ -452,22 +417,29 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               {/* Header guides */}
               <div className="flex items-center justify-between pb-1 border-b border-white/5 shrink-0 select-none text-[10px] font-mono text-zinc-400">
                 <span className="text-[#9BFF00] uppercase font-black tracking-widest">
-                  👉 MUEVE TU CARÁCTER: {activeTab === 'cun360' ? 'RECORRIDO CAMPUS FÍSICO BOGOTÁ' : 'INDUCCIÓN DE HERRAMIENTAS DIGITALES'}
+                  MUEVE TU CARÁCTER: {activeTab === 'cun360' ? 'RECORRIDO CAMPUS FÍSICO BOGOTÁ' : 'INDUCCIÓN DE HERRAMIENTAS DIGITALES'}
                 </span>
                 
                 <button
                   onClick={() => handleOpenStation(currentTrackStations[0])}
                   className="text-[9px] font-mono font-black bg-[#9BFF00]/10 border border-[#9BFF00]/40 text-[#9BFF00] py-0.5 px-2.5 rounded-md hover:bg-[#9BFF00] hover:text-black transition-all cursor-pointer"
                 >
-                  Comenzar por Estación 1 🚀
+                  Comenzar por Estación 1
                 </button>
               </div>
 
               {/* INTEGRATED MAP BOARD (NO SCROLLING) */}
-              <div className="flex-1 bg-slate-900/20 border border-slate-800 rounded-2xl relative overflow-hidden my-2 select-none">
+              <div className={`flex-1 border rounded-2xl relative overflow-hidden my-2 select-none backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.28)] ${
+                activeTab === 'cun360' ? 'bg-emerald-950/42 border-emerald-400/18' : 'bg-sky-950/40 border-cyan-300/18'
+              }`}>
+                <div className={`pointer-events-none absolute inset-0 z-0 ${
+                  activeTab === 'cun360' ? 'bg-[radial-gradient(circle_at_18%_18%,rgba(155,255,0,0.18),transparent_34%),radial-gradient(circle_at_84%_78%,rgba(34,197,94,0.13),transparent_38%),linear-gradient(135deg,rgba(15,23,42,0.28),rgba(2,6,23,0.66))]' : 'bg-[radial-gradient(circle_at_18%_18%,rgba(59,130,246,0.20),transparent_34%),radial-gradient(circle_at_84%_78%,rgba(155,255,0,0.12),transparent_38%),linear-gradient(135deg,rgba(15,23,42,0.25),rgba(2,6,23,0.66))]'
+                }`} />
+                <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:48px_48px] opacity-70" />
+                <div className="pointer-events-none absolute inset-0 z-0 bg-black/22" />
                 
                 {/* SVG Route Blueprint */}
-                <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 z-0 origin-center transform-gpu scale-[1.02] md:scale-[1.04] lg:scale-[1.05] transition-transform duration-500">
                   <svg className="w-full h-full text-slate-800" viewBox="0 0 1000 400" fill="none" preserveAspectRatio="none">
                     <defs>
                       <pattern id="grid-dots-blue" width="30" height="30" patternUnits="userSpaceOnUse">
@@ -501,7 +473,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                 </div>
 
                 {/* PLOTTED NODES */}
-                <div className="absolute inset-0 z-10">
+                <div className="absolute inset-0 z-10 origin-center transform-gpu scale-[1.02] md:scale-[1.04] lg:scale-[1.05] transition-transform duration-500">
                   {currentTrackStations.map((station, idx) => {
                     const isCompleted = completedStations.includes(station.id);
                     
@@ -526,11 +498,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                           </div>
 
                           <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-mono font-black text-xs sm:text-sm border-2 transition-all duration-200 ${
-                            isCompleted 
-                              ? 'bg-emerald-500 text-black border-[#9BFF00] shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
-                              : isLocked
-                                ? 'bg-[#1b2234] text-zinc-600 border-zinc-800 cursor-not-allowed opacity-60'
-                                : 'bg-[#172033]/90 text-[#9BFF00] border-[#9BFF00]/40 hover:border-[#9BFF00] hover:scale-110 shadow-lg'
+                            isCompleted ? 'bg-emerald-500 text-black border-[#9BFF00] shadow-[0_0_15px_rgba(16,185,129,0.3)]' : isLocked ? 'bg-[#1b2234] text-zinc-600 border-zinc-800 cursor-not-allowed opacity-60' : 'bg-[#172033]/90 text-[#9BFF00] border-[#9BFF00]/40 hover:border-[#9BFF00] hover:scale-110 shadow-lg'
                           }`}>
                             {isCompleted ? '✓' : isLocked ? '🔒' : station.number}
                           </div>
@@ -576,7 +544,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               className="w-full h-full flex flex-col justify-between"
             >
               <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 uppercase tracking-widest pb-1 border-b border-white/5 shrink-0 select-none mb-1">
-                <span className="text-[#9BFF00] font-black">📅 CRONOGRAMA DE ACTIVIDADES INSTITUCIONALES CUN • 2026</span>
+                <span className="text-[#9BFF00] font-black">CRONOGRAMA DE ACTIVIDADES INSTITUCIONALES CUN • 2026</span>
                 <span>Bogotá / Virtual</span>
               </div>
 
@@ -608,14 +576,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                             }
                           }}
                           className={`relative rounded-lg flex flex-col items-center justify-center p-1 border cursor-pointer transition-all ${
-                            isSelected
-                              ? 'bg-[#9BFF00] text-black border-white font-black scale-102 z-10 shadow-lg shadow-[#9BFF00]/10'
-                              : hasActivity
-                                ? matchedAct?.type === 'academic'
-                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/35 hover:bg-amber-500/20'
-                                  : matchedAct?.type === 'wellness'
-                                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/35 hover:bg-rose-500/20'
-                                    : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/35 hover:bg-cyan-500/20'
+                            isSelected ? 'bg-[#9BFF00] text-black border-white font-black scale-102 z-10 shadow-lg shadow-[#9BFF00]/10' : hasActivity
+                                ? matchedAct?.type === 'academic' ? 'bg-amber-500/10 text-amber-400 border-amber-500/35 hover:bg-amber-500/20' : matchedAct?.type === 'wellness' ? 'bg-rose-500/10 text-rose-400 border-rose-500/35 hover:bg-rose-500/20' : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/35 hover:bg-cyan-500/20'
                                 : 'bg-slate-950/40 text-slate-400 border-[#1b233a] hover:border-slate-800'
                           }`}
                         >
@@ -624,7 +586,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                           {/* Mini indicator dot */}
                           {hasActivity && !isSelected && (
                             <span className={`w-1.5 h-1.5 rounded-full absolute bottom-1 ${
-                              matchedAct?.type === 'academic' ? 'bg-amber-450' : matchedAct?.type === 'wellness' ? 'bg-rose-450' : 'bg-cyan-450'
+                              matchedAct?.type === 'academic' ? 'bg-amber-400' : matchedAct?.type === 'wellness' ? 'bg-rose-400' : 'bg-cyan-400'
                             }`} />
                           )}
                         </div>
@@ -725,7 +687,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
 
               <div className="bg-slate-900/70 p-3 rounded-xl border border-[#1b233a] text-[10px] font-mono text-slate-300 flex items-center gap-2 max-w-sm text-left shadow-lg">
                 <Clock className="w-4 h-4 text-[#9BFF00]" />
-                <span>Se habilitará automáticamente al registrarse las primeras asistencias al aula oficial.</span>
+                <span>Se habilitará automÉticamente al registrarse las primeras asistencias al aula oficial.</span>
               </div>
             </motion.div>
           )}
@@ -735,7 +697,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* ⚠️ STATION PROGRESSION WARNING OVERLAY (ZERO SCROLL COUPLING) */}
+      {/* STATION PROGRESSION WARNING OVERLAY (ZERO SCROLL COUPLING) */}
       {/* ------------------------------------------------------------- */}
       <AnimatePresence>
         {stationLockWarning && (
@@ -753,7 +715,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
             >
               <div className="flex items-center gap-2.5 text-amber-400 border-b border-white/10 pb-3">
                 <Lock className="w-5 h-5" />
-                <h3 className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider">Estación No Desbloqueada</h3>
+                <h3 className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider">Estación no desbloqueada</h3>
               </div>
 
               <p className="text-xs text-slate-200 leading-relaxed font-semibold">
@@ -786,7 +748,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       </AnimatePresence>
 
       {/* ------------------------------------------------------------- */}
-      {/* 💥 STATIONS FILE DEEP RESOURCE POP-UP MODAL (ZERO SCROLL COUPLING) */}
+      {/* STATIONS FILE DEEP RESOURCE POP-UP MODAL (ZERO SCROLL COUPLING) */}
       {/* ------------------------------------------------------------- */}
       <AnimatePresence>
         {activePopupStation && (
@@ -904,7 +866,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                 onClick={() => setActivePopupStation(null)}
                 className="w-full py-3 bg-[#9BFF00] text-black hover:bg-white font-mono font-black text-xs uppercase rounded-xl transition-all cursor-pointer border-none"
               >
-                Completar y Volver a la Ruta ✓
+                Completar y Volver a la Ruta âœ“
               </button>
             </motion.div>
           </motion.div>

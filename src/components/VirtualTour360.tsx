@@ -1,343 +1,300 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Viewer } from '@photo-sphere-viewer/core';
+import { VirtualTourPlugin } from '@photo-sphere-viewer/virtual-tour-plugin';
+import { MarkersPlugin } from '@photo-sphere-viewer/markers-plugin';
 import '@photo-sphere-viewer/core/index.css';
 import '@photo-sphere-viewer/virtual-tour-plugin/index.css';
-
-type Zone = { id: string; label: string; yaw: number; pitch: number; targetStationId?: string; targetSceneId?: string };
-type Hotspot = { id: string; yaw: number; pitch: number; label?: string; targetStationId?: string; targetSceneId?: string };
-type Scene = { id: string; panoramaUrl: string; name?: string; yaw?: number; pitch?: number; hotspots?: Hotspot[]; zones?: Zone[] };
+import '@photo-sphere-viewer/markers-plugin/index.css';
+import { GalleryPlugin } from '@photo-sphere-viewer/gallery-plugin';
+import { AutorotatePlugin } from '@photo-sphere-viewer/autorotate-plugin';
+import '../styles/tour360.css';
+import '../styles/tour360-hotspots.css';
+import {
+  TOUR360_START_NODE_ID,
+  tour360Nodes,
+  type Tour360Node,
+  type TourHotspotDirection,
+  type TourHotspotStyleVariant,
+} from '../data/tour360Nodes';
 
 interface VirtualTour360Props {
-  scenes: Scene[];
-  initialSceneId?: string;
-  onHotspotClick?: (hotspotId: string, targetStationId?: string) => void;
+  nodes?: Tour360Node[];
+  initialNodeId?: string;
 }
 
-export const VirtualTour360: React.FC<VirtualTour360Props> = ({ scenes, initialSceneId, onHotspotClick }) => {
+type TourArrowLink = {
+  nodeId: string;
+  data?: {
+    id?: string;
+    originSceneId?: string;
+    destinationSceneId?: string;
+    label?: string;
+    visibleText?: string;
+    tooltipTitle?: string;
+    tooltipImage?: string;
+    rotationDeg?: number;
+    scale?: number;
+    direction?: TourHotspotDirection;
+    styleVariant?: TourHotspotStyleVariant;
+  };
+};
+
+type ImageMarkerPopup = {
+  title: string;
+  image: string;
+  alt: string;
+};
+
+const TOUR_NODE_ORDER = ['CalleA', 'Entrada_A', 'EntradaLobbySA', 'DescansoSA', 'BibliotecaSA'];
+
+const getLinkLabel = (link: TourArrowLink) => {
+  return typeof link.data?.label === 'string' ? link.data.label : link.nodeId;
+};
+
+const getHotspotDirection = (link: TourArrowLink): TourHotspotDirection => {
+  if (link.data?.direction) {
+    return link.data.direction;
+  }
+
+  const originIndex = TOUR_NODE_ORDER.indexOf(link.data?.originSceneId ?? '');
+  const destinationIndex = TOUR_NODE_ORDER.indexOf(link.data?.destinationSceneId ?? link.nodeId);
+
+  if (originIndex >= 0 && destinationIndex >= 0 && destinationIndex < originIndex) {
+    return 'back';
+  }
+
+  return 'forward';
+};
+
+const getHotspotStyleVariant = (link: TourArrowLink): TourHotspotStyleVariant => {
+  if (link.data?.styleVariant) {
+    return link.data.styleVariant;
+  }
+
+  return link.data?.originSceneId === 'CalleA' || link.data?.originSceneId === 'Entrada_A'
+    ? 'floor-arrow'
+    : 'three-d-arrow';
+};
+
+const getVisibleText = (link: TourArrowLink) => {
+  return link.data?.visibleText ?? link.data?.label ?? (getHotspotDirection(link) === 'back' ? 'Regresar' : 'Ingresar');
+};
+
+/**
+ * Usa el tooltip HTML por defecto del VirtualTourPlugin (name + thumbnail + caption
+ * del nodo destino) y agrega la descripción cuando existe.
+ */
+const enhanceTourLinkTooltip = (
+  content: string,
+  _link: TourArrowLink,
+  node: Tour360Node,
+) => {
+  if (!content || !node.description || content.includes(node.description)) {
+    return content;
+  }
+
+  return `${content}<p class="psv-virtual-tour-tooltip-desc">${node.description}</p>`;
+};
+
+const createTourArrowElement = (link: TourArrowLink) => {
+  const labelText = getVisibleText(link);
+  const direction = getHotspotDirection(link);
+  const styleVariant = getHotspotStyleVariant(link);
+  const rotationDeg = link.data?.rotationDeg ?? 0;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = `tour-hotspot tour-hotspot--${styleVariant}`;
+  button.setAttribute('aria-label', `${labelText}: ${getLinkLabel(link)}`);
+  button.dataset.hotspotId = link.data?.id ?? 'hotspot-to-' + link.nodeId;
+  button.dataset.originSceneId = link.data?.originSceneId ?? '';
+  button.dataset.destinationSceneId = link.data?.destinationSceneId ?? link.nodeId;
+  button.dataset.direction = direction;
+  button.dataset.styleVariant = styleVariant;
+  button.style.setProperty('--hotspot-rotation', `${rotationDeg}deg`);
+
+  const label = document.createElement('span');
+  label.className = 'tour-hotspot__label';
+  label.textContent = labelText;
+
+  const visual = document.createElement('span');
+  visual.className = 'tour-hotspot__visual';
+
+  const icon = document.createElement('span');
+  icon.className = 'tour-hotspot__icon';
+  icon.setAttribute('aria-hidden', 'true');
+
+  visual.append(icon);
+  button.append(label, visual);
+
+  return button;
+};
+
+export const VirtualTour360: React.FC<VirtualTour360Props> = ({
+  nodes = tour360Nodes,
+  initialNodeId = TOUR360_START_NODE_ID,
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const viewerRef = useRef<any>(null);
-  const [activeSceneId, setActiveSceneId] = useState<string>(initialSceneId ?? scenes[0]?.id ?? '');
-
-  const activeScene = useMemo(() => scenes.find(scene => scene.id === activeSceneId) ?? scenes[0], [activeSceneId, scenes]);
-
-  const getViewer = () => viewerRef.current;
-
-  const updateScene = async (sceneId: string) => {
-    const viewer = getViewer();
-    const scene = scenes.find(item => item.id === sceneId);
-    if (!viewer || !scene) return;
-
-    const panoramaUrl = scene.panoramaUrl;
-    if (viewer.setPanorama) {
-      await viewer.setPanorama(panoramaUrl, { transition: true, transitionDuration: 800 });
-    } else if (viewer.setPanoramaUrl) {
-      await viewer.setPanoramaUrl(panoramaUrl, { transition: true, transitionDuration: 800 });
-    } else {
-      viewer.setContent?.({ panorama: panoramaUrl });
-    }
-  };
-
-  const moveCamera = (deltaYaw: number, deltaPitch: number) => {
-    const viewer = getViewer();
-    if (!viewer) return;
-
-    const currentPosition = viewer.getPosition?.() ?? viewer.getViewerPosition?.();
-    const yaw = (currentPosition?.yaw ?? 0) + deltaYaw;
-    const pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, (currentPosition?.pitch ?? 0) + deltaPitch));
-
-    if (viewer.animate) {
-      viewer.animate({ yaw, pitch, duration: 600 });
-    } else if (viewer.rotate) {
-      viewer.rotate({ yaw, pitch, duration: 600 });
-    } else {
-      viewer.setPosition?.({ yaw, pitch });
-    }
-  };
-
-  const goToZone = async (zone: Zone) => {
-    await moveCamera(zone.yaw * (Math.PI / 180), zone.pitch * (Math.PI / 180));
-    if (zone.targetSceneId) {
-      setActiveSceneId(zone.targetSceneId);
-      return;
-    }
-    if (zone.targetStationId) {
-      onHotspotClick?.(zone.id, zone.targetStationId);
-    }
-  };
+  const viewerRef = useRef<Viewer | null>(null);
+  const [activeImagePopup, setActiveImagePopup] = useState<ImageMarkerPopup | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    if (!containerRef.current || viewerRef.current || nodes.length === 0) return;
 
-    (async () => {
-      try {
-        const PSV = await import('@photo-sphere-viewer/core');
-        const VTP = await import('@photo-sphere-viewer/virtual-tour-plugin');
+    const startNode = nodes.find((node) => node.id === initialNodeId) ?? nodes[0];
 
-        const Viewer = (PSV as any).Viewer ?? (PSV as any).default ?? PSV;
-        const VirtualTourPlugin = (VTP as any).VirtualTourPlugin ?? (VTP as any).default ?? VTP;
+    const points = [
+    { yaw: 0.1029, pitch: 0.3158 },
+    { yaw: 0.8532, pitch: -0.1646 },
+    { yaw: 2.7755, pitch: 0.7840 },
+    { yaw: 3.3742, pitch: 0.4757 },
+    { yaw: 4.6591, pitch: 0.6579 },
+    { yaw: 5.7976, pitch: -0.0401 },
+];
 
-        if (!containerRef.current) return;
+    const viewer = new Viewer({
+      container: containerRef.current,
+      panorama: startNode.panorama,
+      defaultYaw: startNode.defaultYaw ?? 0,
+      defaultPitch: startNode.defaultPitch ?? 0,
+      navbar: [
+        'zoom',
+        'move',
+        'fullscreen',
+        'gallery',
+        'autorotate',
+        'markers',
+      ],
+      mousewheel: true,
+      size: { width: '100%', height: '100%' },
+      plugins: [
+        
+      AutorotatePlugin.withConfig({
+            autostartDelay: 1000,
+            autorotateSpeed: '0.5rpm',
+            keypoints: points.map((pt, i) => ({
+                position: pt,
+                pause: i % 3 === 1 ? 2000 : 0,
+                tooltip: 'Test tooltip',
+            })),
+        }),
+        [
+          GalleryPlugin,
+          {
+            thumbnailSize: { width: 200, height: 100 },
+          },
+        ],
+        MarkersPlugin.withConfig({
+          clickEventOnMarker: false,
+        }),
+        [
+          VirtualTourPlugin,
+          {
+            positionMode: 'gps',
+            renderMode: '3d',
+            nodes,
+            startNodeId: startNode.id,
+            preload: true,
+            // Hover nativo del plugin: muestra name + thumbnail + caption del nodo destino.
+            showLinkTooltip: true,
+            getLinkTooltip: enhanceTourLinkTooltip,
+            transitionOptions: {
+              showLoader: true,
+              effect: 'fade',
+              speed: '20rpm',
+              rotation: true,
+            },
+            arrowStyle: {
+              element: createTourArrowElement,
+              className: 'tour-hotspot-link',
+              size: { width: 130, height: 112 },
+            },
+          },
+        ],
+      ],
+    });
 
-        const initial = scenes.find(scene => scene.id === activeSceneId) ?? scenes[0];
+    viewerRef.current = viewer;
 
-        const viewer = new (Viewer as any)({
-          container: containerRef.current,
-          panorama: initial?.panoramaUrl,
-          defaultYaw: (initial?.yaw ?? 0) * (Math.PI / 180),
-          defaultPitch: (initial?.pitch ?? 0) * (Math.PI / 180),
-          navbar: false,
-          mousewheel: true,
-          size: { width: '100%', height: '100%' },
-        });
+    // Debug temporal para reposicionar markers: descomenta y haz clic en el panorama.
+    // viewer.addEventListener('click', ({ data }) => {
+    //   console.log('Coordenadas actuales:', {
+    //     yaw: data.yaw,
+    //     pitch: data.pitch,
+    //   });
+    // });
 
-        new (VirtualTourPlugin as any)(viewer, {
-          nodes: scenes.map(scene => ({
-            id: scene.id,
-            panorama: scene.panoramaUrl,
-            name: scene.name,
-            links: []
-          })),
-          startNodeId: initial?.id,
-          renderMode: '2d',
-          preload: true,
-          positionMode: 'manual',
-          showLinkTooltip: false
-        });
+    const markersPlugin = viewer.getPlugin(MarkersPlugin) as MarkersPlugin | undefined;
+    const handleMarkerSelect = (event: any) => {
+      const data = event.marker?.data ?? event.marker?.config?.data;
 
-        viewerRef.current = viewer;
-
-        try {
-          const psv = viewer;
-          
-          // Clear existing markers
-          try { psv.clearMarkers?.(); } catch {}
-          
-          scenes.forEach(scene => {
-            scene.hotspots?.forEach(hotspot => {
-              try {
-                psv.addMarker?.({
-                  id: `${scene.id}-${hotspot.id}`,
-                  longitude: (hotspot.yaw || 0) * (Math.PI / 180),
-                  latitude: (hotspot.pitch || 0) * (Math.PI / 180),
-                  tooltip: hotspot.targetSceneId ? false : hotspot.label ?? hotspot.id,
-                  width: 120,
-                  height: 64,
-                  anchor: 'bottom',
-                  className: hotspot.targetSceneId ? 'psv-marker-arrow-3d' : undefined,
-                  content: hotspot.targetSceneId
-                    ? `<div class="psv-marker-arrow-inner"><span class="psv-marker-arrow-label">ENTRADA</span><strong class="psv-marker-arrow-symbol">→</strong></div>`
-                    : undefined,
-                  data: { targetStationId: hotspot.targetStationId, targetSceneId: hotspot.targetSceneId }
-                });
-              } catch (error) {
-                console.debug('Marker error:', error);
-              }
-            });
-          });
-
-          psv.on?.('select-marker', (e: any) => {
-            const id = e?.marker?.id;
-            const data = e?.marker?.data;
-            if (!id) return;
-            if (data?.targetSceneId) {
-              setActiveSceneId(data.targetSceneId);
-              return;
-            }
-            onHotspotClick?.(id, data?.targetStationId);
-          });
-        } catch (error) {
-          console.debug('Marker attach error:', error);
-        }
-      } catch (error) {
-        // console.error('VirtualTour360 init error', error);
+      if (event.marker?.id !== 'calle-a-marco-image-layer' || data?.action !== 'open-image-popup' || typeof data.image !== 'string') {
+        return;
       }
-    })();
+
+      console.log('Marker MARCO seleccionado');
+
+      setActiveImagePopup({
+        title: typeof data.title === 'string' ? data.title : 'Imagen informativa',
+        image: data.image,
+        alt: typeof data.alt === 'string' ? data.alt : 'Imagen informativa del tour 360',
+      });
+    };
+
+    markersPlugin?.addEventListener('select-marker', handleMarkerSelect);
 
     return () => {
-      cancelled = true;
-      if (viewerRef.current && typeof viewerRef.current.destroy === 'function') {
-        try { viewerRef.current.destroy(); } catch (error) {}
-      }
+      markersPlugin?.removeEventListener('select-marker', handleMarkerSelect);
       viewerRef.current = null;
+      viewer.destroy();
     };
-  }, [activeSceneId, scenes, onHotspotClick]);
+  }, [initialNodeId, nodes]);
 
-  useEffect(() => {
-    updateScene(activeSceneId);
-  }, [activeSceneId]);
-
-  useEffect(() => {
-    const viewer = viewerRef.current;
-    if (!viewer) return;
-
-    try {
-      const psv = viewer;
-      const activeScene = scenes.find(s => s.id === activeSceneId);
-      
-      // Clear and re-render markers for current scene
-      try { psv.clearMarkers?.(); } catch {}
-      
-      activeScene?.hotspots?.forEach(hotspot => {
-        try {
-          psv.addMarker?.({
-            id: `${activeScene.id}-${hotspot.id}`,
-            longitude: (hotspot.yaw || 0) * (Math.PI / 180),
-            latitude: (hotspot.pitch || 0) * (Math.PI / 180),
-            tooltip: hotspot.targetSceneId ? false : hotspot.label ?? hotspot.id,
-            width: 120,
-            height: 64,
-            anchor: 'bottom',
-            className: hotspot.targetSceneId ? 'psv-marker-arrow-3d' : undefined,
-            content: hotspot.targetSceneId
-              ? `<div class="psv-marker-arrow-inner"><span class="psv-marker-arrow-label">ENTRADA</span><strong class="psv-marker-arrow-symbol">→</strong></div>`
-              : undefined,
-            data: { targetStationId: hotspot.targetStationId, targetSceneId: hotspot.targetSceneId }
-          });
-        } catch (error) {
-          console.debug('Marker error:', error);
-        }
-      });
-    } catch (error) {
-      console.debug('Scene marker update error:', error);
-    }
-  }, [activeSceneId, scenes]);
+  if (nodes.length === 0) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-black text-sm font-semibold text-white">
+        No hay escenas configuradas para el tour 360.
+      </div>
+    );
+  }
 
   return (
-    <div className="relative w-full h-full">
-      <div ref={containerRef} className="w-full h-full bg-black" />
-      
-      {/* Hotspot overlay buttons positioned over the panorama */}
-      {activeScene?.hotspots?.map(hotspot => (
-        hotspot.targetSceneId && (
-          <button
-            key={hotspot.id}
-            type="button"
-            onClick={() => {
-              if (hotspot.targetSceneId) {
-                setActiveSceneId(hotspot.targetSceneId);
-              }
-            }}
-            className="psv-hotspot-overlay"
-            style={{
-              left: `calc(50% + ${(hotspot.yaw || 0) * 5.7}%)`,
-              top: `calc(50% + ${(hotspot.pitch || 0) * -5.7}%)`,
-            }}
-            title="Haz clic para entrar"
-          >
-            <div className="psv-marker-arrow-inner">
-              <span className="psv-marker-arrow-label">ENTRADA</span>
-              <strong className="psv-marker-arrow-symbol">→</strong>
-            </div>
-          </button>
-        )
-      ))}
+    <div className="relative h-full w-full bg-black">
+      <div ref={containerRef} className="h-full w-full bg-black" />
 
-      <div className="absolute top-4 right-4 z-20 grid gap-2 p-3 rounded-3xl bg-slate-950/90 border border-slate-800 shadow-2xl text-white text-[11px]">
-        <span className="font-mono uppercase text-[10px] text-emerald-300 tracking-[0.25em]">Controles 360</span>
-        <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => moveCamera(-0.25, 0)} className="rounded-xl bg-white/10 px-3 py-2 text-left hover:bg-white/20">← Izquierda</button>
-          <button type="button" onClick={() => moveCamera(0.25, 0)} className="rounded-xl bg-white/10 px-3 py-2 text-left hover:bg-white/20">Derecha →</button>
-          <button type="button" onClick={() => moveCamera(0, -0.15)} className="rounded-xl bg-white/10 px-3 py-2 text-left hover:bg-white/20">Arriba</button>
-          <button type="button" onClick={() => moveCamera(0, 0.15)} className="rounded-xl bg-white/10 px-3 py-2 text-left hover:bg-white/20">Abajo</button>
+      {activeImagePopup && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/78 p-4 backdrop-blur-md">
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default border-0 bg-transparent"
+            aria-label="Cerrar imagen"
+            onClick={() => setActiveImagePopup(null)}
+          />
+
+          <div className="relative z-10 flex max-h-[92%] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-slate-950 shadow-[0_30px_90px_rgba(0,0,0,0.55)]">
+            <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3">
+              <h3 className="m-0 text-sm font-black uppercase tracking-wide text-white">
+                {activeImagePopup.title}
+              </h3>
+              <button
+                type="button"
+                className="rounded-lg border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-black uppercase text-white transition hover:bg-white/20"
+                onClick={() => setActiveImagePopup(null)}
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="min-h-0 bg-black p-3">
+              <img
+                src={activeImagePopup.image}
+                alt={activeImagePopup.alt}
+                className="max-h-[76vh] w-full object-contain"
+              />
+            </div>
+          </div>
         </div>
-        <div className="grid gap-2 pt-2 border-t border-slate-800">
-          {activeScene?.zones?.map(zone => (
-            <button
-              key={zone.id}
-              type="button"
-              onClick={() => goToZone(zone)}
-              className="rounded-2xl bg-[#9BFF00]/10 px-3 py-2 text-left font-semibold text-[#9BFF00] hover:bg-[#9BFF00]/20"
-            >
-              {zone.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="absolute left-4 bottom-4 z-20 p-3 rounded-3xl bg-slate-950/90 border border-slate-800 shadow-2xl text-white text-[11px] max-w-[240px]">
-        <p className="font-mono uppercase text-[10px] text-emerald-300 tracking-[0.25em]">Zonas activas</p>
-        <p className="mt-2 text-xs text-slate-300 leading-relaxed">Haz clic en las zonas para mover la vista y conectar con los contenidos de la inducción.</p>
-      </div>
-      <style>{`
-        .psv-hotspot-overlay {
-          position: absolute;
-          transform: translate(-50%, -50%);
-          z-index: 15;
-          border: none;
-          background: none;
-          cursor: pointer;
-          padding: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.3s ease;
-        }
-        .psv-hotspot-overlay:hover {
-          transform: translate(-50%, -50%) scale(1.08);
-        }
-        .psv-hotspot-overlay:active {
-          transform: translate(-50%, -50%) scale(0.96);
-        }
-        .psv-marker-arrow-3d {
-          transform-style: preserve-3d;
-          perspective: 900px;
-        }
-        .psv-marker-arrow-inner {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.75rem;
-          padding: 0.75rem 1.05rem;
-          min-width: 12rem;
-          border-radius: 999px;
-          border: 1px solid rgba(155, 255, 0, 0.28);
-          background: rgba(15, 23, 42, 0.88);
-          box-shadow: 0 28px 60px rgba(0, 0, 0, 0.32), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-          backdrop-filter: blur(10px);
-          color: #f8fafc;
-          font-size: 0.78rem;
-          font-weight: 800;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          transform: translateZ(0);
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
-          animation: psv-hotspot-pulse 2.4s ease-in-out infinite;
-          overflow: hidden;
-        }
-        .psv-marker-arrow-inner::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 999px;
-          background: radial-gradient(circle at 50% 50%, rgba(155, 255, 0, 0.32), transparent 60%);
-          opacity: 0.65;
-          pointer-events: none;
-        }
-        .psv-marker-arrow-inner:hover {
-          transform: translateY(-2px) scale(1.03);
-          box-shadow: 0 34px 76px rgba(0, 0, 0, 0.38), inset 0 0 0 1px rgba(255, 255, 255, 0.09);
-        }
-        .psv-marker-arrow-label {
-          z-index: 1;
-          letter-spacing: 0.24em;
-          font-size: 0.75rem;
-        }
-        .psv-marker-arrow-symbol {
-          z-index: 1;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 2rem;
-          height: 2rem;
-          border-radius: 999px;
-          background: linear-gradient(135deg, #9bff00 0%, #80c400 100%);
-          color: #0f172a;
-          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
-        }
-        @keyframes psv-hotspot-pulse {
-          0%, 100% { transform: scale(1) translateZ(0); }
-          50% { transform: scale(1.06) translateZ(10px); }
-        }
-      `}</style>
+      )}
     </div>
   );
 };

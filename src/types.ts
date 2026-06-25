@@ -3,8 +3,8 @@ export interface TutorialShort {
   title: string;
   duration: string;
   description: string;
-  videoUrl: string; // Embeddable video URL or video file
-  iconName: string; // Lucide icon identifier
+  videoUrl: string;
+  iconName: string;
   accentColor: 'blue' | 'green';
 }
 
@@ -12,8 +12,8 @@ export interface PlatformFeature {
   id: string;
   title: string;
   description: string;
-  iconName: string; // Lucide icon identifier
-  details: string[]; // Specific sub-details student will find
+  iconName: string;
+  details: string[];
 }
 
 export type EventStatus = 'activity' | 'delivery' | 'recommended' | 'pending';
@@ -33,10 +33,10 @@ export interface CampusHotspot {
   id: string;
   name: string;
   description: string;
-  x: number; // percentage coordinates (0-100) for custom panorama positioning
-  y: number; // percentage coordinates (0-100)
-  imageUri: string; // Preview image of that hotspot
-  amenities: string[]; // key information points
+  x: number;
+  y: number;
+  imageUri: string;
+  amenities: string[];
 }
 
 export interface OnboardingConfig {

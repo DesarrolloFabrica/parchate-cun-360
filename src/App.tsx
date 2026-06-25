@@ -44,9 +44,11 @@ export default function App() {
         </Routes>
       </main>
 
-      {/* Spontaneous Smart Alert Popups */}
-      <MonthlySmartAlerts onNavigateToHubTab={handleNavigateToHubTab} />
-
+      {/* popups
+      <MonthlySmartAlerts onNavigateToHubTab={handleNavigateToHubTab} /> 
+      */
+      }
+      
     </div>
   );
 }

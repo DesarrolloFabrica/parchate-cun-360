@@ -1,0 +1,75 @@
+/* Tooltip nativo del VirtualTourPlugin (name + thumbnail + caption del destino) */
+.psv-container .psv-tooltip.psv-virtual-tour-tooltip {
+  z-index: 100;
+  max-width: 220px;
+  background: rgba(20, 20, 20, 0.88);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.psv-container .psv-tooltip.psv-virtual-tour-tooltip .psv-tooltip-content {
+  padding: 0;
+  color: #ffffff;
+}
+
+.psv-virtual-tour-tooltip h3 {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.psv-virtual-tour-tooltip img {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  height: 140px;
+  margin: 0;
+  object-fit: cover;
+}
+
+.psv-virtual-tour-tooltip p {
+  margin: 0;
+  padding: 8px 12px 10px;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.psv-virtual-tour-tooltip-desc {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(226, 232, 240, 0.92);
+  font-size: 12px !important;
+}
+
+.psv-container .cun-tour-image-marker {
+  cursor: pointer;
+  filter:
+    drop-shadow(0 18px 22px rgba(0, 0, 0, 0.46))
+    drop-shadow(0 0 12px rgba(155, 255, 0, 0.16));
+  transform-origin: center center;
+  transition:
+    filter 0.22s ease,
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.psv-container .cun-tour-image-marker,
+.psv-container .cun-tour-image-marker img {
+  border-radius: 14px;
+}
+
+.psv-container .cun-tour-image-marker {
+  border: 2px solid rgba(255, 255, 255, 0.68);
+  background: rgba(2, 6, 23, 0.28);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 12px 34px rgba(0, 0, 0, 0.34);
+}
+
+.psv-container .cun-tour-image-marker:hover {
+  filter:
+    drop-shadow(0 22px 28px rgba(0, 0, 0, 0.52))
+    drop-shadow(0 0 18px rgba(155, 255, 0, 0.32));
+  opacity: 0.98;
+}
