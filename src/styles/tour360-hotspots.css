@@ -69,7 +69,7 @@
   position: relative;
   display: grid;
   place-items: center;
-  transform: rotate(var(--hotspot-rotation, 0deg));
+  transform: none;
   transform-origin: center center;
 }
 
@@ -79,7 +79,8 @@
 }
 
 .tour-hotspot--floor-arrow {
-  perspective: 300px;
+  perspective: 100px;
+  rotate: 0deg;
 }
 
 .tour-hotspot--floor-arrow .tour-hotspot__label {
@@ -97,6 +98,7 @@
 .tour-hotspot--floor-arrow .tour-hotspot__visual {
   width: 74px;
   height: 74px;
+  transform: rotate(var(--hotspot-rotation, 0deg));
 }
 
 .tour-hotspot--floor-arrow .tour-hotspot__visual::before {
@@ -133,24 +135,22 @@
   filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.42));
 }
 
-/* Compensación: el wrapper 3D del plugin puede invertir el hotspot completo. */
-.psv-container .psv-virtual-tour-link .tour-hotspot--three-d-arrow .tour-hotspot__label {
-  transform: rotateY(180deg) !important;
-}
-
 .tour-hotspot--three-d-arrow .tour-hotspot__visual {
-  width: 92px;
-  height: 72px;
-  border: 0;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 35% 25%, rgba(30, 64, 175, 0.9), rgba(15, 23, 42, 0.95) 72%);
+  --hotspot-scale: 1;
+  width: 78px;
+  height: 78px;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  border-radius: 9999px;
+  background: rgba(22, 163, 74, 0.52);
+  backdrop-filter: blur(6px);
   box-shadow:
-    0 14px 34px rgba(0, 0, 0, 0.42),
-    0 0 0 0 rgba(34, 197, 94, 0.45),
-    inset 0 0 0 2px rgba(255, 255, 255, 0.76),
-    inset 0 0 24px rgba(96, 165, 250, 0.3);
+    0 14px 28px rgba(0, 0, 0, 0.35),
+    inset 0 0 18px rgba(255, 255, 255, 0.16);
   overflow: visible;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease;
   animation:
     tourThreeDArrowFloat 2.2s ease-in-out infinite,
     tourThreeDArrowPulse 2s ease-in-out infinite;
@@ -168,33 +168,255 @@
 }
 
 .tour-hotspot--three-d-arrow .tour-hotspot__icon {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-top: 8px solid #ffffff;
   border-right: 8px solid #ffffff;
   border-radius: 2px;
+  background: transparent;
   filter:
-    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.42))
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.38))
     drop-shadow(0 0 8px rgba(255, 255, 255, 0.32));
-  transform: rotate(45deg) translate(-3px, 3px);
+  transform: rotate(calc(var(--hotspot-rotation, 0deg) - 45deg));
+  transform-origin: center;
+}
+
+.tour-hotspot--three-d-arrow:hover .tour-hotspot__visual,
+.tour-hotspot--three-d-arrow:focus-visible .tour-hotspot__visual {
+  --hotspot-scale: 1.08;
+  background: rgba(34, 197, 94, 0.68);
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.42),
+    0 0 0 12px rgba(34, 197, 94, 0.16),
+    0 0 26px rgba(34, 197, 94, 0.38),
+    inset 0 0 20px rgba(255, 255, 255, 0.22);
+}
+
+.psv-container .tour-video-hotspot-marker {
+  overflow: visible;
+  pointer-events: auto;
+}
+
+.tour-video-hotspot {
+  position: relative;
+  display: block;
+  width: 360px;
+  height: 210px;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(2, 6, 23, 0.88)),
+    rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.45),
+    0 0 0 2px rgba(255, 255, 255, 0.35);
+  transform-style: preserve-3d;
+  transition:
+    box-shadow 0.22s ease,
+    transform 0.22s ease;
+}
+
+.tour-video-hotspot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(135deg, transparent 0 46%, rgba(255, 255, 255, 0.18) 50%, transparent 54%),
+    radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.14), transparent 54%);
+  pointer-events: none;
+}
+
+.tour-video-hotspot__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.tour-video-hotspot__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tour-video-hotspot__zoom-icon {
+  position: relative;
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+  color: #0f172a;
+  transform: scale(0.88);
+  transition: transform 0.2s ease;
+}
+
+.tour-video-hotspot__zoom-icon::before {
+  content: '';
+  width: 22px;
+  height: 22px;
+  border: 4px solid currentColor;
+  border-radius: 999px;
+  transform: translate(-3px, -3px);
+}
+
+.tour-video-hotspot__zoom-icon::after {
+  content: '';
+  position: absolute;
+  left: 37px;
+  top: 38px;
+  width: 18px;
+  height: 5px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: rotate(45deg);
+  transform-origin: left center;
+}
+
+.tour-video-hotspot__label {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  z-index: 3;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.74);
+  color: white;
+  font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.1;
+  pointer-events: none;
+  text-align: center;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
+.tour-video-hotspot:hover,
+.tour-video-hotspot:focus-visible {
+  box-shadow:
+    0 22px 54px rgba(0, 0, 0, 0.52),
+    0 0 0 3px rgba(255, 255, 255, 0.55),
+    0 0 28px rgba(34, 197, 94, 0.28);
+  outline: none;
+  transform: scale(1.035);
+}
+
+.tour-video-hotspot:hover .tour-video-hotspot__overlay,
+.tour-video-hotspot:focus-visible .tour-video-hotspot__overlay {
+  opacity: 1;
+}
+
+.tour-video-hotspot:hover .tour-video-hotspot__zoom-icon,
+.tour-video-hotspot:focus-visible .tour-video-hotspot__zoom-icon {
+  transform: scale(1);
+}
+
+.tour-video-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.76);
+  backdrop-filter: blur(8px);
+}
+
+.tour-video-modal__content {
+  position: relative;
+  width: min(1080px, 94vw);
+  max-height: 92vh;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+
+.tour-video-modal__title {
+  margin: 0 52px 8px 0;
+  color: white;
+  font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.tour-video-modal__description {
+  margin: 0 52px 14px 0;
+  color: rgba(226, 232, 240, 0.82);
+  font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.tour-video-modal__player {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  max-height: 76vh;
+  border: 0;
+  border-radius: 18px;
+  background: black;
+}
+
+.tour-video-modal__close {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: white;
+  color: #0f172a;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.tour-video-modal__close:hover,
+.tour-video-modal__close:focus-visible {
+  background: rgba(255, 255, 255, 0.86);
+  outline: 2px solid rgba(34, 197, 94, 0.85);
+  outline-offset: 2px;
 }
 
 @keyframes tourThreeDArrowPulse {
   0%,
   100% {
     box-shadow:
-      0 14px 34px rgba(0, 0, 0, 0.42),
-      0 0 0 0 rgba(34, 197, 94, 0.45),
-      inset 0 0 0 2px rgba(255, 255, 255, 0.76),
-      inset 0 0 24px rgba(96, 165, 250, 0.3);
+      0 14px 28px rgba(0, 0, 0, 0.35),
+      0 0 0 0 rgba(34, 197, 94, 0.35),
+      inset 0 0 18px rgba(255, 255, 255, 0.16);
   }
 
   50% {
     box-shadow:
-      0 16px 38px rgba(0, 0, 0, 0.46),
-      0 0 0 13px rgba(34, 197, 94, 0),
-      inset 0 0 0 2px rgba(255, 255, 255, 0.86),
-      inset 0 0 30px rgba(96, 165, 250, 0.38);
+      0 16px 34px rgba(0, 0, 0, 0.4),
+      0 0 0 11px rgba(34, 197, 94, 0),
+      inset 0 0 20px rgba(255, 255, 255, 0.2);
   }
 }
 
@@ -214,11 +436,11 @@
 @keyframes tourThreeDArrowFloat {
   0%,
   100% {
-    transform: rotate(var(--hotspot-rotation, 0deg)) translateY(0);
+    transform: scale(var(--hotspot-scale, 1)) translateY(0);
   }
 
   50% {
-    transform: rotate(var(--hotspot-rotation, 0deg)) translateY(-4px);
+    transform: scale(var(--hotspot-scale, 1)) translateY(-4px);
   }
 }
 
@@ -258,14 +480,51 @@
   }
 
   .tour-hotspot--three-d-arrow .tour-hotspot__visual {
-    width: 80px;
-    height: 62px;
+    width: 70px;
+    height: 70px;
   }
 
   .tour-hotspot--three-d-arrow .tour-hotspot__icon {
-    width: 29px;
-    height: 29px;
+    width: 27px;
+    height: 27px;
     border-top-width: 7px;
     border-right-width: 7px;
+  }
+
+  .tour-video-hotspot {
+    width: 280px;
+    height: 164px;
+    border-radius: 14px;
+  }
+
+  .tour-video-hotspot__label {
+    max-width: calc(100% - 28px);
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+  }
+
+  .tour-video-modal {
+    padding: 14px;
+  }
+
+  .tour-video-modal__content {
+    width: min(100%, 94vw);
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .tour-video-modal__title {
+    margin-right: 48px;
+    font-size: 18px;
+  }
+
+  .tour-video-modal__description {
+    margin-right: 48px;
+  }
+
+  .tour-video-modal__player {
+    max-height: 70vh;
+    border-radius: 12px;
   }
 }

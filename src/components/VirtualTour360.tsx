@@ -5,6 +5,7 @@ import { MarkersPlugin } from '@photo-sphere-viewer/markers-plugin';
 import '@photo-sphere-viewer/core/index.css';
 import '@photo-sphere-viewer/virtual-tour-plugin/index.css';
 import '@photo-sphere-viewer/markers-plugin/index.css';
+import '@photo-sphere-viewer/gallery-plugin/index.css';
 import { GalleryPlugin } from '@photo-sphere-viewer/gallery-plugin';
 import { AutorotatePlugin } from '@photo-sphere-viewer/autorotate-plugin';
 import '../styles/tour360.css';
@@ -43,6 +44,12 @@ type ImageMarkerPopup = {
   title: string;
   image: string;
   alt: string;
+};
+
+type VideoMarkerPopup = {
+  title: string;
+  iframeSrc: string;
+  description?: string;
 };
 
 const TOUR_NODE_ORDER = ['CalleA', 'Entrada_A', 'EntradaLobbySA', 'DescansoSA', 'BibliotecaSA'];
@@ -118,10 +125,10 @@ const createTourArrowElement = (link: TourArrowLink) => {
   label.textContent = labelText;
 
   const visual = document.createElement('span');
-  visual.className = 'tour-hotspot__visual';
+  visual.className = 'tour-hotspot__visual tour-hotspot__circle';
 
   const icon = document.createElement('span');
-  icon.className = 'tour-hotspot__icon';
+  icon.className = 'tour-hotspot__icon tour-hotspot__arrow';
   icon.setAttribute('aria-hidden', 'true');
 
   visual.append(icon);
@@ -136,12 +143,33 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
+  const [currentNodeId, setCurrentNodeId] = useState(initialNodeId);
   const [activeImagePopup, setActiveImagePopup] = useState<ImageMarkerPopup | null>(null);
+  const [activeVideo, setActiveVideo] = useState<VideoMarkerPopup | null>(null);
+  const currentNode = nodes.find((node) => node.id === currentNodeId) ?? nodes[0];
+  const currentNodeTitle = currentNode?.name || currentNode?.caption || currentNode?.id || 'Recorrido 360';
+
+  useEffect(() => {
+    if (!activeVideo) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveVideo(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [activeVideo]);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current || nodes.length === 0) return;
 
     const startNode = nodes.find((node) => node.id === initialNodeId) ?? nodes[0];
+    setCurrentNodeId(startNode.id);
 
     const points = [
     { yaw: 0.1029, pitch: 0.3158 },
@@ -160,6 +188,17 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
       navbar: [
         'zoom',
         'move',
+      /*
+        {
+          id: 'test-mode',
+          title: 'Modo test',
+          content: 'TEST',
+          onClick(viewer) {
+            const virtualTour = viewer.getPlugin(VirtualTourPlugin) as any;
+            virtualTour?.setCurrentNode?.('SphereTest');
+          },
+        },
+        */
         'fullscreen',
         'gallery',
         'autorotate',
@@ -182,6 +221,8 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
           GalleryPlugin,
           {
             thumbnailSize: { width: 200, height: 100 },
+            visibleOnLoad: false,
+            hideOnClick: true,
           },
         ],
         MarkersPlugin.withConfig({
@@ -216,17 +257,53 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
 
     viewerRef.current = viewer;
 
-    // Debug temporal para reposicionar markers: descomenta y haz clic en el panorama.
-    // viewer.addEventListener('click', ({ data }) => {
-    //   console.log('Coordenadas actuales:', {
-    //     yaw: data.yaw,
-    //     pitch: data.pitch,
-    //   });
-    // });
+    const virtualTourPlugin = viewer.getPlugin(VirtualTourPlugin) as any;
+    const handleNodeChanged = (event: { node?: { id?: string } }) => {
+      if (typeof event.node?.id === 'string') {
+        setCurrentNodeId(event.node.id);
+        setActiveVideo(null);
+      }
+    };
+
+    virtualTourPlugin?.addEventListener?.('node-changed', handleNodeChanged);
+
+    const activeNode = virtualTourPlugin?.getCurrentNode?.();
+    if (typeof activeNode?.id === 'string') {
+      setCurrentNodeId(activeNode.id);
+    }
+
+    // Debug temporal para ubicar el video dentro de la escena.
+    // Descomentar solo mientras se ajusta la posicion.
+    /*
+    viewer.addEventListener('click', ({ data }) => {
+      console.log('Coordenadas para video:', {
+        yaw: data.yaw,
+        pitch: data.pitch,
+      });
+    });
+    */
 
     const markersPlugin = viewer.getPlugin(MarkersPlugin) as MarkersPlugin | undefined;
+    const openVideoFromMarkerData = (data: any) => {
+      if (data?.action !== 'open-video-modal' || typeof data.iframeSrc !== 'string') {
+        return false;
+      }
+
+      setActiveVideo({
+        title: typeof data.title === 'string' ? data.title : 'Video del recorrido',
+        iframeSrc: data.iframeSrc,
+        description: typeof data.description === 'string' ? data.description : undefined,
+      });
+
+      return true;
+    };
+
     const handleMarkerSelect = (event: any) => {
       const data = event.marker?.data ?? event.marker?.config?.data;
+
+      if (openVideoFromMarkerData(data)) {
+        return;
+      }
 
       if (event.marker?.id !== 'calle-a-marco-image-layer' || data?.action !== 'open-image-popup' || typeof data.image !== 'string') {
         return;
@@ -241,10 +318,33 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
       });
     };
 
+    const handleVideoHotspotKeydown = (event: KeyboardEvent) => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+
+      const target = event.target as HTMLElement | null;
+      const hotspot = target?.closest?.('.tour-video-hotspot') as HTMLElement | null;
+
+      if (!hotspot) {
+        return;
+      }
+
+      event.preventDefault();
+      setActiveVideo({
+        title: hotspot.dataset.videoTitle || 'Video del recorrido',
+        iframeSrc: hotspot.dataset.videoIframeSrc || '',
+        description: hotspot.dataset.videoDescription,
+      });
+    };
+
     markersPlugin?.addEventListener('select-marker', handleMarkerSelect);
+    viewer.container.addEventListener('keydown', handleVideoHotspotKeydown);
 
     return () => {
+      virtualTourPlugin?.removeEventListener?.('node-changed', handleNodeChanged);
       markersPlugin?.removeEventListener('select-marker', handleMarkerSelect);
+      viewer.container.removeEventListener('keydown', handleVideoHotspotKeydown);
       viewerRef.current = null;
       viewer.destroy();
     };
@@ -261,6 +361,57 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
   return (
     <div className="relative h-full w-full bg-black">
       <div ref={containerRef} className="h-full w-full bg-black" />
+
+      <div className="pointer-events-none absolute left-3 top-3 z-20 max-w-[calc(100%-1.5rem)] rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-white shadow-xl backdrop-blur-md sm:left-4 sm:top-4 sm:max-w-[24rem] sm:px-5">
+        <p className="m-0 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/70 sm:text-xs">
+          Tour 360
+        </p>
+        <h2 className="m-0 mt-1 truncate font-['Montserrat'] text-lg font-black leading-tight text-white sm:text-xl md:text-2xl">
+          {currentNodeTitle}
+        </h2>
+      </div>
+
+      {activeVideo && (
+        <div
+          className="tour-video-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={activeVideo.title}
+          onClick={() => setActiveVideo(null)}
+        >
+          <div
+            className="tour-video-modal__content"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="tour-video-modal__close"
+              onClick={() => setActiveVideo(null)}
+              aria-label="Cerrar video"
+            >
+              X
+            </button>
+
+            <h2 className="tour-video-modal__title">
+              {activeVideo.title}
+            </h2>
+
+            {activeVideo.description && (
+              <p className="tour-video-modal__description">
+                {activeVideo.description}
+              </p>
+            )}
+
+            <iframe
+              className="tour-video-modal__player"
+              src={activeVideo.iframeSrc}
+              title={activeVideo.title}
+              allow="autoplay; fullscreen"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
 
       {activeImagePopup && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/78 p-4 backdrop-blur-md">

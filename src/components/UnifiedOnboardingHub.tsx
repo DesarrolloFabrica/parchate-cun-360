@@ -1,14 +1,16 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Building, Monitor, FileText, LifeBuoy, Users, Heart, Sparkles, 
+  Building, Monitor, FileText, LifeBuoy, Users, Heart, 
   Play, ExternalLink, ArrowRight, Clock, Calendar, HelpCircle, 
   MapPin, Compass, GraduationCap, ChevronRight, Eye, ChevronLeft, Award, Lock, Check
 } from 'lucide-react';
+import lottie from 'lottie-web/build/player/lottie_light';
 import { DEFAULT_HUB_TAB, isHubTab, type HubTab } from '../navigation';
 import { useSearchParams } from 'react-router-dom';
 import VirtualTour360 from './VirtualTour360';
 import { TOUR360_START_NODE_ID, tour360Nodes } from '../data/tour360Nodes';
+import EarthAnimation from '../assets/iconos/Earth.json';
 
 type StationType = 'video' | 'pdf' | 'infografia';
 
@@ -40,6 +42,37 @@ interface CalendarActivity {
 interface UnifiedOnboardingHubProps {
 }
 
+const AnimatedEarthIcon: React.FC<{ className?: string }> = ({ className }) => {
+  const containerRef = useRef<HTMLSpanElement | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const animation = lottie.loadAnimation({
+      container: containerRef.current,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      animationData: EarthAnimation,
+      rendererSettings: {
+        preserveAspectRatio: 'xMidYMid meet',
+      },
+    });
+
+    return () => {
+      animation.destroy();
+    };
+  }, []);
+
+  return (
+    <span
+      ref={containerRef}
+      className={`block shrink-0 overflow-hidden ${className ?? ''}`}
+      aria-hidden="true"
+    />
+  );
+};
+
 export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -59,8 +92,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const [activePopupStation, setActivePopupStation] = useState<Station | null>(null);
   const [activePdfPage, setActivePdfPage] = useState<number>(0);
 
-  // Active chosen calendar activity day
-  const [selectedDay, setSelectedDay] = useState<number>(8);
+  // Active chosen calendar activity day. Starts with the first configured event.
+  const [selectedDay, setSelectedDay] = useState<number>(5);
 
   // Lock progression alert warning state
   const [stationLockWarning, setStationLockWarning] = useState<{
@@ -303,7 +336,24 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   };
 
   const currentTrackStations = activeTab === 'cun360' ? cun360Stations : cdigitalStations;
-  const currentActivity = calendarActivities.find(act => act.day === selectedDay);
+  const selectedDayActivities = calendarActivities.filter(act => act.day === selectedDay);
+  const selectedDateLabel = `Día ${selectedDay} de inducción`;
+  const getCalendarTypeLabel = (type: CalendarActivity['type']) => {
+    if (type === 'academic') return 'Académico CUN';
+    if (type === 'wellness') return 'Bienestar CUNISTA';
+    return 'Sincrónico Digital';
+  };
+  const getCalendarTypeClasses = (type: CalendarActivity['type']) => {
+    if (type === 'academic') return 'bg-amber-500/15 text-amber-300 border-amber-400/35';
+    if (type === 'wellness') return 'bg-rose-500/15 text-rose-300 border-rose-400/35';
+    return 'bg-cyan-500/15 text-cyan-300 border-cyan-400/35';
+  };
+  const getCalendarDotClass = (type?: CalendarActivity['type']) => {
+    if (type === 'academic') return 'bg-amber-400';
+    if (type === 'wellness') return 'bg-rose-400';
+    if (type === 'tech') return 'bg-cyan-400';
+    return 'bg-slate-600';
+  };
 
   // Folder design Tabs Definition
   const tabsList: Array<{ id: HubTab; label: string; icon: typeof Compass; isLockedOption: boolean }> = [
@@ -323,7 +373,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       <div className="flex flex-col sm:flex-row items-center justify-between bg-slate-900/40 border border-[#9BFF00]/15 rounded-2xl p-3 sm:p-4 mb-4 gap-3 shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-[#9BFF00]/10 text-[#9BFF00] hidden sm:block shrink-0">
-            <Sparkles className="w-5 h-5 animate-pulse" />
+            <AnimatedEarthIcon className="h-6 w-6" />
           </div>
           <div className="text-left">
             <span className="text-[9px] font-mono tracking-widest text-[#9BFF00] font-black uppercase">
@@ -376,7 +426,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 uppercase tracking-widest pb-1 border-b border-white/5 shrink-0 select-none">
                 <span className="flex items-center gap-1.5 text-[#9BFF00] font-black">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#9BFF00] animate-ping" />
-                  RECORRIDO 360 INTERACTIVO - PHOTO SPHERE VIEWER
+                  RECORRIDO 360 INTERACTIVO
                 </span>
                 <span className="hidden sm:inline">Tour local navegable</span>
               </div>
@@ -541,26 +591,44 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full h-full flex flex-col justify-between"
+              className="w-full h-full flex flex-col min-h-0"
             >
-              <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 uppercase tracking-widest pb-1 border-b border-white/5 shrink-0 select-none mb-1">
-                <span className="text-[#9BFF00] font-black">CRONOGRAMA DE ACTIVIDADES INSTITUCIONALES CUN • 2026</span>
-                <span>Bogotá / Virtual</span>
+              <div className="flex flex-col gap-1 border-b border-white/5 pb-3 text-left sm:flex-row sm:items-end sm:justify-between shrink-0 select-none">
+                <div>
+                  <p className="m-0 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#9BFF00]">
+                    Cronograma de actividades institucionales CUN
+                  </p>
+                  <h2 className="m-0 mt-1 font-display text-xl font-black uppercase leading-none text-white sm:text-2xl">
+                    Junio 2026
+                  </h2>
+                </div>
+                <span className="text-[10px] font-mono font-black uppercase tracking-widest text-zinc-400">
+                  Bogotá / Virtual
+                </span>
               </div>
 
-              {/* Layout splits into compact calendar grid on left and selected day description on right */}
-              <div className="flex-1 grid md:grid-cols-12 gap-3 min-h-0 relative my-1">
+              <div className="grid flex-1 gap-4 overflow-y-auto pt-4 lg:grid-cols-[minmax(0,4fr)_minmax(260px,1fr)] xl:grid-cols-[minmax(0,4.4fr)_minmax(280px,1fr)] lg:overflow-hidden">
                 
-                {/* 30-day Calendar board */}
-                <div className="md:col-span-7 bg-slate-900/60 border border-slate-800 rounded-xl p-3 flex flex-col justify-between min-h-0 select-none">
+                <div className="flex min-h-[520px] flex-col rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-2xl backdrop-blur-xl sm:p-5 lg:min-h-0">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="m-0 text-[10px] font-mono font-black uppercase tracking-[0.22em] text-white/50">
+                        Calendario mensual
+                      </p>
+                      <p className="m-0 mt-1 text-sm font-bold text-slate-200">
+                        Selecciona cualquier fecha para ver sus detalles.
+                      </p>
+                    </div>
+                    <div className="hidden rounded-full border border-[#9BFF00]/30 bg-[#9BFF00]/10 px-3 py-1.5 text-[10px] font-mono font-black uppercase tracking-widest text-[#9BFF00] sm:block">
+                      {selectedDayActivities.length > 0 ? `${selectedDayActivities.length} evento` : 'Sin evento'}
+                    </div>
+                  </div>
                   
-                  {/* Days grid headers */}
-                  <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono text-zinc-400 font-extrabold border-b border-white/5 pb-1 shrink-0">
-                    <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                  <div className="grid grid-cols-7 gap-2 border-b border-white/5 pb-3 text-center text-[11px] font-mono font-black uppercase tracking-widest text-zinc-400 sm:text-xs">
+                    <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
                   </div>
 
-                  {/* 30 Days of Grid representing our university month */}
-                  <div className="grid grid-cols-7 gap-1 mt-1 flex-1">
+                  <div className="grid flex-1 grid-cols-7 gap-2 pt-3 sm:gap-2.5">
                     {Array.from({ length: 30 }, (_, index) => {
                       const dayNumber = index + 1;
                       const hasActivity = calendarActivities.some(act => act.day === dayNumber);
@@ -568,89 +636,121 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                       const matchedAct = calendarActivities.find(act => act.day === dayNumber);
 
                       return (
-                        <div
+                        <button
+                          type="button"
                           key={dayNumber}
-                          onClick={() => {
-                            if (hasActivity) {
-                              setSelectedDay(dayNumber);
-                            }
-                          }}
-                          className={`relative rounded-lg flex flex-col items-center justify-center p-1 border cursor-pointer transition-all ${
-                            isSelected ? 'bg-[#9BFF00] text-black border-white font-black scale-102 z-10 shadow-lg shadow-[#9BFF00]/10' : hasActivity
-                                ? matchedAct?.type === 'academic' ? 'bg-amber-500/10 text-amber-400 border-amber-500/35 hover:bg-amber-500/20' : matchedAct?.type === 'wellness' ? 'bg-rose-500/10 text-rose-400 border-rose-500/35 hover:bg-rose-500/20' : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/35 hover:bg-cyan-500/20'
-                                : 'bg-slate-950/40 text-slate-400 border-[#1b233a] hover:border-slate-800'
+                          onClick={() => setSelectedDay(dayNumber)}
+                          aria-pressed={isSelected}
+                          className={`group relative flex min-h-[68px] flex-col items-start justify-between rounded-xl border p-2 text-left transition-all duration-200 sm:min-h-[82px] sm:p-3 lg:min-h-[78px] ${
+                            isSelected
+                              ? 'z-10 border-white bg-[#9BFF00] text-black shadow-[0_0_28px_rgba(155,255,0,0.22)]'
+                              : hasActivity
+                                ? `${getCalendarTypeClasses(matchedAct!.type)} hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-lg`
+                                : 'border-[#1b233a] bg-slate-950/35 text-slate-400 hover:border-slate-600 hover:bg-slate-900/70'
                           }`}
                         >
-                          <span className="text-[11px] sm:text-xs">{dayNumber}</span>
+                          <span className="text-lg font-black leading-none sm:text-2xl">
+                            {dayNumber}
+                          </span>
                           
-                          {/* Mini indicator dot */}
-                          {hasActivity && !isSelected && (
-                            <span className={`w-1.5 h-1.5 rounded-full absolute bottom-1 ${
-                              matchedAct?.type === 'academic' ? 'bg-amber-400' : matchedAct?.type === 'wellness' ? 'bg-rose-400' : 'bg-cyan-400'
-                            }`} />
+                          {hasActivity ? (
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-mono font-black uppercase tracking-wider ${
+                              isSelected ? 'bg-black/15 text-black' : 'bg-black/20 text-white/85'
+                            }`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-black' : getCalendarDotClass(matchedAct?.type)}`} />
+                              Evento
+                            </span>
+                          ) : (
+                            <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-current opacity-45">
+                              Libre
+                            </span>
                           )}
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
 
-                  {/* Color Key Guide */}
-                  <div className="flex flex-wrap gap-3 mt-2 pt-1.5 border-t border-white/5 text-[8px] font-mono tracking-wider text-slate-400 uppercase justify-center font-bold shrink-0">
+                  <div className="mt-4 flex flex-wrap justify-center gap-3 border-t border-white/5 pt-3 text-[9px] font-mono font-black uppercase tracking-wider text-slate-400">
                     <div className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      <span className="h-2 w-2 rounded-full bg-amber-400" />
                       <span>Académico-ACA</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                      <span className="h-2 w-2 rounded-full bg-rose-400" />
                       <span>Bienestar-Parche</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                      <span className="h-2 w-2 rounded-full bg-cyan-400" />
                       <span>Tecnológico-Meet</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Day Details Workspace */}
-                <div className="md:col-span-5 bg-slate-900/40 border border-slate-800 rounded-xl p-3 sm:p-4 text-left flex flex-col justify-between min-h-[160px] sm:min-h-0">
-                  {currentActivity ? (
-                    <div className="space-y-2 flex flex-col justify-between h-full">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className={`px-2 py-0.5 rounded text-[8px] font-mono uppercase font-black tracking-widest ${
-                            currentActivity.type === 'academic' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
-                            currentActivity.type === 'wellness' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40' :
-                            'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
-                          }`}>
-                            {currentActivity.type === 'academic' ? 'Académico CUN' : currentActivity.type === 'wellness' ? 'Bienestar CUNISTA' : 'Sincrónico Digital'}
-                          </span>
-                          <span className="text-[10px] text-zinc-400 font-mono">DÍA {currentActivity.day}</span>
-                        </div>
+                <aside className="flex min-h-[280px] flex-col rounded-2xl border border-white/10 bg-black/30 p-4 text-left shadow-xl backdrop-blur-xl sm:p-5 lg:min-h-0 lg:overflow-hidden">
+                  <p className="m-0 text-[10px] font-mono font-black uppercase tracking-[0.22em] text-white/55">
+                    Fecha seleccionada
+                  </p>
 
-                        <h4 className="text-white text-sm sm:text-base font-display font-black uppercase tracking-tight mt-1">
-                          {currentActivity.title}
-                        </h4>
+                  <h3 className="m-0 mt-2 font-display text-xl font-black uppercase leading-tight text-white">
+                    {selectedDateLabel}
+                  </h3>
 
-                        <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed mt-2 font-semibold">
-                          {currentActivity.desc}
+                  <div className="mt-2 flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                    <Calendar className="h-3.5 w-3.5 text-[#9BFF00]" />
+                    <span>{selectedDayActivities.length > 0 ? `${selectedDayActivities.length} actividad programada` : 'Sin actividades programadas'}</span>
+                  </div>
+
+                  <div className="mt-5 flex-1 space-y-3 overflow-y-auto pr-1">
+                    {selectedDayActivities.length > 0 ? (
+                      selectedDayActivities.map((activity) => (
+                        <article
+                          key={`${activity.day}-${activity.title}`}
+                          className="rounded-2xl border border-white/10 bg-white/[0.07] p-4 shadow-lg"
+                        >
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`rounded-full border px-2.5 py-1 text-[8px] font-mono font-black uppercase tracking-widest ${getCalendarTypeClasses(activity.type)}`}>
+                              {getCalendarTypeLabel(activity.type)}
+                            </span>
+                            <span className="text-[9px] font-mono font-black uppercase tracking-wider text-slate-400">
+                              Día {activity.day}
+                            </span>
+                          </div>
+
+                          <h4 className="m-0 mt-3 font-display text-base font-black uppercase leading-tight text-white">
+                            {activity.title}
+                          </h4>
+
+                          <div className="mt-3 rounded-xl border border-white/5 bg-slate-950/70 p-2.5 text-[10px] font-mono font-black uppercase leading-snug text-slate-300">
+                            <span className="text-[#9BFF00]">Horario / lugar:</span>{' '}
+                            <span className="text-white">{activity.hour}</span>
+                          </div>
+
+                          <p className="m-0 mt-3 text-xs font-semibold leading-relaxed text-slate-300">
+                            {activity.desc}
+                          </p>
+
+                          <button
+                            type="button"
+                            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#9BFF00] px-4 py-2 text-[10px] font-mono font-black uppercase tracking-wider text-black transition hover:bg-white active:scale-95"
+                          >
+                            Más información
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </button>
+                        </article>
+                      ))
+                    ) : (
+                      <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.04] p-5 text-center">
+                        <Clock className="h-9 w-9 text-slate-500" />
+                        <p className="m-0 mt-3 text-xs font-mono font-black uppercase tracking-wider text-slate-300">
+                          No hay eventos programados
+                        </p>
+                        <p className="m-0 mt-2 max-w-[220px] text-xs font-semibold leading-relaxed text-slate-500">
+                          Selecciona una fecha marcada con evento para ver sus actividades institucionales.
                         </p>
                       </div>
-
-                      <div className="bg-slate-950 p-2 border border-white/5 rounded-lg flex items-center justify-between text-[10px] font-mono">
-                        <span className="text-slate-400 font-black">HORARIO/LUGAR:</span>
-                        <span className="text-white font-black">{currentActivity.hour}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-center h-full text-zinc-500 space-y-2 py-4">
-                      <Clock className="w-8 h-8 text-zinc-600 animate-pulse" />
-                      <div>
-                        <p className="text-[10px] font-mono uppercase font-black text-slate-400">Sin evento crítico el día de hoy</p>
-                        <p className="text-[9px] text-zinc-500 mt-0.5 font-semibold">Haz clic en los números de color del calendario para ver las inducciones de ese día.</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                </aside>
 
               </div>
             </motion.div>
