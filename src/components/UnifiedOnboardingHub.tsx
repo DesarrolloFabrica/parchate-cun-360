@@ -3,16 +3,20 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Building, Monitor, FileText, LifeBuoy, Users, Heart, 
   Play, ExternalLink, ArrowRight, Clock, Calendar, HelpCircle, 
-  MapPin, Compass, GraduationCap, ChevronRight, Eye, ChevronLeft, Award, Lock, Check
+  MapPin, Compass, GraduationCap, ChevronRight, Eye, ChevronLeft, Lock, Check
 } from 'lucide-react';
 import lottie from 'lottie-web/build/player/lottie_light';
 import { DEFAULT_HUB_TAB, isHubTab, type HubTab } from '../navigation';
 import { useSearchParams } from 'react-router-dom';
 import VirtualTour360 from './VirtualTour360';
+import { HudGlassModal } from './HudGlassModal';
+import { RoadmapView } from './RoadmapView';
+import { hubTabToRoadmapVariant, hubTabUsesSequentialUnlock, loadAllRoadmapCompletedStationIds, filterCompletedStationIdsForVariant, saveCompletedStationIdsForVariant } from '../types/roadmap';
 import { TOUR360_START_NODE_ID, tour360Nodes } from '../data/tour360Nodes';
 import EarthAnimation from '../assets/iconos/Earth.json';
+import '../styles/hub-tabs.css';
 
-type StationType = 'video' | 'pdf' | 'infografia';
+type StationType = 'video' | 'pdf' | 'infografia' | 'drive-video' | 'drive-image' | 'drive-pdf';
 
 interface Station {
   id: string;
@@ -25,6 +29,10 @@ interface Station {
   pdfPages?: string[];
   pdfTitle?: string;
   infogData?: { title: string; desc: string }[];
+  driveVideoPreviewUrl?: string;
+  driveImageUrl?: string;
+  driveImagePreviewUrl?: string;
+  drivePdfPreviewUrl?: string;
   accentColor: string;
   extraTip?: string;
   coordinateX: number; 
@@ -73,6 +81,23 @@ const AnimatedEarthIcon: React.FC<{ className?: string }> = ({ className }) => {
   );
 };
 
+// Para videos de Google Drive usar formato:
+// https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
+// El archivo debe estar compartido como "Cualquier persona con el enlace puede ver".
+const CUN360_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
+
+// Para imágenes de Google Drive:
+// usar formato https://drive.google.com/uc?export=view&id=ID_DEL_ARCHIVO
+// y verificar que el archivo esté compartido como "Cualquier persona con el enlace puede ver".
+const CUN360_POINT_2_DRIVE_IMAGE_URL = `https://drive.google.com/uc?export=view&id=1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n`;
+const CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL = `https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview`;
+
+// Para PDFs de Google Drive:
+// El archivo debe estar compartido como "Cualquier persona con el enlace puede ver".
+// Usar formato:
+// https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
+const CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1-IfwFm4nt4x5tH2kciEzHqZXwm8tZ2x7/preview';
+
 export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -85,8 +110,10 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     setSearchParams(nextParams, { replace: true });
   };
 
-  // Track completed stations globally
-  const [completedStations, setCompletedStations] = useState<string[]>(['c360-1', 'cdig-1']); // First station auto-started
+  // Track completed stations globally (persistido por variante en localStorage)
+  const [completedStations, setCompletedStations] = useState<string[]>(() =>
+    loadAllRoadmapCompletedStationIds(),
+  );
   
   // Modal State for popped up station content
   const [activePopupStation, setActivePopupStation] = useState<Station | null>(null);
@@ -108,31 +135,26 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'c360-1', number: 1,
       title: 'Sede Central Bogotá (Bloque F)', subtitle: 'Video Orientación de Ingreso',
       description: 'Entrada principal Bogotá. Ubica Admisiones, Ventanillas de Caja y Registro Académico para tus necesidades del primer día.',
-      type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
+      type: 'drive-video', driveVideoPreviewUrl: CUN360_POINT_1_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#9BFF00', extraTip: 'El carnet digital es obligatorio para ingresar de forma veloz al campus.',
       coordinateX: 10, coordinateY: 70
     },
     {
       id: 'c360-2', number: 2,
-      title: 'Biblioteca e Innovación Interactiva', subtitle: 'Manual PDF de Espacios',
-      description: 'Salas multimedia, áreas colaborativas y préstamos. Aprende a usar las salas MAC de diseño de alta gama de la CUN.',
-      type: 'pdf', pdfTitle: 'Induccion_Biblioteca_CUN.pdf',
-      pdfPages: [
-        'Página 1: Bienvenido a Biblioteca CUN. Tienes préstamo libre de computadores portátiles y acceso a 120,000 libros virtuales con tu clave única.',
-        'Página 2: Reserva salas MAC. Lunes a Sábados presentando tu carnet digital estudiantil en el mesón de información.'
-      ],
+      title: 'Biblioteca e Innovación Interactiva', subtitle: 'Imagen de Espacios',
+      description: 'Imagen externa de Google Drive para visualizar el contenido del punto 2.',
+      type: 'drive-image',
+      driveImageUrl: CUN360_POINT_2_DRIVE_IMAGE_URL,
+      driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#35B84A', extraTip: 'Las salas MAC se pueden separar en bloques de hasta 2 horas diarias.',
       coordinateX: 20, coordinateY: 40
     },
     {
       id: 'c360-3', number: 3,
-      title: 'El Ágora CUNlista / Coworking', subtitle: 'Infografía de Áreas Comunes',
-      description: 'Zonas de descanso, ocio activo, ping-pong y mesas colaborativas al aire libre.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Mesas de Ping-Pong', desc: 'Espacio activo para despejarte entre clases junto a tus nuevos compañeros.' },
-        { title: 'Auditorio Central', desc: 'Sede de charlas, conferencias técnicas de invitados y graduaciones.' }
-      ],
+      title: 'Ágora CUNlista / Coworking', subtitle: 'PDF de Áreas Comunes',
+      description: 'PDF externo de Google Drive para visualizar el contenido del punto 3.',
+      type: 'drive-pdf',
+      drivePdfPreviewUrl: CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL,
       accentColor: '#FF9500', coordinateX: 30, coordinateY: 65
     },
     {
@@ -296,6 +318,230 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     }
   ];
 
+  // 9 estaciones para Soporte Cami
+  const camiticketStations: Station[] = [
+    {
+      id: 'cami-1', number: 1,
+      title: 'Primer contacto con Cami', subtitle: 'Ruta de atención inicial',
+      description: 'Contenido pendiente para el punto 1. Aquí se explicará cómo iniciar una conversación efectiva con Cami.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Objetivo', desc: 'Orientar al estudiante en el primer contacto con el canal de soporte.' },
+        { title: 'Estado', desc: 'Contenido editable pendiente de reemplazo por información oficial.' }
+      ],
+      accentColor: '#9BFF00', extraTip: 'Describe el problema con datos concretos para recibir una mejor orientación.',
+      coordinateX: 10, coordinateY: 35
+    },
+    {
+      id: 'cami-2', number: 2,
+      title: 'Crear un ticket', subtitle: 'Radicación de solicitudes',
+      description: 'Contenido pendiente para el punto 2. Este punto debe explicar cuándo crear un ticket y qué información adjuntar.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Datos básicos', desc: 'Nombre, documento, programa, sede y una descripción clara del caso.' },
+        { title: 'Adjuntos', desc: 'Capturas, soportes de pago o evidencias que ayuden a resolver el caso.' }
+      ],
+      accentColor: '#35B84A', extraTip: 'Un ticket bien documentado reduce tiempos de respuesta.',
+      coordinateX: 20, coordinateY: 60
+    },
+    {
+      id: 'cami-3', number: 3,
+      title: 'Seguimiento del caso', subtitle: 'Consulta de estado',
+      description: 'Contenido pendiente para el punto 3. Aquí se explicará cómo revisar avances y responder solicitudes de soporte.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Estado del ticket', desc: 'Verifica si está recibido, en gestión, pendiente de información o cerrado.' },
+        { title: 'Respuesta oportuna', desc: 'Contesta las solicitudes de información para evitar pausas en el trámite.' }
+      ],
+      accentColor: '#FF9500', extraTip: 'Conserva el número de radicado para cualquier consulta posterior.',
+      coordinateX: 30, coordinateY: 40
+    },
+    {
+      id: 'cami-4', number: 4,
+      title: 'Homologaciones', subtitle: 'Gestión académica',
+      description: 'Contenido pendiente para el punto 4. Espacio para explicar solicitudes relacionadas con homologación de asignaturas.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Soportes', desc: 'Ten a la mano certificados, contenidos programáticos y documentos requeridos.' },
+        { title: 'Revisión', desc: 'El caso puede requerir validación académica antes de su cierre.' }
+      ],
+      accentColor: '#FF2D55', extraTip: 'Adjunta documentos completos y legibles.',
+      coordinateX: 42, coordinateY: 65
+    },
+    {
+      id: 'cami-5', number: 5,
+      title: 'Pagos y caja', subtitle: 'Soporte financiero',
+      description: 'Contenido pendiente para el punto 5. Aquí se documentarán dudas frecuentes sobre pagos, recibos y estado financiero.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Consulta', desc: 'Revisa número de recibo, referencia de pago y fecha de transacción.' },
+        { title: 'Evidencia', desc: 'Adjunta comprobante si el pago no se ve reflejado.' }
+      ],
+      accentColor: '#5856D6', extraTip: 'Verifica que el comprobante tenga fecha, valor y referencia.',
+      coordinateX: 54, coordinateY: 45
+    },
+    {
+      id: 'cami-6', number: 6,
+      title: 'Acceso a plataformas', subtitle: 'Credenciales y sistemas',
+      description: 'Contenido pendiente para el punto 6. Punto dedicado a problemas con correo, aula virtual, SINU u otros accesos.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Validación', desc: 'Confirma usuario, correo institucional y mensaje de error.' },
+        { title: 'Seguridad', desc: 'No compartas contraseñas; solicita restablecimiento por los canales oficiales.' }
+      ],
+      accentColor: '#007AFF', extraTip: 'Incluye captura del error para acelerar el diagnóstico.',
+      coordinateX: 66, coordinateY: 60
+    },
+    {
+      id: 'cami-7', number: 7,
+      title: 'Escalamiento', subtitle: 'Casos especiales',
+      description: 'Contenido pendiente para el punto 7. Aquí se explicará cuándo un caso debe pasar a otra dependencia.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Criterio', desc: 'Un caso puede escalarse cuando requiere aprobación o revisión especializada.' },
+        { title: 'Trazabilidad', desc: 'El número de ticket conserva el historial de la solicitud.' }
+      ],
+      accentColor: '#AF52DE', extraTip: 'Evita crear tickets duplicados para el mismo caso.',
+      coordinateX: 76, coordinateY: 40
+    },
+    {
+      id: 'cami-8', number: 8,
+      title: 'Cierre del ticket', subtitle: 'Confirmación de solución',
+      description: 'Contenido pendiente para el punto 8. Espacio para explicar cómo confirmar solución y cerrar solicitudes.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Revisión final', desc: 'Comprueba que la respuesta solucione el caso antes de cerrar.' },
+        { title: 'Retroalimentación', desc: 'Registra observaciones si la solución no fue suficiente.' }
+      ],
+      accentColor: '#FFCC00', extraTip: 'Cierra el ciclo cuando tu solicitud haya quedado resuelta.',
+      coordinateX: 86, coordinateY: 65
+    },
+    {
+      id: 'cami-9', number: 9,
+      title: 'Buenas prácticas', subtitle: 'Guía rápida de soporte',
+      description: 'Contenido pendiente para el punto 9. Recomendaciones generales para usar correctamente Soporte Cami.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Claridad', desc: 'Resume el problema, indica qué intentaste y qué resultado esperas.' },
+        { title: 'Un solo canal', desc: 'Usa un mismo ticket para conservar contexto y evitar duplicidad.' }
+      ],
+      accentColor: '#00E5FF', extraTip: 'Un buen reporte ayuda a resolver mejor y más rápido.',
+      coordinateX: 95, coordinateY: 35
+    }
+  ];
+
+  // 9 estaciones para Parche Virtual
+  const parcheVirtualStations: Station[] = [
+    {
+      id: 'parche-1', number: 1,
+      title: 'Bienvenida al Parche Virtual', subtitle: 'Inicio de comunidad',
+      description: 'Contenido pendiente para el punto 1. Presentación general de la comunidad virtual CUN.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Propósito', desc: 'Conectar estudiantes nuevos con espacios de acompañamiento y socialización.' },
+        { title: 'Estado', desc: 'Contenido placeholder listo para reemplazar.' }
+      ],
+      accentColor: '#9BFF00', extraTip: 'Participa con respeto y actitud colaborativa.',
+      coordinateX: 10, coordinateY: 70
+    },
+    {
+      id: 'parche-2', number: 2,
+      title: 'Canales oficiales', subtitle: 'Comunicación de comunidad',
+      description: 'Contenido pendiente para el punto 2. Aquí se listarán canales oficiales y normas de uso.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Canales', desc: 'Espacios informativos para avisos, actividades y convocatorias.' },
+        { title: 'Cuidado', desc: 'Verifica que los enlaces sean oficiales antes de compartir datos.' }
+      ],
+      accentColor: '#35B84A', extraTip: 'Guarda los canales oficiales para no perder comunicaciones importantes.',
+      coordinateX: 20, coordinateY: 40
+    },
+    {
+      id: 'parche-3', number: 3,
+      title: 'Presentación personal', subtitle: 'Primer contacto social',
+      description: 'Contenido pendiente para el punto 3. Guía para presentarte y conectar con otros estudiantes.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Perfil', desc: 'Comparte carrera, modalidad, intereses y expectativas.' },
+        { title: 'Conexión', desc: 'Busca compañeros con intereses académicos o personales similares.' }
+      ],
+      accentColor: '#FF9500', extraTip: 'Una buena presentación ayuda a crear red desde el primer día.',
+      coordinateX: 30, coordinateY: 65
+    },
+    {
+      id: 'parche-4', number: 4,
+      title: 'Grupos por carrera', subtitle: 'Comunidades académicas',
+      description: 'Contenido pendiente para el punto 4. Espacio para explicar grupos por programa o facultad.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Ubicación', desc: 'Encuentra comunidades relacionadas con tu programa académico.' },
+        { title: 'Participación', desc: 'Haz preguntas, comparte recursos y respeta las reglas del grupo.' }
+      ],
+      accentColor: '#FF2D55', extraTip: 'Los grupos por carrera son útiles para resolver dudas rápidas.',
+      coordinateX: 42, coordinateY: 35
+    },
+    {
+      id: 'parche-5', number: 5,
+      title: 'Retos y dinámicas', subtitle: 'Activaciones virtuales',
+      description: 'Contenido pendiente para el punto 5. Aquí se describirán retos, trivias y actividades de integración.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Dinámicas', desc: 'Actividades diseñadas para romper el hielo y participar en comunidad.' },
+        { title: 'Reconocimiento', desc: 'Algunos retos pueden entregar insignias, menciones o incentivos.' }
+      ],
+      accentColor: '#5856D6', extraTip: 'Participar te ayuda a conocer personas y recursos útiles.',
+      coordinateX: 54, coordinateY: 60
+    },
+    {
+      id: 'parche-6', number: 6,
+      title: 'Mentores y aliados', subtitle: 'Acompañamiento entre pares',
+      description: 'Contenido pendiente para el punto 6. Explicación de referentes, monitores o compañeros guía.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Apoyo', desc: 'Identifica personas que puedan orientar tus primeras semanas.' },
+        { title: 'Alcance', desc: 'Los mentores acompañan, pero no reemplazan canales oficiales.' }
+      ],
+      accentColor: '#007AFF', extraTip: 'Pregunta a tiempo; no esperes a que la duda crezca.',
+      coordinateX: 66, coordinateY: 30
+    },
+    {
+      id: 'parche-7', number: 7,
+      title: 'Eventos en vivo', subtitle: 'Encuentros digitales',
+      description: 'Contenido pendiente para el punto 7. Programación de lives, charlas y espacios sincrónicos.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Agenda', desc: 'Consulta horarios, enlaces y temas de cada encuentro.' },
+        { title: 'Participación', desc: 'Llega con preguntas y aprovecha los espacios en vivo.' }
+      ],
+      accentColor: '#AF52DE', extraTip: 'Agrega los encuentros importantes a tu calendario.',
+      coordinateX: 76, coordinateY: 60
+    },
+    {
+      id: 'parche-8', number: 8,
+      title: 'Recursos compartidos', subtitle: 'Biblioteca del parche',
+      description: 'Contenido pendiente para el punto 8. Espacio para alojar guías, enlaces y materiales de apoyo.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Materiales', desc: 'Guías de inicio, enlaces frecuentes y recomendaciones de estudio.' },
+        { title: 'Actualización', desc: 'Mantén los recursos revisados y vigentes.' }
+      ],
+      accentColor: '#FFCC00', extraTip: 'Comparte recursos útiles y evita información no verificada.',
+      coordinateX: 86, coordinateY: 45
+    },
+    {
+      id: 'parche-9', number: 9,
+      title: 'Cierre de integración', subtitle: 'Siguiente paso',
+      description: 'Contenido pendiente para el punto 9. Cierre de la ruta del Parche Virtual y próximos pasos.',
+      type: 'infografia',
+      infogData: [
+        { title: 'Resumen', desc: 'Repasa canales, grupos, eventos y recursos clave.' },
+        { title: 'Continuidad', desc: 'Mantente activo en los espacios que aporten a tu proceso.' }
+      ],
+      accentColor: '#00E5FF', extraTip: 'La comunidad se construye con participación constante.',
+      coordinateX: 95, coordinateY: 70
+    }
+  ];
+
   // Activities database for calendar (Cronograma)
   const calendarActivities: CalendarActivity[] = [
     { day: 5, title: 'Último Plazo Matrículas Extraordinarias', type: 'academic', desc: 'Fecha límite para radicar soportes de pago y homologaciones de asignaturas.', hour: '11:59 PM - Virtual' },
@@ -307,21 +553,28 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     { day: 28, title: 'Entrega Final del Primer ACA (Corte 1)', type: 'academic', desc: 'Fecha de subida obligatoria del archivo PDF o comprimido en la plataforma del Aula virtual.', hour: '11:59 PM - Aula Virtual SINU' }
   ];
 
-  const handleOpenStation = (station: Station) => {
-    // ENFORCE LINEAL FLOW PATH (can't advance without completing preceding station contents)
-    const activeTrack = activeTab === 'cun360' ? cun360Stations : cdigitalStations;
-    const currentIdx = activeTrack.findIndex(s => s.id === station.id);
+  const getStationsForTab = (tab: HubTab) => {
+    if (tab === 'cun360') return cun360Stations;
+    if (tab === 'cdigital') return cdigitalStations;
+    if (tab === 'soporteCami') return camiticketStations;
+    if (tab === 'virtual') return parcheVirtualStations;
+    return cdigitalStations;
+  };
 
-    if (currentIdx > 0) {
+  const handleOpenStation = (station: Station) => {
+    const activeTrack = getStationsForTab(activeTab);
+    const currentIdx = activeTrack.findIndex((s) => s.id === station.id);
+    const sequentialUnlock = hubTabUsesSequentialUnlock(activeTab);
+
+    if (sequentialUnlock && currentIdx > 0) {
       const precedingStation = activeTrack[currentIdx - 1];
       const isPrecedingCompleted = completedStations.includes(precedingStation.id);
 
       if (!isPrecedingCompleted) {
-        // Trigger locked warnings, prevent showing video/PDF content popup
         setStationLockWarning({
           stationName: station.title,
           previousStationName: precedingStation.title,
-          stationNumber: station.number
+          stationNumber: station.number,
         });
         return;
       }
@@ -329,13 +582,41 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
 
     setActivePdfPage(0);
     setActivePopupStation(station);
-    // Mark station as completed
-    if (!completedStations.includes(station.id)) {
-      setCompletedStations(prev => [...prev, station.id]);
-    }
+
+    setCompletedStations((prev) => {
+      if (prev.includes(station.id)) {
+        return prev;
+      }
+
+      const next = [...prev, station.id];
+      const variant = hubTabToRoadmapVariant(activeTab);
+
+      if (variant) {
+        saveCompletedStationIdsForVariant(
+          variant,
+          filterCompletedStationIdsForVariant(variant, next),
+        );
+      }
+
+      return next;
+    });
   };
 
-  const currentTrackStations = activeTab === 'cun360' ? cun360Stations : cdigitalStations;
+  const currentTrackStations = getStationsForTab(activeTab);
+  const isRouteMapTab = activeTab === 'cun360' || activeTab === 'cdigital' || activeTab === 'soporteCami' || activeTab === 'virtual';
+  const shouldShowRouteLocks = hubTabUsesSequentialUnlock(activeTab);
+  const roadmapVariant = hubTabToRoadmapVariant(activeTab);
+  const routeMapTitle =
+    activeTab === 'cun360'
+      ? 'RECORRIDO CAMPUS FÍSICO BOGOTÁ'
+      : activeTab === 'cdigital'
+        ? 'INDUCCIÓN DE HERRAMIENTAS DIGITALES'
+        : activeTab === 'soporteCami'
+          ? 'RUTA DE SOPORTE CAMI'
+          : 'RUTA PARCHE VIRTUAL';
+  const routeProgressCompleted = roadmapVariant
+    ? filterCompletedStationIdsForVariant(roadmapVariant, completedStations).length
+    : 0;
   const selectedDayActivities = calendarActivities.filter(act => act.day === selectedDay);
   const selectedDateLabel = `Día ${selectedDay} de inducción`;
   const getCalendarTypeLabel = (type: CalendarActivity['type']) => {
@@ -358,12 +639,12 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   // Folder design Tabs Definition
   const tabsList: Array<{ id: HubTab; label: string; icon: typeof Compass; isLockedOption: boolean }> = [
     { id: 'recorrido360', label: 'Tour 360', icon: Compass, isLockedOption: false },
-    { id: 'cun360', label: 'Campus 360', icon: Building, isLockedOption: false },
+    { id: 'cun360', label: 'CUN 360', icon: Building, isLockedOption: false },
     { id: 'cdigital', label: 'CDigital', icon: Monitor, isLockedOption: false },
+    { id: 'soporteCami', label: 'Soporte Cami', icon: LifeBuoy, isLockedOption: true },
+    { id: 'virtual', label: 'Parche Virtual', icon: Users, isLockedOption: true },
     { id: 'cronograma', label: 'Cronograma', icon: Calendar, isLockedOption: false },
-    { id: 'soporteLocked', label: 'Soporte Cami 🔒', icon: LifeBuoy, isLockedOption: true },
-    { id: 'parcheLocked', label: 'Parche Virtual 🔒', icon: Users, isLockedOption: true },
-    { id: 'bienestarLocked', label: 'Bienestar 🔒', icon: Heart, isLockedOption: true },
+
   ];
 
   return (
@@ -388,7 +669,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       </div>
 
       {/* NEW FOLDER TAB SELECTOR LIST HEADER */}
-      <div className="flex bg-transparent overflow-x-auto max-w-full scrollbar-none select-none z-10 -mb-[2px] items-end px-1 sm:px-4 shrink-0 gap-1 sm:gap-1.5">
+      <div className="hub-tabs-wrapper w-full min-w-0 max-w-full shrink-0">
+        <div className="hub-tabs flex bg-transparent overflow-x-auto max-w-full scrollbar-none select-none z-10 -mb-[2px] items-end px-1 sm:px-4 shrink-0 gap-1 sm:gap-1.5">
         {tabsList.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -396,15 +678,16 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-mono font-black uppercase flex items-center gap-1.5 transition-all relative border-t border-x rounded-t-xl cursor-pointer ${
+              className={`hub-tab px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-mono font-black uppercase flex items-center gap-1.5 transition-all relative border-t border-x rounded-t-xl cursor-pointer ${
                 isActive ? 'bg-gradient-to-b from-[#1b233a] to-[#121824] border-[#9BFF00] text-white z-20 shadow-[0_-3px_10px_rgba(155,255,0,0.12)]' : 'bg-zinc-950/80 border-slate-800/80 text-zinc-500 hover:text-zinc-300 hover:bg-[#121824]/40 z-10'
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#9BFF00]' : 'text-zinc-500'}`} />
+              <Icon className={`hub-tab__icon w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#9BFF00]' : 'text-zinc-500'}`} />
               <span className="whitespace-nowrap">{tab.label}</span>
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* TAB WORKSPACE BOX - MODIFIED: NOT COMPLETELY DARK PURE BLACK (ELEGANT DEEP SLATE GRADIENT) */}
@@ -455,132 +738,26 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
             </motion.div>
           )}
 
-          {/* TAB 2 & 3: CUN 360 / CDIGITAL CAMPUS MAPS (Popup driven) */}
-          {(activeTab === 'cun360' || activeTab === 'cdigital') && (
+          {/* ROUTE MAP TABS: CUN 360 / CDIGITAL / SOPORTE CAMI / PARCHE VIRTUAL */}
+          {isRouteMapTab && roadmapVariant && (
             <motion.div
               key={activeTab}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full h-full flex flex-col justify-between relative"
+              className="w-full h-full min-h-0 flex flex-col overflow-hidden"
             >
-              {/* Header guides */}
-              <div className="flex items-center justify-between pb-1 border-b border-white/5 shrink-0 select-none text-[10px] font-mono text-zinc-400">
-                <span className="text-[#9BFF00] uppercase font-black tracking-widest">
-                  MUEVE TU CARÁCTER: {activeTab === 'cun360' ? 'RECORRIDO CAMPUS FÍSICO BOGOTÁ' : 'INDUCCIÓN DE HERRAMIENTAS DIGITALES'}
-                </span>
-                
-                <button
-                  onClick={() => handleOpenStation(currentTrackStations[0])}
-                  className="text-[9px] font-mono font-black bg-[#9BFF00]/10 border border-[#9BFF00]/40 text-[#9BFF00] py-0.5 px-2.5 rounded-md hover:bg-[#9BFF00] hover:text-black transition-all cursor-pointer"
-                >
-                  Comenzar por Estación 1
-                </button>
-              </div>
-
-              {/* INTEGRATED MAP BOARD (NO SCROLLING) */}
-              <div className={`flex-1 border rounded-2xl relative overflow-hidden my-2 select-none backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.28)] ${
-                activeTab === 'cun360' ? 'bg-emerald-950/42 border-emerald-400/18' : 'bg-sky-950/40 border-cyan-300/18'
-              }`}>
-                <div className={`pointer-events-none absolute inset-0 z-0 ${
-                  activeTab === 'cun360' ? 'bg-[radial-gradient(circle_at_18%_18%,rgba(155,255,0,0.18),transparent_34%),radial-gradient(circle_at_84%_78%,rgba(34,197,94,0.13),transparent_38%),linear-gradient(135deg,rgba(15,23,42,0.28),rgba(2,6,23,0.66))]' : 'bg-[radial-gradient(circle_at_18%_18%,rgba(59,130,246,0.20),transparent_34%),radial-gradient(circle_at_84%_78%,rgba(155,255,0,0.12),transparent_38%),linear-gradient(135deg,rgba(15,23,42,0.25),rgba(2,6,23,0.66))]'
-                }`} />
-                <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:48px_48px] opacity-70" />
-                <div className="pointer-events-none absolute inset-0 z-0 bg-black/22" />
-                
-                {/* SVG Route Blueprint */}
-                <div className="absolute inset-0 z-0 origin-center transform-gpu scale-[1.02] md:scale-[1.04] lg:scale-[1.05] transition-transform duration-500">
-                  <svg className="w-full h-full text-slate-800" viewBox="0 0 1000 400" fill="none" preserveAspectRatio="none">
-                    <defs>
-                      <pattern id="grid-dots-blue" width="30" height="30" patternUnits="userSpaceOnUse">
-                        <circle cx="2" cy="2" r="1.0" fill="rgba(155, 255, 0, 0.04)" />
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#grid-dots-blue)" />
-
-                    <g stroke="rgba(255,255,255,0.02)" strokeWidth="1">
-                      <rect x="70" y="40" width="130" height="190" rx="4" />
-                      <rect x="430" y="80" width="150" height="100" rx="5" />
-                      <rect x="760" y="80" width="130" height="150" rx="3" />
-                    </g>
-
-                    <path 
-                      d="M 100,220 C 220,70 380,330 520,200 C 660,70 780,260 900,120" 
-                      stroke="rgba(155, 255, 0, 0.05)" 
-                      strokeWidth="12" 
-                      strokeLinecap="round" 
-                      fill="none" 
-                    />
-                    <path 
-                      d="M 100,220 C 220,70 380,330 520,200 C 660,70 780,260 900,120" 
-                      stroke="#9BFF00" 
-                      strokeWidth="2.5" 
-                      strokeLinecap="round" 
-                      strokeDasharray="5 7"
-                      fill="none" 
-                    />
-                  </svg>
-                </div>
-
-                {/* PLOTTED NODES */}
-                <div className="absolute inset-0 z-10 origin-center transform-gpu scale-[1.02] md:scale-[1.04] lg:scale-[1.05] transition-transform duration-500">
-                  {currentTrackStations.map((station, idx) => {
-                    const isCompleted = completedStations.includes(station.id);
-                    
-                    // A station is sequentially locked if previous station exists and isn't completed
-                    let isLocked = false;
-                    if (idx > 0) {
-                      const prevSt = currentTrackStations[idx - 1];
-                      isLocked = !completedStations.includes(prevSt.id);
-                    }
-
-                    return (
-                      <div
-                        key={station.id}
-                        onClick={() => handleOpenStation(station)}
-                        className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group active:scale-95"
-                        style={{ left: `${station.coordinateX}%`, top: `${station.coordinateY}%` }}
-                      >
-                        <div className="relative">
-                          {/* Label info */}
-                          <div className="absolute bottom-11 left-1/2 -translate-x-1/2 bg-slate-950 border border-[#9BFF00]/20 px-2 py-0.5 rounded text-[8px] font-mono tracking-wider font-extrabold whitespace-nowrap opacity-85 text-zinc-300 group-hover:opacity-100 group-hover:border-[#9BFF00] transition-colors shadow-lg">
-                            {idx + 1}. {station.title.split(' ')[0]} {isLocked && '🔒'}
-                          </div>
-
-                          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-mono font-black text-xs sm:text-sm border-2 transition-all duration-200 ${
-                            isCompleted ? 'bg-emerald-500 text-black border-[#9BFF00] shadow-[0_0_15px_rgba(16,185,129,0.3)]' : isLocked ? 'bg-[#1b2234] text-zinc-600 border-zinc-800 cursor-not-allowed opacity-60' : 'bg-[#172033]/90 text-[#9BFF00] border-[#9BFF00]/40 hover:border-[#9BFF00] hover:scale-110 shadow-lg'
-                          }`}>
-                            {isCompleted ? '✓' : isLocked ? '🔒' : station.number}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Interactive Hints banner */}
-                <div className="absolute bottom-3 left-3 bg-slate-950/95 border border-white/5 p-2 rounded-lg text-left pointer-events-none text-[9px] font-mono">
-                  <p className="text-zinc-400 font-extrabold m-0">ESTACIONES DE LA RUTA</p>
-                  <p className="text-[#9BFF00] font-black m-0">DEBES COMPLETAR EN ORDEN (1 al 9)</p>
-                </div>
-              </div>
-
-              {/* Progress visualizer */}
-              <div className="bg-[#172033]/60 border border-slate-800/65 rounded-xl p-2.5 px-4 flex items-center justify-between gap-4 text-left shrink-0 font-mono select-none">
-                <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-[#9BFF00]" />
-                  <span className="text-[10px] text-zinc-300 font-bold uppercase">PROGRESO COMPLETADO:</span>
-                </div>
-                <div className="flex-1 max-w-xs bg-slate-950 h-2.5 rounded-full overflow-hidden border border-white/5">
-                  <div 
-                    className="bg-gradient-to-r from-lime-400 to-emerald-400 h-full transition-all duration-500"
-                    style={{ width: `${(completedStations.filter(id => id.startsWith(activeTab === 'cun360' ? 'c360' : 'cdig')).length / 9) * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs text-[#9BFF00] font-black bg-slate-950 px-2.5 py-0.5 rounded-lg border border-slate-800 shrink-0">
-                  {completedStations.filter(id => id.startsWith(activeTab === 'cun360' ? 'c360' : 'cdig')).length} / 9
-                </span>
-              </div>
+              <RoadmapView
+                variant={roadmapVariant}
+                title={routeMapTitle}
+                stations={currentTrackStations}
+                completedStationIds={completedStations}
+                shouldShowRouteLocks={shouldShowRouteLocks}
+                progressCompleted={routeProgressCompleted}
+                progressTotal={9}
+                onOpenStation={handleOpenStation}
+                onStartFirstStation={() => handleOpenStation(currentTrackStations[0])}
+              />
             </motion.div>
           )}
 
@@ -757,7 +934,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
           )}
 
           {/* DISPLAY FOR LOCKED CUSTOM APARTMENTS */}
-          {(activeTab === 'soporteLocked' || activeTab === 'parcheLocked' || activeTab === 'bienestarLocked') && (
+          {activeTab === 'bienestarLocked' && (
             <motion.div
               key={activeTab}
               initial={{ opacity: 0, scale: 0.98 }}
@@ -774,15 +951,11 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               </span>
 
               <h2 className="text-lg sm:text-2xl font-display font-black text-white uppercase tracking-tight leading-tight mb-2">
-                {activeTab === 'soporteLocked' && 'SOPORTE DE TRÁMITES CON CAMI'}
-                {activeTab === 'parcheLocked' && 'UNIÓN DEL PARCHE CUNISTA'}
-                {activeTab === 'bienestarLocked' && 'BIENESTAR Y SALUD INTEGRAL'}
+                BIENESTAR Y SALUD INTEGRAL
               </h2>
 
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-semibold mb-6">
-                {activeTab === 'soporteLocked' && 'Esta sección interactiva te conectará directamente con Cami, el gestor inteligente de IA, y el sistema oficial de tickets CUN para homologaciones de asignaturas y consultas de caja.'}
-                {activeTab === 'parcheLocked' && 'Pronto podrás reclamar tu invitación a los servidores de Discord oficiales y comunidades de WhatsApp de tu carrera para relacionarte con todo tu parche de estudios.'}
-                {activeTab === 'bienestarLocked' && 'Descubre actividades extraescolares gratis, torneos deportivos en Bogotá, clases de danza, orientación sicológica y convenios médicos organizados por la CUN.'}
+                Descubre actividades extraescolares gratis, torneos deportivos en Bogotá, clases de danza, orientación sicológica y convenios médicos organizados por la CUN.
               </p>
 
               <div className="bg-slate-900/70 p-3 rounded-xl border border-[#1b233a] text-[10px] font-mono text-slate-300 flex items-center gap-2 max-w-sm text-left shadow-lg">
@@ -796,132 +969,147 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
 
       </div>
 
-      {/* ------------------------------------------------------------- */}
-      {/* STATION PROGRESSION WARNING OVERLAY (ZERO SCROLL COUPLING) */}
-      {/* ------------------------------------------------------------- */}
-      <AnimatePresence>
+      <HudGlassModal
+        isOpen={Boolean(stationLockWarning)}
+        onClose={() => setStationLockWarning(null)}
+        variant="amber"
+        size="sm"
+        zIndex="warning"
+        title={
+          <span className="inline-flex items-center gap-2.5">
+            <Lock className="h-5 w-5 text-amber-300" />
+            Estación no desbloqueada
+          </span>
+        }
+        meta="Ruta secuencial CUN 360"
+        footer={
+          <button
+            onClick={() => setStationLockWarning(null)}
+            className="w-full rounded-xl border-none bg-amber-400 py-2.5 font-mono text-xs font-black uppercase text-black transition-all cursor-pointer hover:bg-white active:scale-95"
+          >
+            Entendido, completaré la ruta en orden
+          </button>
+        }
+      >
         {stationLockWarning && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[12000] bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="w-full max-w-md bg-[#121824] border-2 border-amber-400 rounded-2xl p-5 sm:p-6 text-left shadow-[0_0_40px_rgba(245,158,11,0.25)] flex flex-col gap-4"
-            >
-              <div className="flex items-center gap-2.5 text-amber-400 border-b border-white/10 pb-3">
-                <Lock className="w-5 h-5" />
-                <h3 className="text-xs sm:text-sm font-mono font-black uppercase tracking-wider">Estación no desbloqueada</h3>
+          <div className="space-y-4 text-left">
+            <p className="text-xs leading-relaxed font-semibold text-slate-100">
+              No puedes saltar a la <span className="font-black text-[#9BFF00]">Estación {stationLockWarning.stationNumber}: {stationLockWarning.stationName}</span> sin haber visto los contenidos de la estación anterior de tu ruta oficial:
+            </p>
+
+            <div className="flex items-center gap-3 rounded-xl border border-amber-300/15 bg-black/35 p-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-amber-400/20 bg-amber-400/10 text-xs font-mono font-black text-amber-300">
+                {stationLockWarning.stationNumber - 1}
               </div>
-
-              <p className="text-xs text-slate-200 leading-relaxed font-semibold">
-                No puedes saltar a la <span className="text-[#9BFF00] font-black">Estación {stationLockWarning.stationNumber}: {stationLockWarning.stationName}</span> sin haber visto los contenidos de la estación anterior de tu ruta oficial:
-              </p>
-
-              <div className="p-3 bg-black/40 border border-[#1b233a] rounded-xl flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-amber-400/10 text-amber-400 flex items-center justify-center text-xs font-mono font-black border border-amber-400/20">
-                  {stationLockWarning.stationNumber - 1}
-                </div>
-                <div className="text-left">
-                  <p className="text-[9px] font-mono text-slate-400 uppercase leading-none">Debes Completar Primero</p>
-                  <p className="text-xs text-white font-extrabold mt-1">{stationLockWarning.previousStationName}</p>
-                </div>
+              <div className="text-left">
+                <p className="text-[9px] font-mono uppercase leading-none text-slate-400">Debes completar primero</p>
+                <p className="mt-1 text-xs font-extrabold text-white">{stationLockWarning.previousStationName}</p>
               </div>
+            </div>
 
-              <p className="text-[10px] text-slate-400 font-mono italic leading-normal">
-                💡 En la CUN fomentamos el aprendizaje estructurado. Visualiza las estaciones secuencialmente para consolidar tu onboarding.
-              </p>
-
-              <button
-                onClick={() => setStationLockWarning(null)}
-                className="w-full py-2.5 bg-amber-400 hover:bg-white text-black font-mono font-black text-xs uppercase rounded-xl transition-all border-none cursor-pointer active:scale-95"
-              >
-                Entendido, completaré la ruta en orden
-              </button>
-            </motion.div>
-          </motion.div>
+            <p className="text-[10px] font-mono italic leading-normal text-slate-300">
+              En la CUN fomentamos el aprendizaje estructurado. Visualiza las estaciones secuencialmente para consolidar tu onboarding.
+            </p>
+          </div>
         )}
-      </AnimatePresence>
+      </HudGlassModal>
 
-      {/* ------------------------------------------------------------- */}
-      {/* STATIONS FILE DEEP RESOURCE POP-UP MODAL (ZERO SCROLL COUPLING) */}
-      {/* ------------------------------------------------------------- */}
-      <AnimatePresence>
-        {activePopupStation && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[11000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5"
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 15 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 15 }}
-              transition={{ duration: 0.25 }}
-              className="bg-[#121824] border-2 border-[#9BFF00] rounded-2xl w-full max-w-xl shadow-2xl p-4 sm:p-5 text-left font-sans flex flex-col gap-4 max-h-[95vh] overflow-y-auto"
+      <HudGlassModal
+        isOpen={Boolean(activePopupStation)}
+        onClose={() => setActivePopupStation(null)}
+        panelClassName="hud-glass-modal__panel--roadmap"
+        size={
+          activePopupStation?.type === 'drive-video' ||
+          activePopupStation?.type === 'drive-image' ||
+          activePopupStation?.type === 'drive-pdf'
+            ? 'lg'
+            : 'md'
+        }
+        title={activePopupStation?.title}
+        meta={
+          activePopupStation
+            ? `Estación ${activePopupStation.number} / Inducción activa`
+            : undefined
+        }
+        bodyClassName="space-y-3"
+        footer={
+          activePopupStation ? (
+            <button
+              onClick={() => setActivePopupStation(null)}
+              className="w-full rounded-xl border-none bg-[#9BFF00] py-3 font-mono text-xs font-black uppercase text-black transition-all cursor-pointer hover:bg-white"
             >
-              {/* Header metadata row */}
-              <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-1">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-[#9BFF00] animate-ping" />
-                  <span className="text-[9px] font-mono font-black text-slate-400 tracking-wider uppercase">
-                    ESTACIÓN {activePopupStation.number} / INDUCCIÓN ACTIVA
-                  </span>
-                </div>
-                <button
-                  onClick={() => setActivePopupStation(null)}
-                  className="bg-black/30 border border-slate-800 text-zinc-300 hover:text-white transition-colors py-1 px-3 text-[10px] font-mono font-black uppercase rounded-md cursor-pointer"
-                >
-                  Cerrar [X]
-                </button>
-              </div>
-
-              {/* Station General Info */}
-              <div>
-                <span className="text-[9px] bg-[#9BFF00]/10 text-[#9BFF00] px-2 py-0.5 rounded-md font-mono uppercase tracking-widest font-black border border-[#9BFF00]/20">
-                  {activePopupStation.subtitle}
-                </span>
-                <h3 className="font-display font-black text-lg sm:text-xl uppercase text-white mt-1.5 leading-none">
-                  {activePopupStation.title}
-                </h3>
-              </div>
-
-              {/* Main Embed Content Wrapper */}
-              <div className="bg-[#172033] border border-[#1b233a] rounded-xl overflow-hidden min-h-[220px] flex flex-col justify-between">
-                
-                {/* VIDEO HANDLER */}
+              Completar y volver a la ruta
+            </button>
+          ) : undefined
+        }
+      >
+        {activePopupStation && (
+          <>
+            <div className="hud-glass-modal__media">
                 {activePopupStation.type === 'video' && (
-                  <div className="w-full flex-1 flex flex-col justify-between p-2">
-                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black shadow-inner border border-slate-800">
-                      <iframe
-                        src={activePopupStation.videoUrl}
-                        title={activePopupStation.title}
-                        className="absolute inset-0 w-full h-full border-none select-none"
-                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
+                  <div className="hud-glass-modal__media-video">
+                    <iframe
+                      src={activePopupStation.videoUrl}
+                      title={activePopupStation.title}
+                      className="hud-glass-modal__iframe"
+                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
                   </div>
                 )}
 
-                {/* PDF READER SIMULATOR */}
+                {activePopupStation.type === 'drive-video' && activePopupStation.driveVideoPreviewUrl && (
+                  <iframe
+                    src={activePopupStation.driveVideoPreviewUrl}
+                    title={activePopupStation.title}
+                    className="hud-glass-modal__iframe"
+                    allow="autoplay; fullscreen"
+                    allowFullScreen
+                  />
+                )}
+
+                {activePopupStation.type === 'drive-image' && activePopupStation.driveImageUrl && (
+                  <>
+                    <img
+                      src={activePopupStation.driveImageUrl}
+                      alt={activePopupStation.title}
+                      className="hud-glass-modal__image"
+                      onError={(event) => {
+                        event.currentTarget.classList.add('hidden');
+                        event.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                    {activePopupStation.driveImagePreviewUrl && (
+                      <iframe
+                        src={activePopupStation.driveImagePreviewUrl}
+                        title={activePopupStation.title}
+                        className="hidden hud-glass-modal__iframe"
+                        allow="autoplay"
+                      />
+                    )}
+                  </>
+                )}
+
+                {activePopupStation.type === 'drive-pdf' && activePopupStation.drivePdfPreviewUrl && (
+                  <iframe
+                    src={activePopupStation.drivePdfPreviewUrl}
+                    title={activePopupStation.title}
+                    className="hud-glass-modal__iframe hud-glass-modal__iframe--document"
+                    allow="autoplay"
+                  />
+                )}
+
                 {activePopupStation.type === 'pdf' && activePopupStation.pdfPages && (
-                  <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between text-[9px] font-mono text-zinc-400 uppercase pb-1.5 border-b border-white/5">
                       <span>DOCUMENTO: {activePopupStation.pdfTitle}</span>
                       <span>PÁG {activePdfPage + 1} DE {activePopupStation.pdfPages.length}</span>
                     </div>
 
-                    <div className="bg-slate-950/80 rounded-lg p-3 my-2 text-xs text-slate-100 font-sans leading-relaxed min-h-[100px] border-l-2 border-[#9BFF00]">
+                    <div className="bg-slate-950/80 rounded-lg p-3 text-xs text-slate-100 font-sans leading-relaxed min-h-[100px] border-l-2 border-[#9BFF00]">
                       <div className="font-semibold">{activePopupStation.pdfPages[activePdfPage]}</div>
                     </div>
 
-                    {/* Pagination controller */}
                     <div className="flex items-center justify-between pt-2 border-t border-white/5">
                       <button
                         disabled={activePdfPage === 0}
@@ -941,9 +1129,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                   </div>
                 )}
 
-                {/* INFOGRAPHIC GRID LIST */}
                 {activePopupStation.type === 'infografia' && activePopupStation.infogData && (
-                  <div className="p-3 sm:p-4 flex-1 space-y-2.5">
+                  <div className="space-y-2.5">
                     {activePopupStation.infogData.map((info, i) => (
                       <div key={i} className="bg-slate-950 p-2.5 border border-white/5 rounded-lg text-left">
                         <h4 className="text-xs text-[#9BFF00] font-mono uppercase font-black">{info.title}</h4>
@@ -952,26 +1139,10 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                     ))}
                   </div>
                 )}
-
-              </div>
-
-              {/* Tips and modal confirm */}
-              {activePopupStation.extraTip && (
-                <div className="bg-amber-400/5 border border-amber-400/30 p-2.5 rounded-lg text-[10px] text-amber-300 leading-relaxed font-semibold">
-                  <strong>💡 CONSEJO CUNISTA:</strong> {activePopupStation.extraTip}
-                </div>
-              )}
-
-              <button
-                onClick={() => setActivePopupStation(null)}
-                className="w-full py-3 bg-[#9BFF00] text-black hover:bg-white font-mono font-black text-xs uppercase rounded-xl transition-all cursor-pointer border-none"
-              >
-                Completar y Volver a la Ruta âœ“
-              </button>
-            </motion.div>
-          </motion.div>
+            </div>
+          </>
         )}
-      </AnimatePresence>
+      </HudGlassModal>
 
     </div>
   );

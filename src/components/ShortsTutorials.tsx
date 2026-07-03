@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Play, Clock, X, Info, CheckCircle } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Play, Clock, Info, CheckCircle } from 'lucide-react';
 import { TutorialShort } from '../types';
 import * as LucideIcons from 'lucide-react';
+import { HudGlassModal } from './HudGlassModal';
 
 interface ShortsTutorialsProps {
   tutorials: TutorialShort[];
@@ -146,90 +147,61 @@ export const ShortsTutorials: React.FC<ShortsTutorialsProps> = ({ tutorials, acc
         })}
       </div>
 
-      {/* Video Overlay Player Modal */}
-      <AnimatePresence>
+      <HudGlassModal
+        isOpen={Boolean(activeVideo)}
+        onClose={() => setActiveVideo(null)}
+        size="lg"
+        title={activeVideo?.title}
+        meta={
+          activeVideo
+            ? `Cápsula de orientación • ${activeVideo.duration}`
+            : undefined
+        }
+        bodyClassName="space-y-0"
+        footer={
+          activeVideo ? (
+            <div className="flex justify-end">
+              <button
+                onClick={() => setActiveVideo(null)}
+                className="rounded-xl border-none bg-[#35B84A] px-6 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-md transition-all cursor-pointer hover:bg-[#2fa341] hover:scale-105 active:scale-95"
+              >
+                Entendido, cerrar
+              </button>
+            </div>
+          ) : undefined
+        }
+      >
         {activeVideo && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop filter */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setActiveVideo(null)}
-              className="absolute inset-0 bg-[#0B3D2E]/90 backdrop-blur-sm"
-            />
-
-            {/* Modal Body styled with sticker theme */}
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative w-full max-w-lg bg-white rounded-[2.5rem] border-4 border-[#9BFF00] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-10 flex flex-col"
-            >
-              {/* Modular Header */}
-              <div className="px-6 py-4.5 bg-[#0B3D2E]/5 border-b border-slate-100 flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className={`p-2 rounded-xl bg-[#0B3D2E] border border-[#9BFF00]/40 text-[#9BFF00]`}>
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-display font-black text-[#172B6B] leading-tight">
-                      {activeVideo.title}
-                    </h4>
-                    <p className="text-[9px] text-[#35B84A] font-mono font-black tracking-widest uppercase">
-                      CÁPSULA DE ORIENTACIÓN • {activeVideo.duration}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setActiveVideo(null)}
-                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border-none cursor-pointer"
-                >
-                  <X className="w-5 h-5 stroke-[2.5]" />
-                </button>
-              </div>
-
-              {/* Video Sandbox iframe container */}
-              <div className="relative aspect-video bg-black flex items-center justify-center">
+          <>
+            <div className="hud-glass-modal__media">
+              <div className="hud-glass-modal__media-video">
                 <iframe
                   title={activeVideo.title}
                   src={`${activeVideo.videoUrl}?autoplay=1`}
-                  className="absolute inset-0 w-full h-full border-0"
+                  className="hud-glass-modal__iframe"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
-                ></iframe>
+                />
               </div>
+            </div>
 
-              {/* Custom Guide note */}
-              <div className="p-6 bg-[#0B3D2E]/5 text-slate-700 border-t border-slate-100 text-xs">
-                <div className="flex items-start space-x-2.5">
-                  <Info className="w-5 h-5 text-[#35B84A] shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="font-black text-[#172B6B]">Detalles de la herramienta:</p>
-                    <p className="leading-relaxed text-slate-600 font-medium">
-                      {activeVideo.description}
-                    </p>
-                    <div className="mt-3 inline-flex items-center space-x-1 py-1 px-2 rounded bg-emerald-50 text-[10px] text-emerald-800 border border-emerald-200">
-                      <span>✓ Portal Autenticado CUN 2026</span>
-                    </div>
+            <div className="space-y-3 border-t border-emerald-300/10 pt-4 text-xs text-white/85">
+              <div className="flex items-start gap-2.5">
+                <Info className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+                <div className="space-y-1">
+                  <p className="font-black text-white">Detalles de la herramienta:</p>
+                  <p className="font-medium leading-relaxed text-white/75">
+                    {activeVideo.description}
+                  </p>
+                  <div className="mt-3 inline-flex items-center rounded border border-emerald-300/20 bg-emerald-400/10 px-2 py-1 text-[10px] text-emerald-100">
+                    Portal autenticado CUN 2026
                   </div>
                 </div>
               </div>
-
-              {/* Bottom actionable check button */}
-              <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                <button
-                  onClick={() => setActiveVideo(null)}
-                  className="px-6 py-2.5 bg-[#35B84A] hover:bg-[#2fa341] hover:scale-105 active:scale-95 text-white text-xs font-black rounded-xl uppercase tracking-widest shadow-md border-none cursor-pointer transition-all"
-                >
-                  ¡Entendido! Cerrar 🎯
-                </button>
-              </div>
-            </motion.div>
-          </div>
+            </div>
+          </>
         )}
-      </AnimatePresence>
+      </HudGlassModal>
     </div>
   );
 };

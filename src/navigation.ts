@@ -7,8 +7,8 @@ export type HubTab =
   | 'cun360'
   | 'cdigital'
   | 'cronograma'
-  | 'soporteLocked'
-  | 'parcheLocked'
+  | 'soporteCami'
+  | 'virtual'
   | 'bienestarLocked';
 
 export const hubTabs = [
@@ -16,8 +16,8 @@ export const hubTabs = [
   'cun360',
   'cdigital',
   'cronograma',
-  'soporteLocked',
-  'parcheLocked',
+  'soporteCami',
+  'virtual',
   'bienestarLocked',
 ] as const satisfies readonly HubTab[];
 
