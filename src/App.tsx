@@ -24,7 +24,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-green-dark flex flex-col font-sans antialiased text-white relative">
+    <div className="app-shell flex flex-col antialiased relative">
       
       {/* Absolute intro loading view */}
       <IntroLoader />

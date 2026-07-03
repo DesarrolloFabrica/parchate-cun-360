@@ -622,20 +622,50 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const selectedDayActivities = calendarActivities.filter(act => act.day === selectedDay);
   const selectedDateLabel = `Día ${selectedDay} de inducción`;
   const getCalendarTypeLabel = (type: CalendarActivity['type']) => {
-    if (type === 'academic') return 'Académico CUN';
-    if (type === 'wellness') return 'Bienestar CUNISTA';
-    return 'Sincrónico Digital';
+    if (type === 'academic') return 'Académico';
+    if (type === 'wellness') return 'Bienestar';
+    return 'Tecnología';
   };
+  // Paleta "agenda premium": viva y luminosa, pero elegante (no alerta).
+  // Chip de categoría (panel de detalle).
   const getCalendarTypeClasses = (type: CalendarActivity['type']) => {
-    if (type === 'academic') return 'bg-amber-500/15 text-amber-300 border-amber-400/35';
-    if (type === 'wellness') return 'bg-rose-500/15 text-rose-300 border-rose-400/35';
-    return 'bg-cyan-500/15 text-cyan-300 border-cyan-400/35';
+    if (type === 'academic') return 'bg-sky-400/15 text-sky-200 border-sky-400/40';
+    if (type === 'wellness') return 'bg-violet-400/15 text-violet-200 border-violet-400/40';
+    return 'bg-cyan-400/15 text-cyan-200 border-cyan-400/40';
   };
+  // Punto de evento con pequeño glow para verse más vivo.
   const getCalendarDotClass = (type?: CalendarActivity['type']) => {
-    if (type === 'academic') return 'bg-amber-400';
-    if (type === 'wellness') return 'bg-rose-400';
-    if (type === 'tech') return 'bg-cyan-400';
-    return 'bg-slate-600';
+    if (type === 'academic') return 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.9)]';
+    if (type === 'wellness') return 'bg-violet-400 shadow-[0_0_8px_rgba(167,139,250,0.9)]';
+    if (type === 'tech') return 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]';
+    return 'bg-text-muted';
+  };
+  // Día con evento: fondo translúcido visible + borde de categoría más claro.
+  const getCalendarTileClasses = (type?: CalendarActivity['type']) => {
+    if (type === 'academic') return 'border-sky-400/45 bg-sky-400/[0.14]';
+    if (type === 'wellness') return 'border-violet-400/45 bg-violet-400/[0.14]';
+    if (type === 'tech') return 'border-cyan-400/45 bg-cyan-400/[0.14]';
+    return 'border-border-subtle bg-white/[0.03]';
+  };
+  // Glow interno muy sutil del color de la categoría.
+  const getCalendarGlow = (type?: CalendarActivity['type']) => {
+    if (type === 'academic') return 'shadow-[inset_0_0_24px_-6px_rgba(56,189,248,0.45)]';
+    if (type === 'wellness') return 'shadow-[inset_0_0_24px_-6px_rgba(167,139,250,0.45)]';
+    if (type === 'tech') return 'shadow-[inset_0_0_24px_-6px_rgba(34,211,238,0.45)]';
+    return '';
+  };
+  // Día seleccionado: elevación + halo sutil del color del evento (si aplica).
+  const getCalendarSelectedShadow = (type?: CalendarActivity['type']) => {
+    if (type === 'academic') return 'shadow-[0_12px_30px_-14px_rgba(0,0,0,0.75),inset_0_0_28px_-6px_rgba(56,189,248,0.5)]';
+    if (type === 'wellness') return 'shadow-[0_12px_30px_-14px_rgba(0,0,0,0.75),inset_0_0_28px_-6px_rgba(167,139,250,0.5)]';
+    if (type === 'tech') return 'shadow-[0_12px_30px_-14px_rgba(0,0,0,0.75),inset_0_0_28px_-6px_rgba(34,211,238,0.5)]';
+    return 'shadow-[0_12px_30px_-14px_rgba(0,0,0,0.75)]';
+  };
+  // Borde/tinte de la tarjeta de evento (panel de detalle) por categoría.
+  const getCalendarCardClasses = (type: CalendarActivity['type']) => {
+    if (type === 'academic') return 'border-sky-400/30 bg-sky-400/[0.07]';
+    if (type === 'wellness') return 'border-violet-400/30 bg-violet-400/[0.07]';
+    return 'border-cyan-400/30 bg-cyan-400/[0.07]';
   };
 
   // Folder design Tabs Definition
@@ -649,30 +679,144 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
 
   ];
 
+  // ------------------------------------------------------------------ //
+  // FASE 3 — Capa narrativa (solo visual). Datos derivados para el Hero, //
+  // la misión actual y el avance inferior. No altera lógica alguna.      //
+  // ------------------------------------------------------------------ //
+  const trackPrefix = activeTab === 'cun360' ? 'c360' : 'cdig';
+  const stationTrack = activeTab === 'cun360' ? cun360Stations : cdigitalStations;
+  const completedInTrack = completedStations.filter(id => id.startsWith(trackPrefix)).length;
+  const nextStation = stationTrack.find(s => !completedStations.includes(s.id));
+  const nextStopName = nextStation ? nextStation.title.split(' ')[0] : null;
+  const isStationModule = activeTab === 'cun360' || activeTab === 'cdigital';
+  const isLockedModule = activeTab === 'bienestarLocked';
+  // Fase 4B — El capítulo Tour 360 usa un layout inmersivo exclusivo.
+  const isImmersive = activeTab === 'recorrido360';
+  // Fase C — Tema ambiental del escenario según el capítulo (solo visual).
+  const chapterTheme =
+    activeTab === 'recorrido360' ? 'tour'
+    : activeTab === 'cun360' ? 'campus'
+    : activeTab === 'cdigital' ? 'digital'
+    : activeTab === 'cronograma' ? 'calendar'
+    : 'default';
+
+  // Metadata narrativa del viaje de inducción (capítulos guiados).
+  interface ModuleNarrative {
+    chapter: string;
+    mission: string;
+    title: string;
+    description: string;
+    nextStep: string;
+    reward: string;
+    ctaLabel: string;
+    guide: string;
+  }
+
+  const moduleNarrative: Record<HubTab, ModuleNarrative> = {
+    recorrido360: {
+      chapter: 'Capítulo 1',
+      mission: 'Explora tu sede',
+      title: 'Bienvenido a la Sede Bogotá',
+      description: 'Recorre los espacios donde estudiarás, descubre servicios y familiarízate con tu campus antes de llegar.',
+      nextStep: 'Usa las flechas dentro del recorrido para avanzar por la sede.',
+      reward: 'Desbloqueas confianza para moverte por el campus.',
+      ctaLabel: 'Iniciar exploración',
+      guide: 'Hola, soy tu guía. Empecemos por conocer la entrada principal.',
+    },
+    cun360: {
+      chapter: 'Capítulo 2',
+      mission: 'Reconoce los espacios clave',
+      title: 'Completa la ruta Campus 360',
+      description: 'Avanza por las estaciones físicas de la universidad y conoce los lugares que harán parte de tu vida académica.',
+      nextStep: 'Continúa con la siguiente estación disponible.',
+      reward: 'Al completar esta ruta tendrás una guía clara del campus.',
+      ctaLabel: 'Continuar ruta',
+      guide: 'Vas bien. Sigue la ruta y descubre cada espacio del campus.',
+    },
+    cdigital: {
+      chapter: 'Capítulo 3',
+      mission: 'Domina tus herramientas digitales',
+      title: 'Prepárate para estudiar en el ecosistema digital CUN',
+      description: 'Aprende a usar las plataformas, canales y recursos que necesitarás durante el semestre.',
+      nextStep: 'Completa las estaciones digitales en orden.',
+      reward: 'Al finalizar sabrás cómo gestionar tu vida académica digital.',
+      ctaLabel: 'Continuar ruta digital',
+      guide: 'Estas herramientas te acompañarán todo el semestre. ¡Vamos!',
+    },
+    cronograma: {
+      chapter: 'Capítulo 4',
+      mission: 'Organiza tu inicio de semestre',
+      title: 'Revisa las fechas importantes',
+      description: 'Consulta actividades, plazos y momentos clave para iniciar tu proceso académico sin perderte de nada.',
+      nextStep: 'Selecciona un día con evento para ver sus detalles.',
+      reward: 'Tendrás claridad sobre las fechas más importantes.',
+      ctaLabel: 'Ver cronograma',
+      guide: 'Recuerda revisar el cronograma para no perder fechas importantes.',
+    },
+    soporteCami: {
+      chapter: 'Capítulo 5',
+      mission: 'Aprende a resolver tus trámites',
+      title: 'Ruta de soporte con Cami',
+      description: 'Conoce cómo pedir ayuda, radicar solicitudes y resolver tus trámites con el acompañamiento de Cami.',
+      nextStep: 'Continúa con la siguiente estación disponible.',
+      reward: 'Sabrás resolver cualquier trámite sin complicaciones.',
+      ctaLabel: 'Continuar ruta',
+      guide: 'Te muestro cómo resolver tus trámites paso a paso.',
+    },
+    virtual: {
+      chapter: 'Capítulo 6',
+      mission: 'Conecta con tu parche',
+      title: 'Ruta del Parche Virtual',
+      description: 'Descubre los espacios y canales para conectar con otros estudiantes y vivir la comunidad CUN en línea.',
+      nextStep: 'Continúa con la siguiente estación disponible.',
+      reward: 'Harás parte de una comunidad que te acompaña.',
+      ctaLabel: 'Continuar ruta',
+      guide: 'Aquí conocerás a tu parche y la comunidad CUN.',
+    },
+    bienestarLocked: {
+      chapter: 'Capítulo 7',
+      mission: 'Cuida tu bienestar',
+      title: 'Bienestar y apoyo, muy pronto',
+      description: 'Encuentra apoyo, actividades y acompañamiento para tu bienestar integral durante tu vida universitaria.',
+      nextStep: 'Este capítulo se habilitará durante el semestre.',
+      reward: 'Encontrarás apoyo y actividades para ti.',
+      ctaLabel: '',
+      guide: 'Aquí encontrarás apoyo y actividades para tu bienestar.',
+    },
+  };
+  const activeNarrative = moduleNarrative[activeTab];
+
   return (
-    <div className="w-full max-w-[1500px] 2xl:max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 relative z-10 flex flex-col h-[calc(100vh-96px)] sm:h-[min(88vh,940px)] min-h-[620px] sm:min-h-[720px] lg:min-h-[760px] overflow-hidden" id="onboarding-viewport-fixed">
+    <div className={`w-full max-w-[1500px] 2xl:max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-5 relative z-10 flex flex-col h-[calc(100vh-88px)] sm:h-[min(90vh,960px)] min-h-[620px] sm:min-h-[720px] lg:min-h-[760px] overflow-hidden ${isImmersive ? 'tour-immersive-shell' : 'stage-platform'}`} data-chapter={chapterTheme} id="onboarding-viewport-fixed">
       
-      {/* PREMIUM MINIMAL HEADER AREA - Compact heights, elegant design */}
-      <div className="flex flex-col sm:flex-row items-center justify-between bg-slate-900/40 border border-[#9BFF00]/15 rounded-2xl p-3 sm:p-4 mb-4 gap-3 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-[#9BFF00]/10 text-[#9BFF00] hidden sm:block shrink-0">
-            <AnimatedEarthIcon className="h-6 w-6" />
-          </div>
-          <div className="text-left">
-            <span className="text-[9px] font-mono tracking-widest text-[#9BFF00] font-black uppercase">
-              UNIVERSIDAD CUN • INDUCCIÓN DE AVANCE CUATRIMESTRAL
-            </span>
-            <h1 className="font-display font-black text-lg sm:text-2xl text-white uppercase tracking-tight leading-none mt-0.5">
-              PARCHE DIGITAL INTEGRADO
-            </h1>
-          </div>
+      {/* ===== HERO EDITORIAL — portada del capítulo (Fase D) ===== */}
+      <div className="relative z-[2] flex items-end justify-between gap-4 sm:gap-8 mb-4 sm:mb-6 shrink-0 pt-1">
+        <div className="min-w-0 flex flex-col gap-1.5">
+          <span className={`section-eyebrow ${isLockedModule ? 'text-amber-400' : ''}`}>
+            {activeNarrative.chapter} · {isLockedModule ? 'Capítulo disponible pronto' : activeNarrative.mission}
+          </span>
+          <h1 className="section-title text-xl sm:text-2xl lg:text-[1.75rem] max-w-[22ch]">
+            {activeNarrative.title}
+          </h1>
+          <p className="section-description hidden md:block text-sm max-w-2xl m-0">
+            {activeNarrative.description}
+          </p>
         </div>
 
+        {isStationModule && (
+          <button
+            onClick={() => handleOpenStation(nextStation ?? stationTrack[0])}
+            className="action-primary shrink-0 py-2.5"
+          >
+            {activeNarrative.ctaLabel}
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
-      {/* NEW FOLDER TAB SELECTOR LIST HEADER */}
+      {/* MODULE SELECTOR — chips tipo consola tecnológica (solo visual) */}
       <div className="hub-tabs-wrapper w-full min-w-0 max-w-full shrink-0">
-        <div className="hub-tabs flex bg-transparent overflow-x-auto max-w-full scrollbar-none select-none z-10 -mb-[2px] items-end px-1 sm:px-4 shrink-0 gap-1 sm:gap-1.5">
+        <div className="hub-tabs flex bg-transparent overflow-x-auto max-w-full scrollbar-none select-none z-10 mb-3 items-stretch px-0.5 sm:px-1 py-1 shrink-0 gap-2 sm:gap-2.5">
         {tabsList.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -680,61 +824,69 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`hub-tab px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-mono font-black uppercase flex items-center gap-1.5 transition-all relative border-t border-x rounded-t-xl cursor-pointer ${
-                isActive ? 'bg-gradient-to-b from-[#1b233a] to-[#121824] border-[#9BFF00] text-white z-20 shadow-[0_-3px_10px_rgba(155,255,0,0.12)]' : 'bg-zinc-950/80 border-slate-800/80 text-zinc-500 hover:text-zinc-300 hover:bg-[#121824]/40 z-10'
+              className={`hub-tab focus-ring-soft group relative flex items-center gap-2.5 rounded-[14px] border px-4 sm:px-5 py-2.5 sm:py-3 cursor-pointer whitespace-nowrap transition-all duration-150 ease-out ${
+                isActive
+                  ? 'hub-tab-active z-20 -translate-y-0.5 border-brand-green-main bg-white/[0.08] text-white shadow-[0_0_0_1px_rgba(53,184,74,0.3),0_12px_28px_-12px_rgba(53,184,74,0.38),inset_0_1px_0_rgba(255,255,255,0.12)]'
+                  : 'z-10 border-white/15 bg-white/[0.03] text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:-translate-y-px hover:border-white/25 hover:bg-white/[0.06] hover:text-text-primary'
               }`}
             >
-              <Icon className={`hub-tab__icon w-3.5 h-3.5 shrink-0 ${isActive ? 'text-[#9BFF00]' : 'text-zinc-500'}`} />
-              <span className="whitespace-nowrap">{tab.label}</span>
+              <Icon className={`hub-tab__icon w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0 transition-colors ${isActive ? 'text-brand-green-neon' : 'text-text-muted group-hover:text-text-secondary'}`} />
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wide whitespace-nowrap">{tab.label}</span>
             </button>
           );
         })}
         </div>
       </div>
 
-      {/* TAB WORKSPACE BOX - MODIFIED: NOT COMPLETELY DARK PURE BLACK (ELEGANT DEEP SLATE GRADIENT) */}
-      <div className="flex-1 bg-gradient-to-b from-[#121824]/95 via-[#0f1726]/95 to-[#0b101a]/98 border-2 border-[#1b233a] rounded-b-3xl rounded-tr-3xl relative overflow-hidden flex flex-col p-3 sm:p-5 shadow-2xl backdrop-blur-xl min-h-0">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(155,255,0,0.08),transparent_32%),radial-gradient(circle_at_78%_12%,rgba(59,130,246,0.14),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent_44%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-black/20" />
+      {/* TAB WORKSPACE BOX — Panel/tarjeta para módulos normales; en Tour 360 es un stage sin caja. */}
+      <div className={
+        isImmersive
+          ? 'flex-1 relative flex flex-col min-h-0 p-1.5 sm:p-2.5'
+          : 'flex-1 bg-surface-panel border border-border-subtle rounded-3xl relative overflow-hidden flex flex-col p-3 sm:p-5 shadow-panel backdrop-blur-xl min-h-0'
+      }>
+        {!isImmersive && (
+          <div className="hud-layer pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(53,184,74,0.10),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent_44%)]" />
+        )}
         
         <AnimatePresence mode="wait">
           
-          {/* TAB 1: LOCAL 360 TOUR */}
+          {/* TAB 1: TOUR 360 — STAGE INMERSIVO (el panorama es el protagonista) */}
           {activeTab === 'recorrido360' && (
             <motion.div
               key="recorrido360"
               initial={{ opacity: 0, scale: 0.99 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.99 }}
-              className="w-full h-full flex flex-col justify-between"
+              className="w-full h-full"
             >
-              <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 uppercase tracking-widest pb-1 border-b border-white/5 shrink-0 select-none">
-                <span className="flex items-center gap-1.5 text-[#9BFF00] font-black">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#9BFF00] animate-ping" />
-                  RECORRIDO 360 INTERACTIVO
-                </span>
-                <span className="hidden sm:inline">Tour local navegable</span>
-              </div>
-
-              {/* Photo Sphere Viewer + VirtualTourPlugin integration */}
-              <div className="flex-1 bg-black rounded-xl overflow-hidden relative border border-slate-800/80 my-2 shadow-2xl min-h-0 aspect-[16/11] md:aspect-[16/10] max-h-full">
+              {/* Stage: el panorama flota sobre el fondo atmosférico */}
+              <div className="tour-immersive-stage h-full w-full">
                 <VirtualTour360
                   nodes={tour360Nodes}
                   initialNodeId={TOUR360_START_NODE_ID}
                 />
-              </div>
 
-              <div className="flex items-center justify-between gap-2 shrink-0 select-none bg-[#172033]/60 p-2.5 rounded-xl border border-white/5 text-left">
-                <p className="text-[10px] font-mono text-slate-300 m-0">
-                  Usa las flechas integradas en la escena para navegar por el tour 360 local.
-                </p>
+                {/* Estado como overlay (no repite lo del Hero) */}
+                <div className="pointer-events-none absolute right-3 top-3 z-30 hidden items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-md sm:flex">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green-neon animate-pulse" />
+                  <span className="text-[11px] text-white/85">Avanza por la escena para descubrir la sede</span>
+                  <span className="ml-1 rounded-full bg-brand-green-neon/90 px-2 py-0.5 text-[9px] font-bold uppercase text-[#06130d]">En recorrido</span>
+                </div>
+
+                {/* Guía como acompañamiento dentro de la escena (oculto en móvil) */}
+                <div className="pointer-events-none absolute left-3 bottom-14 z-30 hidden max-w-[15rem] items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-sm md:flex">
+                  <AnimatedEarthIcon className="h-6 w-6 shrink-0" />
+                  <p className="m-0 text-[10px] italic leading-snug text-white/75">{activeNarrative.guide}</p>
+                </div>
+
+                {/* Acción secundaria muy discreta */}
                 <a 
                   href={tour360Nodes[0].panorama}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[9px] font-mono font-black text-black bg-[#9BFF00] hover:bg-white px-3 py-1.5 rounded-lg uppercase tracking-wider flex items-center gap-1.5 shrink-0 transition-all border-none"
+                  className="pointer-events-auto absolute right-3 bottom-14 z-30 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] font-medium text-white/80 backdrop-blur-md transition hover:bg-black/60 hover:text-white"
                 >
-                  Ver imagen local <ExternalLink className="w-3 h-3" />
+                  <ExternalLink className="w-3 h-3" /> Ver imagen
                 </a>
               </div>
             </motion.div>
@@ -772,42 +924,30 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               exit={{ opacity: 0 }}
               className="w-full h-full flex flex-col min-h-0"
             >
-              <div className="flex flex-col gap-1 border-b border-white/5 pb-3 text-left sm:flex-row sm:items-end sm:justify-between shrink-0 select-none">
-                <div>
-                  <p className="m-0 text-[10px] font-mono font-black uppercase tracking-[0.24em] text-[#9BFF00]">
-                    Cronograma de actividades institucionales CUN
+              <div className="flex flex-col gap-2 border-b border-border-subtle pb-4 text-left sm:flex-row sm:items-end sm:justify-between shrink-0 select-none">
+                <div className="flex flex-col gap-1">
+                  <span className="section-eyebrow">Cronograma de inducción</span>
+                  <h2 className="section-title text-2xl sm:text-3xl m-0">Junio 2026</h2>
+                  <p className="section-description text-sm m-0">
+                    Consulta las fechas clave de tu proceso de inducción.
                   </p>
-                  <h2 className="m-0 mt-1 font-display text-xl font-black uppercase leading-none text-white sm:text-2xl">
-                    Junio 2026
-                  </h2>
                 </div>
-                <span className="text-[10px] font-mono font-black uppercase tracking-widest text-zinc-400">
-                  Bogotá / Virtual
-                </span>
+                <div className="hidden sm:flex items-center gap-2 self-end rounded-full border border-border-subtle bg-surface-card px-3 py-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-brand-green-main" />
+                  <span className="section-meta text-text-secondary">{calendarActivities.length} fechas clave</span>
+                </div>
               </div>
 
-              <div className="grid flex-1 gap-4 overflow-y-auto pt-4 lg:grid-cols-[minmax(0,4fr)_minmax(260px,1fr)] xl:grid-cols-[minmax(0,4.4fr)_minmax(280px,1fr)] lg:overflow-hidden">
+              <div className="grid flex-1 gap-4 overflow-y-auto pt-4 lg:grid-cols-[minmax(0,3.6fr)_minmax(300px,1fr)] lg:overflow-hidden">
                 
-                <div className="flex min-h-[520px] flex-col rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-2xl backdrop-blur-xl sm:p-5 lg:min-h-0">
-                  <div className="mb-4 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="m-0 text-[10px] font-mono font-black uppercase tracking-[0.22em] text-white/50">
-                        Calendario mensual
-                      </p>
-                      <p className="m-0 mt-1 text-sm font-bold text-slate-200">
-                        Selecciona cualquier fecha para ver sus detalles.
-                      </p>
-                    </div>
-                    <div className="hidden rounded-full border border-[#9BFF00]/30 bg-[#9BFF00]/10 px-3 py-1.5 text-[10px] font-mono font-black uppercase tracking-widest text-[#9BFF00] sm:block">
-                      {selectedDayActivities.length > 0 ? `${selectedDayActivities.length} evento` : 'Sin evento'}
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-7 gap-2 border-b border-white/5 pb-3 text-center text-[11px] font-mono font-black uppercase tracking-widest text-zinc-400 sm:text-xs">
-                    <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+                <div className="flex min-h-[500px] flex-col rounded-2xl border border-white/10 bg-[#0e1621]/90 p-4 shadow-soft sm:p-5 lg:min-h-0">
+                  <div className="grid grid-cols-7 gap-1.5 pb-2 text-center sm:gap-2">
+                    {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((weekday) => (
+                      <span key={weekday} className="section-meta text-text-muted">{weekday}</span>
+                    ))}
                   </div>
 
-                  <div className="grid flex-1 grid-cols-7 gap-2 pt-3 sm:gap-2.5">
+                  <div className="grid flex-1 grid-cols-7 gap-1.5 pt-1 sm:gap-2">
                     {Array.from({ length: 30 }, (_, index) => {
                       const dayNumber = index + 1;
                       const hasActivity = calendarActivities.some(act => act.day === dayNumber);
@@ -820,27 +960,32 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                           key={dayNumber}
                           onClick={() => setSelectedDay(dayNumber)}
                           aria-pressed={isSelected}
-                          className={`group relative flex min-h-[68px] flex-col items-start justify-between rounded-xl border p-2 text-left transition-all duration-200 sm:min-h-[82px] sm:p-3 lg:min-h-[78px] ${
+                          className={`focus-ring-soft group relative flex min-h-[62px] flex-col items-start justify-between overflow-hidden rounded-xl border p-2 text-left transition-all duration-200 sm:min-h-[76px] sm:p-2.5 lg:min-h-[70px] ${
                             isSelected
-                              ? 'z-10 border-white bg-[#9BFF00] text-black shadow-[0_0_28px_rgba(155,255,0,0.22)]'
+                              ? `z-10 border-white/45 bg-white/[0.12] text-text-primary ${getCalendarSelectedShadow(matchedAct?.type)}`
                               : hasActivity
-                                ? `${getCalendarTypeClasses(matchedAct!.type)} hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-lg`
-                                : 'border-[#1b233a] bg-slate-950/35 text-slate-400 hover:border-slate-600 hover:bg-slate-900/70'
+                                ? `${getCalendarTileClasses(matchedAct?.type)} ${getCalendarGlow(matchedAct?.type)} text-text-primary hover:-translate-y-0.5 hover:brightness-125`
+                                : 'border-transparent bg-white/[0.02] text-text-muted hover:bg-white/[0.05]'
                           }`}
                         >
-                          <span className="text-lg font-black leading-none sm:text-2xl">
+                          {isSelected && (
+                            <span className={`pointer-events-none absolute inset-x-2 top-1 h-0.5 rounded-full ${hasActivity ? getCalendarDotClass(matchedAct?.type) : 'bg-white/70'}`} />
+                          )}
+                          <span className={`font-display leading-none text-lg sm:text-2xl ${
+                            isSelected || hasActivity ? 'text-white' : 'text-text-muted'
+                          }`}>
                             {dayNumber}
                           </span>
-                          
+
                           {hasActivity ? (
-                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-mono font-black uppercase tracking-wider ${
-                              isSelected ? 'bg-black/15 text-black' : 'bg-black/20 text-white/85'
-                            }`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-black' : getCalendarDotClass(matchedAct?.type)}`} />
+                            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-text-primary/90">
+                              <span className={`h-1.5 w-1.5 rounded-full ${getCalendarDotClass(matchedAct?.type)}`} />
                               Evento
                             </span>
                           ) : (
-                            <span className="text-[8px] font-mono font-bold uppercase tracking-wider text-current opacity-45">
+                            <span className={`text-[9px] font-medium uppercase tracking-wider ${
+                              isSelected ? 'text-text-secondary' : 'text-text-muted/50'
+                            }`}>
                               Libre
                             </span>
                           )}
@@ -849,68 +994,64 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                     })}
                   </div>
 
-                  <div className="mt-4 flex flex-wrap justify-center gap-3 border-t border-white/5 pt-3 text-[9px] font-mono font-black uppercase tracking-wider text-slate-400">
-                    <div className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-amber-400" />
-                      <span>Académico-ACA</span>
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-border-subtle pt-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-brand-green-main" />
+                      <span className="section-meta">Académico</span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-rose-400" />
-                      <span>Bienestar-Parche</span>
+                      <span className="section-meta">Bienestar</span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-cyan-400" />
-                      <span>Tecnológico-Meet</span>
+                      <span className="section-meta">Tecnología</span>
                     </div>
                   </div>
                 </div>
 
-                <aside className="flex min-h-[280px] flex-col rounded-2xl border border-white/10 bg-black/30 p-4 text-left shadow-xl backdrop-blur-xl sm:p-5 lg:min-h-0 lg:overflow-hidden">
-                  <p className="m-0 text-[10px] font-mono font-black uppercase tracking-[0.22em] text-white/55">
-                    Fecha seleccionada
-                  </p>
-
-                  <h3 className="m-0 mt-2 font-display text-xl font-black uppercase leading-tight text-white">
-                    {selectedDateLabel}
-                  </h3>
-
-                  <div className="mt-2 flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                    <Calendar className="h-3.5 w-3.5 text-[#9BFF00]" />
-                    <span>{selectedDayActivities.length > 0 ? `${selectedDayActivities.length} actividad programada` : 'Sin actividades programadas'}</span>
+                <aside className="flex min-h-[280px] flex-col rounded-2xl border border-white/12 bg-[#152232]/85 p-4 sm:p-5 text-left shadow-soft lg:min-h-0 lg:overflow-hidden">
+                  <span className="section-eyebrow">Fecha seleccionada</span>
+                  <h3 className="section-title text-lg sm:text-xl mt-1.5 m-0">{selectedDateLabel}</h3>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Calendar className="h-3.5 w-3.5 text-brand-green-main shrink-0" />
+                    <span className="section-meta text-text-secondary">
+                      {selectedDayActivities.length > 0
+                        ? `${selectedDayActivities.length} actividad${selectedDayActivities.length > 1 ? 'es' : ''} programada${selectedDayActivities.length > 1 ? 's' : ''}`
+                        : 'Sin actividades programadas'}
+                    </span>
                   </div>
 
-                  <div className="mt-5 flex-1 space-y-3 overflow-y-auto pr-1">
+                  <div className="mt-4 flex-1 space-y-3 overflow-y-auto border-t border-border-subtle pt-4 pr-1">
                     {selectedDayActivities.length > 0 ? (
                       selectedDayActivities.map((activity) => (
                         <article
                           key={`${activity.day}-${activity.title}`}
-                          className="rounded-2xl border border-white/10 bg-white/[0.07] p-4 shadow-lg"
+                          className={`rounded-xl border p-4 ${getCalendarCardClasses(activity.type)}`}
                         >
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className={`rounded-full border px-2.5 py-1 text-[8px] font-mono font-black uppercase tracking-widest ${getCalendarTypeClasses(activity.type)}`}>
+                            <span className={`rounded-full border px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${getCalendarTypeClasses(activity.type)}`}>
                               {getCalendarTypeLabel(activity.type)}
                             </span>
-                            <span className="text-[9px] font-mono font-black uppercase tracking-wider text-slate-400">
-                              Día {activity.day}
-                            </span>
+                            <span className="section-meta">Día {activity.day}</span>
                           </div>
 
-                          <h4 className="m-0 mt-3 font-display text-base font-black uppercase leading-tight text-white">
+                          <h4 className="section-title text-base leading-tight mt-2.5 m-0">
                             {activity.title}
                           </h4>
 
-                          <div className="mt-3 rounded-xl border border-white/5 bg-slate-950/70 p-2.5 text-[10px] font-mono font-black uppercase leading-snug text-slate-300">
-                            <span className="text-[#9BFF00]">Horario / lugar:</span>{' '}
-                            <span className="text-white">{activity.hour}</span>
+                          <div className="mt-3 flex items-start gap-2">
+                            <Clock className="h-3.5 w-3.5 text-brand-green-main shrink-0 mt-0.5" />
+                            <span className="text-xs font-medium leading-snug text-text-secondary">{activity.hour}</span>
                           </div>
 
-                          <p className="m-0 mt-3 text-xs font-semibold leading-relaxed text-slate-300">
+                          <p className="section-description text-xs mt-2.5 m-0">
                             {activity.desc}
                           </p>
 
                           <button
                             type="button"
-                            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#9BFF00] px-4 py-2 text-[10px] font-mono font-black uppercase tracking-wider text-black transition hover:bg-white active:scale-95"
+                            className="action-secondary mt-4 w-full"
                           >
                             Más información
                             <ArrowRight className="h-3.5 w-3.5" />
@@ -918,13 +1059,11 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                         </article>
                       ))
                     ) : (
-                      <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.04] p-5 text-center">
-                        <Clock className="h-9 w-9 text-slate-500" />
-                        <p className="m-0 mt-3 text-xs font-mono font-black uppercase tracking-wider text-slate-300">
-                          No hay eventos programados
-                        </p>
-                        <p className="m-0 mt-2 max-w-[220px] text-xs font-semibold leading-relaxed text-slate-500">
-                          Selecciona una fecha marcada con evento para ver sus actividades institucionales.
+                      <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-border-subtle bg-white/[0.02] p-5 text-center">
+                        <Clock className="h-8 w-8 text-text-muted" />
+                        <p className="section-title text-sm mt-3 m-0">Día libre</p>
+                        <p className="section-description text-xs mt-1.5 max-w-[220px] m-0">
+                          Selecciona una fecha marcada con evento para ver sus actividades.
                         </p>
                       </div>
                     )}
@@ -948,8 +1087,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                 <Lock className="w-7 h-7" />
               </div>
 
-              <span className="text-[10px] font-mono font-black tracking-widest text-amber-400 uppercase bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full mb-2">
-                APARTADO BLOQUEADO • ACTIVACIÓN SEMESTRAL
+              <span className="text-[11px] font-semibold tracking-wide text-amber-400 uppercase bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full mb-2">
+                {activeNarrative.chapter} · Capítulo disponible pronto
               </span>
 
               <h2 className="text-lg sm:text-2xl font-display font-black text-white uppercase tracking-tight leading-tight mb-2">
@@ -960,9 +1099,9 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                 Descubre actividades extraescolares gratis, torneos deportivos en Bogotá, clases de danza, orientación sicológica y convenios médicos organizados por la CUN.
               </p>
 
-              <div className="bg-slate-900/70 p-3 rounded-xl border border-[#1b233a] text-[10px] font-mono text-slate-300 flex items-center gap-2 max-w-sm text-left shadow-lg">
-                <Clock className="w-4 h-4 text-[#9BFF00]" />
-                <span>Se habilitará automÉticamente al registrarse las primeras asistencias al aula oficial.</span>
+              <div className="bg-slate-900/70 p-3 rounded-xl border border-[#1b233a] text-xs text-slate-300 flex items-center gap-2 max-w-sm text-left shadow-lg italic">
+                <Clock className="w-4 h-4 text-brand-green-main shrink-0" />
+                <span>{activeNarrative.guide}</span>
               </div>
             </motion.div>
           )}
