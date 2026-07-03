@@ -93,7 +93,7 @@ export const HudGlassModal: React.FC<HudGlassModalProps> = ({
                       onClick={onClose}
                       aria-label={closeAriaLabel}
                     >
-                      ×
+                      x
                     </button>
                   )}
                 </header>

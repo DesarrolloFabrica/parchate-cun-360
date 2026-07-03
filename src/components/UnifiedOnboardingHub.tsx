@@ -35,6 +35,7 @@ interface Station {
   drivePdfPreviewUrl?: string;
   accentColor: string;
   extraTip?: string;
+  hideContentTitle?: boolean;
   coordinateX: number; 
   coordinateY: number; 
 }
@@ -89,7 +90,7 @@ const CUN360_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/
 // Para imágenes de Google Drive:
 // usar formato https://drive.google.com/uc?export=view&id=ID_DEL_ARCHIVO
 // y verificar que el archivo esté compartido como "Cualquier persona con el enlace puede ver".
-const CUN360_POINT_2_DRIVE_IMAGE_URL = `https://drive.google.com/uc?export=view&id=1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n`;
+const CUN360_POINT_2_DRIVE_IMAGE_URL = `https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview`;
 const CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL = `https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview`;
 
 // Para PDFs de Google Drive:
@@ -146,6 +147,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       type: 'drive-image',
       driveImageUrl: CUN360_POINT_2_DRIVE_IMAGE_URL,
       driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
+      hideContentTitle: true,
       accentColor: '#35B84A', extraTip: 'Las salas MAC se pueden separar en bloques de hasta 2 horas diarias.',
       coordinateX: 20, coordinateY: 40
     },
@@ -1025,7 +1027,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
             ? 'lg'
             : 'md'
         }
-        title={activePopupStation?.title}
+        title={activePopupStation?.hideContentTitle ? undefined : activePopupStation?.title}
         meta={
           activePopupStation
             ? `Estación ${activePopupStation.number} / Inducción activa`
