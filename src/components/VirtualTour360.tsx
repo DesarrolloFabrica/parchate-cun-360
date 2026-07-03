@@ -10,6 +10,7 @@ import { GalleryPlugin } from '@photo-sphere-viewer/gallery-plugin';
 import { AutorotatePlugin } from '@photo-sphere-viewer/autorotate-plugin';
 import '../styles/tour360.css';
 import '../styles/tour360-hotspots.css';
+import { HudGlassModal } from './HudGlassModal';
 import {
   TOUR360_START_NODE_ID,
   tour360Nodes,
@@ -171,15 +172,6 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
     const startNode = nodes.find((node) => node.id === initialNodeId) ?? nodes[0];
     setCurrentNodeId(startNode.id);
 
-    const points = [
-    { yaw: 0.1029, pitch: 0.3158 },
-    { yaw: 0.8532, pitch: -0.1646 },
-    { yaw: 2.7755, pitch: 0.7840 },
-    { yaw: 3.3742, pitch: 0.4757 },
-    { yaw: 4.6591, pitch: 0.6579 },
-    { yaw: 5.7976, pitch: -0.0401 },
-];
-
     const viewer = new Viewer({
       container: containerRef.current,
       panorama: startNode.panorama,
@@ -201,22 +193,11 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         */
         'fullscreen',
         'gallery',
-        'autorotate',
         'markers',
       ],
       mousewheel: true,
       size: { width: '100%', height: '100%' },
       plugins: [
-        
-      AutorotatePlugin.withConfig({
-            autostartDelay: 1000,
-            autorotateSpeed: '0.5rpm',
-            keypoints: points.map((pt, i) => ({
-                position: pt,
-                pause: i % 3 === 1 ? 2000 : 0,
-                tooltip: 'Test tooltip',
-            })),
-        }),
         [
           GalleryPlugin,
           {
@@ -371,81 +352,49 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         </h2>
       </div>
 
-      {activeVideo && (
-        <div
-          className="tour-video-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-label={activeVideo.title}
-          onClick={() => setActiveVideo(null)}
-        >
-          <div
-            className="tour-video-modal__content"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="tour-video-modal__close"
-              onClick={() => setActiveVideo(null)}
-              aria-label="Cerrar video"
-            >
-              X
-            </button>
-
-            <h2 className="tour-video-modal__title">
-              {activeVideo.title}
-            </h2>
-
-            {activeVideo.description && (
-              <p className="tour-video-modal__description">
-                {activeVideo.description}
-              </p>
-            )}
-
+      <HudGlassModal
+        isOpen={Boolean(activeVideo)}
+        onClose={() => setActiveVideo(null)}
+        size="xl"
+        title={activeVideo?.title}
+        meta="Contenido multimedia del tour 360"
+        bodyClassName="space-y-4"
+      >
+        {activeVideo?.description && (
+          <p className="m-0 text-sm font-semibold leading-relaxed text-white/80">
+            {activeVideo.description}
+          </p>
+        )}
+        {activeVideo && (
+          <div className="hud-glass-modal__media">
             <iframe
-              className="tour-video-modal__player"
+              className="hud-glass-modal__iframe"
               src={activeVideo.iframeSrc}
               title={activeVideo.title}
               allow="autoplay; fullscreen"
               allowFullScreen
             />
           </div>
-        </div>
-      )}
+        )}
+      </HudGlassModal>
 
-      {activeImagePopup && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/78 p-4 backdrop-blur-md">
-          <button
-            type="button"
-            className="absolute inset-0 cursor-default border-0 bg-transparent"
-            aria-label="Cerrar imagen"
-            onClick={() => setActiveImagePopup(null)}
-          />
-
-          <div className="relative z-10 flex max-h-[92%] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-slate-950 shadow-[0_30px_90px_rgba(0,0,0,0.55)]">
-            <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3">
-              <h3 className="m-0 text-sm font-black uppercase tracking-wide text-white">
-                {activeImagePopup.title}
-              </h3>
-              <button
-                type="button"
-                className="rounded-lg border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-black uppercase text-white transition hover:bg-white/20"
-                onClick={() => setActiveImagePopup(null)}
-              >
-                Cerrar
-              </button>
-            </div>
-
-            <div className="min-h-0 bg-black p-3">
-              <img
-                src={activeImagePopup.image}
-                alt={activeImagePopup.alt}
-                className="max-h-[76vh] w-full object-contain"
-              />
-            </div>
+      <HudGlassModal
+        isOpen={Boolean(activeImagePopup)}
+        onClose={() => setActiveImagePopup(null)}
+        size="xl"
+        title={activeImagePopup?.title}
+        meta="Información del recorrido"
+      >
+        {activeImagePopup && (
+          <div className="hud-glass-modal__media">
+            <img
+              src={activeImagePopup.image}
+              alt={activeImagePopup.alt}
+              className="hud-glass-modal__image"
+            />
           </div>
-        </div>
-      )}
+        )}
+      </HudGlassModal>
     </div>
   );
 };
