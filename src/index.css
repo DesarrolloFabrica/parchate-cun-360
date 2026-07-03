@@ -1,18 +1,81 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
+  /* ------------------------------------------------------------------ */
+  /* MARCA CUN (se conservan, pero el neón pasa a ser acento, no base)  */
+  /* ------------------------------------------------------------------ */
   --color-brand-green-main: #35B84A;
   --color-brand-green-neon: #9BFF00;
   --color-brand-green-dark: #0B3D2E;
   --color-brand-blue-dark: #172B6B;
   --color-brand-white: #ffffff;
-  
+
+  /* ------------------------------------------------------------------ */
+  /* TOKENS SEMÁNTICOS — Fundación visual institucional (tema oscuro)   */
+  /* Evitamos negro puro; base verde-azulada profunda y limpia.          */
+  /* ------------------------------------------------------------------ */
+
+  /* Superficies */
+  --color-surface-app: #0c1a15;        /* fondo de aplicación */
+  --color-surface-raised: #10241d;     /* fondo elevado */
+  --color-surface-panel: #12261f;      /* panel principal */
+  --color-surface-card: #163026;       /* tarjeta */
+  --color-surface-card-hover: #1c3b30; /* tarjeta hover */
+
+  /* Bordes */
+  --color-border-subtle: #ffffff1f;    /* borde sutil (blanco 12%) */
+  --color-border-active: #35B84A;      /* borde activo (verde marca) */
+
+  /* Texto */
+  --color-text-primary: #f3f8f5;       /* texto principal */
+  --color-text-secondary: #bcccc4;     /* texto secundario */
+  --color-text-muted: #8ba096;         /* texto apagado */
+
+  /* Acciones / estados */
+  --color-action-primary: #35B84A;         /* acción primaria */
+  --color-action-primary-hover: #2ea043;   /* acción primaria hover */
+  --color-success: #35B84A;                /* éxito / completado */
+  --color-locked: #64748b;                 /* bloqueado / deshabilitado */
+  --color-warning: #f59e0b;                /* advertencia */
+  --color-accent-neon: #9BFF00;            /* acento neón (uso puntual) */
+
+  /* Tipografía */
   --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
   --font-display: 'Anton', sans-serif;
+
+  /* Radios (unificados) */
+  --radius-panel: 1.75rem;   /* paneles principales: amplio */
+  --radius-card: 1rem;       /* tarjetas internas: medio */
+  --radius-button: 0.85rem;  /* botones: medio consistente */
+  --radius-pill: 9999px;     /* botones tipo píldora */
+
+  /* Sombras suaves (no exageradas) */
+  --shadow-soft: 0 8px 24px -12px rgba(0, 0, 0, 0.45);
+  --shadow-panel: 0 24px 60px -28px rgba(0, 0, 0, 0.55);
 }
 
-/* Custom cyber glowing animation for buttons and badges */
+/* ==================================================================== */
+/* VARIABLES DERIVADAS (glow / focus controlados, no permanentes)       */
+/* ==================================================================== */
+:root {
+  --glow-accent: 0 0 14px rgba(155, 255, 0, 0.35);
+  --glow-accent-strong: 0 0 22px rgba(155, 255, 0, 0.5);
+  --glow-success: 0 0 16px rgba(53, 184, 74, 0.35);
+  --focus-ring: 0 0 0 3px rgba(155, 255, 0, 0.28);
+
+  /* Dirección Artística — Fase A: familia tonal de la atmósfera base.   */
+  /* No son colores independientes; se funden en una sola escenografía.  */
+  --atmos-black: #060d0b;        /* negro cálido (base) */
+  --atmos-green-dark: #0a2019;   /* verde oscuro */
+  --atmos-green-petrol: #0b2c22; /* verde petróleo */
+  --atmos-blue-petrol: #0a2331;  /* azul petróleo */
+}
+
+/* ==================================================================== */
+/* CYBER GLOW — se conserva la animación pero deja de ser permanente.   */
+/* Solo se aplica de forma puntual (hover/active) donde se invoque.     */
+/* ==================================================================== */
 @keyframes neonGlow {
   0%, 100% {
     box-shadow: 0 0 5px rgba(155, 255, 0, 0.4), 0 0 12px rgba(155, 255, 0, 0.2);
@@ -22,19 +85,28 @@
   }
 }
 
+/* El glow permanente queda desactivado: solo brilla al pasar el cursor. */
 .animate-neon-glow {
-  animation: neonGlow 3s infinite;
+  transition: box-shadow 0.3s ease;
+}
+.animate-neon-glow:hover,
+.animate-neon-glow:focus-visible {
+  box-shadow: var(--glow-accent-strong);
 }
 
-/* Base style adjustments */
+/* ==================================================================== */
+/* BASE                                                                 */
+/* ==================================================================== */
 html, body {
   font-family: var(--font-sans);
   font-weight: 500;
-  background-color: #0B3D2E; /* Deep forest green/dark background per guidelines */
-  color: #ffffff;
+  background-color: var(--atmos-black);
+  color: var(--color-text-primary);
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Anton SOLO para títulos y números destacados. */
 h1,
 h2,
 h3,
@@ -47,6 +119,7 @@ h6,
 .font-display {
   font-family: var(--font-display);
   font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
 body,
@@ -55,7 +128,410 @@ body,
   font-weight: 500;
 }
 
-/* Modern minimalist line-art grid overlay pattern */
+/* ==================================================================== */
+/* FUNDACIÓN VISUAL — Clases utilitarias reutilizables                  */
+/* ==================================================================== */
+
+/* --- Contenedores globales --- */
+/* ------------------------------------------------------------------ */
+/* ESCENARIO — Atmósfera base editorial (Dirección Artística, Fase A). */
+/* Nivel 1: fondo profundo (gradientes). Nivel 2: iluminación ambiental */
+/* (::before). Nivel 3: los componentes viven encima. Solo luz, sin     */
+/* decoración: nada de puntos, líneas, patrones ni figuras.             */
+/* ------------------------------------------------------------------ */
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  background-color: var(--atmos-black);
+  background-image:
+    /* Profundidad: viñeta apenas perceptible que oscurece los extremos. */
+    radial-gradient(150% 120% at 50% 42%, transparent 56%, rgba(2, 6, 5, 0.55) 100%),
+    /* Luminosidad central sutil (el centro respira un poco más). */
+    radial-gradient(95% 78% at 50% 38%, rgba(19, 49, 42, 0.42), transparent 70%),
+    /* Transición amplia verde petróleo ↔ azul petróleo ↔ negro cálido. */
+    linear-gradient(
+      155deg,
+      var(--atmos-green-petrol) 0%,
+      var(--atmos-blue-petrol) 50%,
+      var(--atmos-black) 100%
+    );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Nivel 2 — Iluminación ambiental detrás de la composición general.    */
+/* No es un glow de componente: es la luz del escenario. Fija al viewport */
+/* y por detrás del contenido (z-index negativo dentro del isolate).     */
+.app-shell::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  left: 50%;
+  top: 42%;
+  width: min(1500px, 94vw);
+  height: 78vh;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(42, 96, 82, 0.18),
+    rgba(22, 56, 48, 0.05) 46%,
+    transparent 72%
+  );
+  filter: blur(130px);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* ARQUITECTURA DEL ESCENARIO (Dirección Artística, Fase B).           */
+/* El Header y el contenido dejan de ser piezas sueltas: se funden en  */
+/* un mismo escenario mediante superficie, luz y líneas apenas visibles.*/
+/* ------------------------------------------------------------------ */
+
+/* Header integrado: deja de ser una "barra". Se funde con el escenario */
+/* mediante un degradado que se disuelve hacia abajo y una línea guía   */
+/* arquitectónica (no un borde) alineada al ancho del contenido.        */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  color: var(--color-text-primary);
+  background: linear-gradient(
+    180deg,
+    rgba(9, 20, 16, 0.92) 0%,
+    rgba(9, 20, 16, 0.66) 62%,
+    rgba(9, 20, 16, 0) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.app-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1680px, calc(100% - 1rem));
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.09) 18%,
+    rgba(255, 255, 255, 0.09) 82%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Plataforma del escenario: superficie tecnológica muy sutil sobre la  */
+/* que descansan Hero + Tabs + Contenido como una sola pieza continua.  */
+/* Sin bordes gruesos: solo tono, luz y sombra ambiental (elevación).   */
+.stage-platform {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--radius-panel);
+  background:
+    /* brillo tenue en el borde superior: la luz "toca" la plataforma */
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.012) 16%, transparent 46%),
+    /* leve tinte de superficie que la separa del fondo profundo */
+    linear-gradient(180deg, rgba(19, 41, 33, 0.4), rgba(9, 20, 16, 0.16));
+  /* Profundidad por sombra ambiental (elevación, no un box-shadow duro) */
+  box-shadow:
+    0 42px 96px -54px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+/* Halo direccional detrás del Hero: dirige la mirada hacia el contenido.*/
+/* z-index negativo → por encima de la superficie, por debajo del contenido.*/
+.stage-platform::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -4%;
+  left: 50%;
+  width: 72%;
+  height: 46%;
+  transform: translateX(-50%);
+  background: radial-gradient(60% 100% at 50% 0%, rgba(53, 184, 74, 0.1), transparent 72%);
+  filter: blur(34px);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* DETALLES AMBIENTALES (Dirección Artística, Fase C).                 */
+/* Capa casi imperceptible que da vida al escenario: halos laterales,  */
+/* líneas de "plano" y nodos diminutos. Nunca compite con el contenido:*/
+/* pointer-events:none, opacidad muy baja y z-index por detrás de todo.*/
+/* ------------------------------------------------------------------ */
+.app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.85;
+  background-image:
+    /* nodos diminutos que sugieren conexión (no estrellas) */
+    radial-gradient(circle, rgba(126, 206, 170, 0.22) 0 1.4px, transparent 2px),
+    radial-gradient(circle, rgba(110, 170, 200, 0.18) 0 1.3px, transparent 2px),
+    radial-gradient(circle, rgba(126, 206, 170, 0.16) 0 1.2px, transparent 2px),
+    radial-gradient(circle, rgba(126, 206, 170, 0.14) 0 1.6px, transparent 2px),
+    /* líneas arquitectónicas finas que se desvanecen en los extremos */
+    linear-gradient(90deg, transparent, rgba(96, 170, 148, 0.05) 24%, rgba(96, 170, 148, 0.05) 76%, transparent),
+    linear-gradient(90deg, transparent, rgba(90, 150, 178, 0.045) 30%, rgba(90, 150, 178, 0.045) 70%, transparent),
+    linear-gradient(0deg, transparent, rgba(96, 170, 148, 0.045) 30%, rgba(96, 170, 148, 0.045) 70%, transparent),
+    /* halos laterales muy desenfocados (rompen la sensación plana) */
+    radial-gradient(46% 60% at 3% 20%, rgba(24, 66, 84, 0.1), transparent 70%),
+    radial-gradient(48% 64% at 98% 86%, rgba(30, 78, 60, 0.1), transparent 72%);
+  background-size:
+    4px 4px, 4px 4px, 4px 4px, 4px 4px,
+    100% 1px, 100% 1px, 1px 100%,
+    100% 100%, 100% 100%;
+  background-position:
+    17% 28%, 83% 21%, 67% 74%, 31% 83%,
+    0 23%, 0 69%, 13% 0,
+    0 0, 100% 100%;
+  background-repeat: no-repeat;
+  animation: ambientDrift 22s ease-in-out infinite alternate;
+}
+
+/* Microanimación ambiental: respiración lenta y mínima del ambiente.   */
+@keyframes ambientDrift {
+  from { opacity: 0.72; }
+  to   { opacity: 0.9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell::after { animation: none; }
+}
+
+/* Variación por capítulo — muy sutil. La estructura queda preparada     */
+/* mediante data-chapter en el contenedor del Hub; hoy solo matices.     */
+.stage-platform[data-chapter="digital"] {
+  /* Digital: el azul petróleo gana presencia en la superficie. */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.012) 16%, transparent 46%),
+    linear-gradient(180deg, rgba(16, 40, 52, 0.42), rgba(9, 18, 24, 0.18));
+}
+.stage-platform[data-chapter="calendar"] {
+  /* Cronograma: atmósfera de planificación — azul petróleo / tinta,     */
+  /* menos verde y menor saturación (sensación de agenda, no exploración).*/
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0.012) 16%, transparent 46%),
+    linear-gradient(180deg, rgba(20, 32, 44, 0.44), rgba(10, 16, 22, 0.2));
+}
+/* El halo tras el Hero se vuelve frío y tenue para el capítulo Cronograma.*/
+.stage-platform[data-chapter="calendar"]::before {
+  background: radial-gradient(60% 100% at 50% 0%, rgba(96, 132, 170, 0.08), transparent 72%);
+}
+/* Campus: insinúa una ruta/plano con dos trazos apenas visibles.        */
+.stage-platform[data-chapter="campus"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg, transparent, rgba(96, 170, 148, 0.06) 20%, rgba(96, 170, 148, 0.06) 62%, transparent 82%),
+    linear-gradient(0deg, transparent, rgba(96, 170, 148, 0.05) 40%, transparent 72%);
+  background-size: 100% 1px, 1px 100%;
+  background-position: 0 38%, 78% 0;
+  background-repeat: no-repeat;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 640px) {
+  .app-container { padding-inline: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  .app-container { padding-inline: 2rem; }
+}
+
+/* --- Superficies --- */
+.surface-panel {
+  background-color: var(--color-surface-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+.surface-card {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.surface-card-interactive {
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+.surface-card-interactive:hover {
+  background-color: var(--color-surface-card-hover);
+  border-color: var(--color-border-active);
+  box-shadow: var(--shadow-soft), var(--glow-accent);
+  transform: translateY(-2px);
+}
+
+/* --- Tipografía de secciones --- */
+/* ------------------------------------------------------------------ */
+/* SISTEMA EDITORIAL (Dirección Artística, Fase D).                     */
+/* Cuatro niveles tipográficos con jerarquía muy evidente. Anton solo   */
+/* para el título; Montserrat domina el resto de la interfaz.           */
+/* ------------------------------------------------------------------ */
+
+/* Nivel 1 — Eyebrow: capítulo · misión (pequeño, con tracking). */
+.section-eyebrow {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-brand-green-main);
+}
+
+/* Nivel 2 — Título: el elemento textual dominante (Anton). */
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+}
+
+/* Nivel 3 — Descripción: media, no compite con el título. */
+.section-description {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+/* Nivel 4 — Información secundaria: pequeña y de bajo contraste. */
+.section-meta {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  color: var(--color-text-muted);
+}
+
+/* --- Botones base --- */
+.action-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #06130d;
+  background-color: var(--color-action-primary);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 0.6rem 1.15rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+.action-primary:hover {
+  background-color: var(--color-action-primary-hover);
+  box-shadow: var(--glow-success);
+}
+.action-primary:active {
+  transform: scale(0.97);
+}
+.action-primary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.action-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--color-text-primary);
+  background-color: transparent;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+.action-secondary:hover {
+  color: var(--color-brand-green-neon);
+  border-color: var(--color-border-active);
+  background-color: rgba(53, 184, 74, 0.08);
+}
+.action-secondary:active {
+  transform: scale(0.97);
+}
+.action-secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* --- Badges de estado --- */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.status-badge-active {
+  color: #06130d;
+  background-color: var(--color-accent-neon);
+  border-color: transparent;
+  box-shadow: var(--glow-accent);
+}
+
+.status-badge-completed {
+  color: var(--color-success);
+  background-color: rgba(53, 184, 74, 0.12);
+  border-color: rgba(53, 184, 74, 0.4);
+}
+
+.status-badge-locked {
+  color: var(--color-locked);
+  background-color: rgba(100, 116, 139, 0.12);
+  border-color: rgba(100, 116, 139, 0.35);
+}
+
+/* --- Foco accesible suave --- */
+.focus-ring-soft:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ==================================================================== */
+/* DECORACIONES (line-art) — se conservan                               */
+/* ==================================================================== */
 .lineart-grid {
   background-image: 
     radial-gradient(ellipse at top right, rgba(0, 102, 204, 0.05), transparent 60%),
@@ -65,7 +541,6 @@ body,
   background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
 }
 
-/* Custom dashed curves representing learning paths */
 .path-lineart {
   stroke-dasharray: 8 6;
   animation: dashmove 40s linear infinite;
@@ -77,34 +552,134 @@ body,
   }
 }
 
-/* Perfect line-thin borders for lineart theme */
+/* Bordes line-art suavizados hacia el borde sutil de la fundación */
 .border-line {
-  border: 1.5px solid #e2e8f0;
+  border: 1px solid var(--color-border-subtle);
 }
 
 .border-line-blue {
-  border: 2px solid #0066cc;
+  border: 1.5px solid rgba(23, 43, 107, 0.6);
 }
 
 .border-line-green {
-  border: 2px solid #00b368;
+  border: 1.5px solid rgba(53, 184, 74, 0.55);
 }
 
-/* Fancy smooth transitions and scrollbar */
+/* ==================================================================== */
+/* SCROLLBAR — coherente con el tema oscuro                             */
+/* ==================================================================== */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--color-surface-raised);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #2c463b;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-brand-green-main);
+}
+
+/* ==================================================================== */
+/* TOUR 360 — MODO INMERSIVO (solo capítulo recorrido360)               */
+/* El visor deja de sentirse como un panel y pasa a ser una escena.     */
+/* ==================================================================== */
+
+/* Atmósfera del capítulo: profundidad mediante iluminación, no decoración. */
+/* Centro ligeramente iluminado → bordes más oscuros → visor emergiendo.    */
+.tour-immersive-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background:
+    radial-gradient(78% 62% at 50% 44%, rgba(22, 58, 46, 0.5), transparent 72%),
+    radial-gradient(135% 115% at 50% 118%, rgba(3, 10, 8, 0.7), transparent 60%),
+    #061410;
+}
+
+/* Backlight: luz ambiental difusa que parece emanar del recorrido.         */
+/* radial-gradient + blur grande + opacidad baja + verde institucional       */
+/* desaturado. Vive detrás del stage (z-index negativo dentro del isolate).  */
+.tour-immersive-shell::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 55%;
+  width: 76%;
+  height: 60%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(53, 184, 74, 0.20),
+    rgba(53, 184, 74, 0.05) 46%,
+    transparent 72%
+  );
+  filter: blur(100px);
+  pointer-events: none;
+}
+
+/* Capa de luz superior extremadamente tenue (aporta profundidad).           */
+.tour-immersive-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%);
+  pointer-events: none;
+}
+
+/* Barra de capítulos compacta y discreta. */
+.tour-immersive-tabs {
+  opacity: 0.92;
+}
+.tour-immersive-tabs button {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+.tour-immersive-tabs .tour-tab-chip {
+  font-size: 1rem;
+}
+.tour-immersive-tabs .tour-tab-hint {
+  display: none;
+}
+
+/* Stage: ventana limpia al campus. Borde mínimo, radio amplio, sombra   */
+/* suave y gradientes discretos arriba/abajo para leer overlays.         */
+.tour-immersive-stage {
+  position: relative;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+  background: #05100b;
+  box-shadow: var(--shadow-panel);
+}
+
+.tour-immersive-stage::before,
+.tour-immersive-stage::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.tour-immersive-stage::before {
+  top: 0;
+  height: 24%;
+  background: linear-gradient(to bottom, rgba(4, 12, 8, 0.5), transparent);
+}
+
+.tour-immersive-stage::after {
+  bottom: 0;
+  height: 22%;
+  background: linear-gradient(to top, rgba(4, 12, 8, 0.46), transparent);
 }

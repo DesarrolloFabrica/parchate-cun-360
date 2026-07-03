@@ -9,45 +9,45 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ currentRoute, setRoute }) => {
   return (
-    <header className="sticky top-0 z-50 bg-brand-green-dark/95 backdrop-blur-md border-b-2 border-brand-green-main/30 text-white transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+    <header className="app-header transition-all">
+      <div className="w-full max-w-[1500px] 2xl:max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 h-18 flex items-center justify-between gap-4">
         
-        {/* Left Side: Logo & Title */}
-        <div className="flex items-center space-x-3 cursor-pointer select-none" onClick={() => setRoute('home')}>
-          {/* Custom Modern LineArt CUN style logo with neon highlight */}
-          <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-brand-green-dark border-2 border-brand-green-neon overflow-hidden shadow-[0_0_10px_rgba(155,255,0,0.3)]">
-            <GraduationCap className="w-6 h-6 text-brand-green-neon animate-pulse" strokeWidth={2} />
+        {/* Marca institucional — jerarquía: logo → nombre → mensaje */}
+        <div className="group flex items-center gap-3 cursor-pointer select-none min-w-0" onClick={() => setRoute('home')}>
+          {/* Logo CUN: borde sutil por defecto, acento neón al hover */}
+          <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-surface-raised border border-border-subtle group-hover:border-brand-green-neon overflow-hidden transition-all group-hover:shadow-[0_0_10px_rgba(155,255,0,0.3)] shrink-0">
+            <GraduationCap className="w-6 h-6 text-brand-green-main group-hover:text-brand-green-neon transition-colors" strokeWidth={2} />
             <div className="absolute bottom-0 inset-x-0 h-1 bg-brand-green-main" />
             <span className="sr-only">CUN Onboarding</span>
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-display font-black text-xl tracking-tight text-white">
-                PÁRCHATE <span className="text-brand-green-neon drop-shadow-[0_0_8px_#9BFF00]">CUN</span>
-              </span>
-              <span className="h-4 w-0.5 bg-brand-green-main/30 rounded-full" />
-            </div>
+          <div className="flex flex-col min-w-0 leading-none">
+            <span className="font-display font-black text-lg sm:text-xl tracking-tight text-text-primary leading-none">
+              PÁRCHATE <span className="text-brand-green-neon">CUN</span>
+            </span>
+            <span className="hidden sm:block text-[11px] font-medium text-text-muted tracking-wide mt-1 truncate">
+              Inducción institucional para estudiantes nuevos
+            </span>
           </div>
         </div>
 
-        {/* Center: Interactive Modality Badge in modern tech pill with neon neon glow */}
+        {/* Center: píldora de modalidad — borde sutil, neón como acento */}
         {currentRoute !== 'home' && (
-          <div className="hidden md:flex items-center py-1.5 px-4 rounded-full bg-brand-green-dark/80 border border-brand-green-neon/50 text-xs shadow-[0_0_8px_rgba(155,255,0,0.15)]">
-            <span className="text-slate-300 mr-2 font-mono uppercase tracking-wider">MODO:</span>
+          <div className="hidden md:flex items-center py-1.5 px-4 rounded-full bg-surface-raised/80 border border-border-subtle text-xs">
+            <span className="text-text-muted mr-2 uppercase tracking-wider">Modo:</span>
             {currentRoute === 'virtual' ? (
-              <span className="flex items-center font-black text-brand-green-neon uppercase tracking-widest font-mono">
-                <Globe className="w-4 h-4 mr-1.5 animate-spin-slow text-brand-green-neon" />
-                VIRTUAL 100% ONLINE
+              <span className="flex items-center font-bold text-brand-green-main uppercase tracking-wider">
+                <Globe className="w-4 h-4 mr-1.5 text-brand-green-main" />
+                Virtual 100% online
               </span>
             ) : currentRoute === 'hub' ? (
-              <span className="flex items-center font-black text-brand-green-neon uppercase tracking-widest font-mono">
-                <Sparkles className="w-4 h-4 mr-1.5 animate-pulse text-brand-green-neon" />
-                HUB INTEGRADO
+              <span className="flex items-center font-bold text-brand-green-main uppercase tracking-wider">
+                <Sparkles className="w-4 h-4 mr-1.5 text-brand-green-main" />
+                Hub integrado
               </span>
             ) : (
-              <span className="flex items-center font-black text-brand-green-neon uppercase tracking-widest font-mono">
-                <Compass className="w-4 h-4 mr-1.5 animate-pulse text-brand-green-neon" />
-                CAMPUS PRESENCIAL
+              <span className="flex items-center font-bold text-brand-green-main uppercase tracking-wider">
+                <Compass className="w-4 h-4 mr-1.5 text-brand-green-main" />
+                Campus presencial
               </span>
             )}
           </div>
@@ -58,9 +58,9 @@ export const Header: React.FC<HeaderProps> = ({ currentRoute, setRoute }) => {
           {currentRoute !== 'home' ? (
             <button
               onClick={() => setRoute('home')}
-              className="flex items-center px-4 py-2 text-xs font-black font-display text-brand-blue-dark bg-brand-green-neon hover:bg-brand-green-neon/90 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(155,255,0,0.4)] hover:shadow-[0_0_20px_rgba(155,255,0,0.6)] group border-none cursor-pointer uppercase tracking-widest"
+              className="action-primary group uppercase tracking-wider"
             >
-              <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1 stroke-[3px]" />
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 stroke-[3px]" />
               Inicio
             </button>
           ) : null}
