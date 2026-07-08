@@ -43,12 +43,6 @@ export default function App() {
 
         </Routes>
       </main>
-
-      {/* popups
-      <MonthlySmartAlerts onNavigateToHubTab={handleNavigateToHubTab} /> 
-      */
-      }
-      
     </div>
   );
 }

@@ -1,19 +1,49 @@
 import type { MarkerConfig } from '@photo-sphere-viewer/markers-plugin';
-import CalleA from '../../assets/imagenes/Sede_A/Calle_A.png';
-import Entrada_A from '../../assets/imagenes/Sede_A/3SA.png';
-import DescansoSA from '../../assets/imagenes/Sede_A/5SA.png';
-import BibliotecaSA from '../../assets/imagenes/Sede_A/6SA.png';
-import EntradaLobbySA from '../../assets/imagenes/Sede_A/LobbySA.png';
-import MarcoInfo from '../assets/imagenes/MARCO.png';
-import GuiaAS from '../../assets/imagenes/Personajes/GuiaAS.png';
-import GuiaEntradaSA from '../../assets/imagenes/Personajes/alizon.png';
-import SphereTestImage from '../assets/imagenes/sphere-test.jpg';
 import { tour360MediaMarkersByNode } from './tour360MediaHotspots';
+
+const imageModules = import.meta.glob('../assets/imagenes/**/*.{png,jpg,jpeg,webp}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+
+const getPublicPanoramaUrl = (path: string) => {
+  return `${import.meta.env.BASE_URL}panoramas/${path}`;
+};
+
+const getPublicAssetUrl = (path: string) => {
+  return `${import.meta.env.BASE_URL}assets/${path}`;
+};
+
+const getImageUrl = (path: string) => {
+  const normalizedPath = path
+    .replace(/^\/?assets\/imagenes\//, '')
+    .replace(/^\/?src\/assets\/imagenes\//, '')
+    .replace(/\\/g, '/');
+  const moduleKey = `../assets/imagenes/${normalizedPath}`;
+  const imageUrl = imageModules[moduleKey];
+
+  if (imageUrl) {
+    return imageUrl;
+  }
+
+  return getPublicPanoramaUrl(normalizedPath);
+};
+
+const CalleA = getImageUrl('Calle_A.png');;
+const Entrada_A = getImageUrl('3SA.jpeg');
+const DescansoSA = getImageUrl('5SA.png');
+const BibliotecaSA = getImageUrl('6SA.png');
+const EntradaLobbySA = getImageUrl('Sede_A/LobbySA.png');
+const MarcoInfo = getImageUrl('MARCO.png');
+const GuiaAS = getImageUrl('AS.png');;
+const GuiaEntradaSA = getImageUrl('alizon.png');;
+const SphereTestImage = getImageUrl('Sede_Test.png');
 
 type GpsPosition = [number, number, number?];
 
 //Longitud, L
-const calleAGps: GpsPosition = [-74.0819, 4.648, 0];
+const calleAGps: GpsPosition = [-75.0819, 4.64802, 0];
 const entradaAGps: GpsPosition = [-74.07184, 4.64802, 0];
 const entradaLobbySAGps: GpsPosition = [74.0818, 4.648055, 0];
 const descansoSAGps: GpsPosition = [74.08176, 4.64809, 0];

@@ -1,8 +1,8 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import '../styles/hud-glass-modal.css';
-
-export type HudGlassModalSize = 'sm' | 'md' | 'lg' | 'xl';
+export type HudGlassModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'roadmap';
 export type HudGlassModalVariant = 'emerald' | 'amber';
 
 const sizeClasses: Record<HudGlassModalSize, string> = {
@@ -10,6 +10,7 @@ const sizeClasses: Record<HudGlassModalSize, string> = {
   md: 'w-[min(640px,92vw)]',
   lg: 'w-[min(920px,92vw)]',
   xl: 'w-[min(960px,92vw)]',
+  roadmap: 'hud-glass-modal__panel-size--roadmap',
 };
 
 export interface HudGlassModalProps {
@@ -49,7 +50,7 @@ export const HudGlassModal: React.FC<HudGlassModalProps> = ({
   const overlayVariantClass = zIndex === 'warning' ? 'hud-glass-modal__overlay--warning' : '';
   const showHeader = Boolean(title || meta || showCloseButton);
 
-  return (
+  const modalMarkup = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -112,6 +113,11 @@ export const HudGlassModal: React.FC<HudGlassModalProps> = ({
       )}
     </AnimatePresence>
   );
-};
 
+  if (typeof document === 'undefined') {
+    return modalMarkup;
+  }
+
+  return createPortal(modalMarkup, document.body);
+};
 export default HudGlassModal;

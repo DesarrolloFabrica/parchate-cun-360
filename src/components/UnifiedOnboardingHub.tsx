@@ -16,7 +16,10 @@ import { TOUR360_START_NODE_ID, tour360Nodes } from '../data/tour360Nodes';
 import EarthAnimation from '../assets/iconos/Earth.json';
 import '../styles/hub-tabs.css';
 
-type StationType = 'video' | 'pdf' | 'infografia' | 'drive-video' | 'drive-image' | 'drive-pdf';
+type StationType = 'video' | 'pdf' | 'infografia' | 'drive-video' | 'drive-image' | 'drive-pdf' | 'drive-pdf-audio';
+
+const stationUsesIframeLayout = (type: StationType): boolean =>
+  type === 'video' || type === 'drive-video' || type === 'drive-pdf' || type === 'drive-pdf-audio';
 
 interface Station {
   id: string;
@@ -33,6 +36,9 @@ interface Station {
   driveImageUrl?: string;
   driveImagePreviewUrl?: string;
   drivePdfPreviewUrl?: string;
+  driveAudioUrl?: string;
+  driveAudioPreviewUrl?: string;
+  audioTitle?: string;
   accentColor: string;
   extraTip?: string;
   hideContentTitle?: boolean;
@@ -99,6 +105,16 @@ const CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL = `https://drive.google.com/file/d/
 // https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
 const CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1-IfwFm4nt4x5tH2kciEzHqZXwm8tZ2x7/preview';
 
+// Estacion 4 CUN 360: PDF de infografia + audio podcast.
+// PDF Drive preview: https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
+// Audio MP3 directo: https://drive.google.com/uc?export=download&id=ID_DEL_ARCHIVO
+// Ambos archivos deben estar compartidos como "Cualquier persona con el enlace puede ver".
+const CUN360_POINT_4_DRIVE_PDF_FILE_ID = 'REEMPLAZAR_ID_PDF_ESTACION_4';
+const CUN360_POINT_4_DRIVE_AUDIO_FILE_ID = 'REEMPLAZAR_ID_AUDIO_MP3_ESTACION_4';
+const CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL = `https://drive.google.com/file/d/${CUN360_POINT_4_DRIVE_PDF_FILE_ID}/preview`;
+const CUN360_POINT_4_DRIVE_AUDIO_URL = `https://drive.google.com/uc?export=download&id=${CUN360_POINT_4_DRIVE_AUDIO_FILE_ID}`;
+const CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL = `https://drive.google.com/file/d/${CUN360_POINT_4_DRIVE_AUDIO_FILE_ID}/preview`;
+
 export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -161,9 +177,13 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     },
     {
       id: 'c360-4', number: 4,
-      title: 'Gimnasio y Zonas Lúdicas (Sede H)', subtitle: 'Video Beneficios Físicos',
-      description: 'Convenios deportivos, acondicionamiento físico guiado y torneos de microfútbol estudiantiles.',
-      type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
+      title: 'Gimnasio y Zonas Lúdicas (Sede H)', subtitle: 'Infografía PDF + Podcast',
+      description: 'Infografía embebida desde Google Drive con podcast MP3 de apoyo para conocer los beneficios físicos y espacios de bienestar.',
+      type: 'drive-pdf-audio',
+      drivePdfPreviewUrl: CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL,
+      driveAudioUrl: CUN360_POINT_4_DRIVE_AUDIO_URL,
+      driveAudioPreviewUrl: CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL,
+      audioTitle: 'Podcast de beneficios físicos',
       accentColor: '#FF2D55', extraTip: 'Inscríbete gratis los primeros 10 días hábiles del semestre.',
       coordinateX: 42, coordinateY: 35
     },
@@ -743,18 +763,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       ctaLabel: 'Continuar ruta digital',
       guide: 'Estas herramientas te acompañarán todo el semestre. ¡Vamos!',
     },
-    cronograma: {
-      chapter: 'Capítulo 4',
-      mission: 'Organiza tu inicio de semestre',
-      title: 'Revisa las fechas importantes',
-      description: 'Consulta actividades, plazos y momentos clave para iniciar tu proceso académico sin perderte de nada.',
-      nextStep: 'Selecciona un día con evento para ver sus detalles.',
-      reward: 'Tendrás claridad sobre las fechas más importantes.',
-      ctaLabel: 'Ver cronograma',
-      guide: 'Recuerda revisar el cronograma para no perder fechas importantes.',
-    },
     soporteCami: {
-      chapter: 'Capítulo 5',
+      chapter: 'Capítulo 4',
       mission: 'Aprende a resolver tus trámites',
       title: 'Ruta de soporte con Cami',
       description: 'Conoce cómo pedir ayuda, radicar solicitudes y resolver tus trámites con el acompañamiento de Cami.',
@@ -764,7 +774,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       guide: 'Te muestro cómo resolver tus trámites paso a paso.',
     },
     virtual: {
-      chapter: 'Capítulo 6',
+      chapter: 'Capítulo 5',
       mission: 'Conecta con tu parche',
       title: 'Ruta del Parche Virtual',
       description: 'Descubre los espacios y canales para conectar con otros estudiantes y vivir la comunidad CUN en línea.',
@@ -773,8 +783,18 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       ctaLabel: 'Continuar ruta',
       guide: 'Aquí conocerás a tu parche y la comunidad CUN.',
     },
+    cronograma: {
+      chapter: 'Capítulo 6',
+      mission: 'Organiza tu inicio de semestre',
+      title: 'Revisa las fechas importantes',
+      description: 'Consulta actividades, plazos y momentos clave para iniciar tu proceso académico sin perderte de nada.',
+      nextStep: 'Selecciona un día con evento para ver sus detalles.',
+      reward: 'Tendrás claridad sobre las fechas más importantes.',
+      ctaLabel: 'Ver cronograma',
+      guide: 'Recuerda revisar el cronograma para no perder fechas importantes.',
+    },
     bienestarLocked: {
-      chapter: 'Capítulo 7',
+      chapter: 'Capítulo 6',
       mission: 'Cuida tu bienestar',
       title: 'Bienestar y apoyo, muy pronto',
       description: 'Encuentra apoyo, actividades y acompañamiento para tu bienestar integral durante tu vida universitaria.',
@@ -1159,20 +1179,19 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
         isOpen={Boolean(activePopupStation)}
         onClose={() => setActivePopupStation(null)}
         panelClassName="hud-glass-modal__panel--roadmap"
-        size={
-          activePopupStation?.type === 'drive-video' ||
-          activePopupStation?.type === 'drive-image' ||
-          activePopupStation?.type === 'drive-pdf'
-            ? 'lg'
-            : 'md'
-        }
+        overlayClassName="hud-glass-modal__overlay--roadmap"
+        size="roadmap"
         title={activePopupStation?.hideContentTitle ? undefined : activePopupStation?.title}
         meta={
           activePopupStation
             ? `Estación ${activePopupStation.number} / Inducción activa`
             : undefined
         }
-        bodyClassName="space-y-3"
+        bodyClassName={
+          activePopupStation && stationUsesIframeLayout(activePopupStation.type)
+            ? 'hud-glass-modal__content--roadmap hud-glass-modal__content--iframe'
+            : 'hud-glass-modal__content--roadmap'
+        }
         footer={
           activePopupStation ? (
             <button
@@ -1186,7 +1205,17 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       >
         {activePopupStation && (
           <>
-            <div className="hud-glass-modal__media">
+            <div
+              className={`hud-glass-modal__media${
+                activePopupStation.type === 'drive-image'
+                  ? ' hud-glass-modal__media--drive-image'
+                  : activePopupStation.type === 'drive-pdf-audio'
+                    ? ' hud-glass-modal__media--pdf-audio'
+                  : stationUsesIframeLayout(activePopupStation.type)
+                    ? ' hud-glass-modal__media--iframe'
+                    : ''
+              }`}
+            >
                 {activePopupStation.type === 'video' && (
                   <div className="hud-glass-modal__media-video">
                     <iframe
@@ -1238,6 +1267,51 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                     className="hud-glass-modal__iframe hud-glass-modal__iframe--document"
                     allow="autoplay"
                   />
+                )}
+
+                {activePopupStation.type === 'drive-pdf-audio' && activePopupStation.drivePdfPreviewUrl && (
+                  <>
+                    <div className="hud-glass-modal__pdf-audio-frame">
+                      <iframe
+                        src={activePopupStation.drivePdfPreviewUrl}
+                        title={`${activePopupStation.title} - Infografia`}
+                        className="hud-glass-modal__iframe hud-glass-modal__iframe--document"
+                        allow="autoplay; fullscreen"
+                        allowFullScreen
+                      />
+                    </div>
+
+                    <div className="hud-glass-modal__audio-panel">
+                      <div className="hud-glass-modal__audio-copy">
+                        <span className="hud-glass-modal__audio-kicker">Podcast</span>
+                        <strong>{activePopupStation.audioTitle ?? 'Escucha el podcast'}</strong>
+                      </div>
+
+                      <div className="hud-glass-modal__audio-controls">
+                        <audio
+                          controls
+                          preload="metadata"
+                          className="hud-glass-modal__audio"
+                        >
+                          {activePopupStation.driveAudioUrl && (
+                            <source src={activePopupStation.driveAudioUrl} type="audio/mpeg" />
+                          )}
+                          Tu navegador no soporta el reproductor de audio.
+                        </audio>
+
+                        {activePopupStation.driveAudioPreviewUrl && (
+                          <a
+                            href={activePopupStation.driveAudioPreviewUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="hud-glass-modal__audio-link"
+                          >
+                            Abrir audio en Google Drive
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {activePopupStation.type === 'pdf' && activePopupStation.pdfPages && (

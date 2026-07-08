@@ -5,6 +5,9 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    
+    assetsInclude: ['**/*.png', '**/*.jpg', '**/*.webp'],
+    base: '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

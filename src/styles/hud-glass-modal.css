@@ -181,6 +181,8 @@
 }
 
 .hud-glass-modal__close {
+  position: relative;
+  z-index: 20;
   display: grid;
   width: 2.5rem;
   height: 2.5rem;
@@ -324,12 +326,296 @@
   border-radius: 0;
 }
 
-/* Popup de estaciones del roadmap — refuerzo visual de entrada */
+/* Popup de estaciones del roadmap — panel grande proporcional */
+.hud-glass-modal__overlay--roadmap {
+  z-index: 11000;
+  padding: 84px 24px 24px;
+}
+
+.hud-glass-modal__panel.hud-glass-modal__panel--roadmap,
+.hud-glass-modal__panel.hud-glass-modal__panel-size--roadmap {
+  width: min(96vw, 1440px);
+  height: min(calc(100dvh - 108px), 860px);
+  max-width: 96vw;
+  max-height: calc(100dvh - 108px);
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__stack {
+  height: 100%;
+  max-height: none;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__body:has(.hud-glass-modal__content--iframe) {
+  overflow: hidden;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__content--roadmap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 18px 22px 22px;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__content--iframe {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 18px 22px 22px;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__content--roadmap:has(.hud-glass-modal__media--drive-image) {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media--iframe {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media--iframe > .hud-glass-modal__iframe,
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media--iframe > .hud-glass-modal__media-video {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media--iframe .hud-glass-modal__iframe,
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media--iframe .hud-glass-modal__media-video .hud-glass-modal__iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 18px;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media > :not(.hidden) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__iframe,
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media iframe,
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  border-radius: 18px;
+  background: #020617;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__iframe--document,
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media-frame--document {
+  background: #ffffff;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media--drive-image {
+  flex: 1 1 auto;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media--pdf-audio {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__pdf-audio-frame {
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__pdf-audio-frame .hud-glass-modal__iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 18px;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__audio-panel {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  border-radius: 18px;
+  background: rgba(2, 12, 24, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__audio-copy {
+  display: flex;
+  min-width: 180px;
+  flex-direction: column;
+  gap: 4px;
+  color: #ffffff;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__audio-kicker {
+  color: rgba(125, 211, 252, 0.86);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__audio-copy strong {
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__audio-controls {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__audio {
+  width: 100%;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__audio-link {
+  align-self: flex-start;
+  color: #9bff00;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__audio-link:hover,
+.hud-glass-modal__panel--roadmap .hud-glass-modal__audio-link:focus-visible {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media--drive-image > .hud-glass-modal__image:not(.hidden) {
+  flex: 0 1 auto;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media--drive-image > iframe:not(.hidden) {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__image,
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media img {
+  width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media-video {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: unset;
+}
+
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media-video .hud-glass-modal__iframe,
+.hud-glass-modal__panel--roadmap .hud-glass-modal__media-video .hud-glass-modal__media-frame {
+  height: 100%;
+  max-height: none;
+  border-radius: 18px;
+}
+
 .hud-glass-modal__panel--roadmap {
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.55),
     0 0 28px rgba(56, 189, 248, 0.18),
     0 0 42px rgba(155, 255, 0, 0.08);
+}
+
+@media (max-width: 768px) {
+  .hud-glass-modal__overlay--roadmap {
+    padding: 72px 12px 12px;
+  }
+
+  .hud-glass-modal__panel.hud-glass-modal__panel--roadmap,
+  .hud-glass-modal__panel.hud-glass-modal__panel-size--roadmap {
+    width: 100%;
+    height: min(calc(100dvh - 84px), 860px);
+    max-width: none;
+    max-height: calc(100dvh - 84px);
+    border-radius: 20px;
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__content--roadmap,
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__content--iframe {
+    padding: 12px;
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__media--iframe .hud-glass-modal__iframe,
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__iframe,
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__media iframe {
+    border-radius: 12px;
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__media--pdf-audio {
+    gap: 12px;
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__pdf-audio-frame,
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__pdf-audio-frame .hud-glass-modal__iframe {
+    border-radius: 12px;
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__audio-panel {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__audio-copy {
+    min-width: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

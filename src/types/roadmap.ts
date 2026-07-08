@@ -57,11 +57,9 @@ export function hubTabUsesSequentialUnlock(tab: HubTab): boolean {
   return variant ? isSequentialRoadmapVariant(variant) : false;
 }
 
-/* ACTIVAR PROGRESO DE MAPA DE RUTAS 
 export function getRoadmapProgressStorageKey(variant: RoadmapVariant): string {
   return `roadmap-progress-${variant}`;
 }
-*/
 
 function normalizeStoredProgressForVariant(
   variant: RoadmapVariant,
