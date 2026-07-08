@@ -7,12 +7,14 @@ import {
 } from 'lucide-react';
 import lottie from 'lottie-web/build/player/lottie_light';
 import { DEFAULT_HUB_TAB, isHubTab, type HubTab } from '../navigation';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import VirtualTour360 from './VirtualTour360';
 import { HudGlassModal } from './HudGlassModal';
 import { RoadmapView } from './RoadmapView';
+import { SedeUnavailableFallback } from './SedeUnavailableFallback';
 import { hubTabToRoadmapVariant, hubTabUsesSequentialUnlock, loadAllRoadmapCompletedStationIds, filterCompletedStationIdsForVariant, saveCompletedStationIdsForVariant } from '../types/roadmap';
-import { TOUR360_START_NODE_ID, tour360Nodes } from '../data/tour360Nodes';
+import { useActiveSede } from '../hooks/useActiveSede';
+import { isSedeTour360Available } from '../types/sede';
 import EarthAnimation from '../assets/iconos/Earth.json';
 import '../styles/hub-tabs.css';
 
@@ -117,6 +119,8 @@ const CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL = `https://drive.google.com/file/d/
 
 export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { activeSede } = useActiveSede();
 
   const requestedTab = searchParams.get('tab') ?? '';
   const activeTab: HubTab = isHubTab(requestedTab) ? requestedTab : DEFAULT_HUB_TAB;
@@ -804,7 +808,26 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       guide: 'Aquí encontrarás apoyo y actividades para tu bienestar.',
     },
   };
-  const activeNarrative = moduleNarrative[activeTab];
+  const baseNarrative = moduleNarrative[activeTab];
+  const activeNarrative =
+    activeTab === 'recorrido360'
+      ? {
+          ...baseNarrative,
+          chapter: activeSede.narrative.chapter ?? baseNarrative.chapter,
+          mission: activeSede.narrative.mission ?? baseNarrative.mission,
+          title: activeSede.narrative.title,
+          description: activeSede.narrative.description,
+          nextStep: activeSede.narrative.nextStep ?? baseNarrative.nextStep,
+          reward: activeSede.narrative.reward ?? baseNarrative.reward,
+          ctaLabel: activeSede.narrative.ctaLabel ?? baseNarrative.ctaLabel,
+          guide: activeSede.narrative.guide,
+        }
+      : baseNarrative;
+
+  const tour360Available = isSedeTour360Available(activeSede);
+  const tourStartPanorama =
+    activeSede.tour360.nodes.find((node) => node.id === activeSede.tour360.startNodeId)
+      ?.panorama ?? activeSede.previewImage;
 
   return (
     <div className={`w-full max-w-[1500px] 2xl:max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-5 relative z-10 flex flex-col h-[calc(100vh-88px)] sm:h-[min(90vh,960px)] min-h-[620px] sm:min-h-[720px] lg:min-h-[760px] overflow-hidden ${isImmersive ? 'tour-immersive-shell' : 'stage-platform'}`} data-chapter={chapterTheme} id="onboarding-viewport-fixed">
@@ -880,34 +903,52 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               className="w-full h-full"
             >
               {/* Stage: el panorama flota sobre el fondo atmosférico */}
-              <div className="tour-immersive-stage h-full w-full">
-                <VirtualTour360
-                  nodes={tour360Nodes}
-                  initialNodeId={TOUR360_START_NODE_ID}
-                />
-
-                {/* Estado como overlay (no repite lo del Hero) */}
-                <div className="pointer-events-none absolute right-3 top-3 z-30 hidden items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-md sm:flex">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green-neon animate-pulse" />
-                  <span className="text-[11px] text-white/85">Avanza por la escena para descubrir la sede</span>
-                  <span className="ml-1 rounded-full bg-brand-green-neon/90 px-2 py-0.5 text-[9px] font-bold uppercase text-[#06130d]">En recorrido</span>
+              <div className="tour-immersive-stage relative h-full w-full">
+                <div className="absolute right-3 top-3 z-40 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/sedes')}
+                    className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/90 backdrop-blur-md transition hover:border-brand-green-main hover:bg-black/60 hover:text-white"
+                  >
+                    <MapPin className="h-3 w-3 text-brand-green-neon" />
+                    Cambiar sede
+                  </button>
+                  {tour360Available ? (
+                    <div className="pointer-events-none hidden items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-md sm:flex">
+                      <span className="h-1.5 w-1.5 rounded-full bg-brand-green-neon animate-pulse" />
+                      <span className="text-[11px] text-white/85">Avanza por la escena para descubrir la sede</span>
+                      <span className="ml-1 rounded-full bg-brand-green-neon/90 px-2 py-0.5 text-[9px] font-bold uppercase text-[#06130d]">En recorrido</span>
+                    </div>
+                  ) : null}
                 </div>
 
-                {/* Guía como acompañamiento dentro de la escena (oculto en móvil) */}
-                <div className="pointer-events-none absolute left-3 bottom-14 z-30 hidden max-w-[15rem] items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-sm md:flex">
-                  <AnimatedEarthIcon className="h-6 w-6 shrink-0" />
-                  <p className="m-0 text-[10px] italic leading-snug text-white/75">{activeNarrative.guide}</p>
-                </div>
+                {tour360Available ? (
+                  <>
+                    <VirtualTour360
+                      key={activeSede.id}
+                      nodes={activeSede.tour360.nodes}
+                      initialNodeId={activeSede.tour360.startNodeId}
+                    />
 
-                {/* Acción secundaria muy discreta */}
-                <a 
-                  href={tour360Nodes[0].panorama}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="pointer-events-auto absolute right-3 bottom-14 z-30 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] font-medium text-white/80 backdrop-blur-md transition hover:bg-black/60 hover:text-white"
-                >
-                  <ExternalLink className="w-3 h-3" /> Ver imagen
-                </a>
+                    {/* Guía como acompañamiento dentro de la escena (oculto en móvil) */}
+                    <div className="pointer-events-none absolute left-3 bottom-14 z-30 hidden max-w-[15rem] items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-sm md:flex">
+                      <AnimatedEarthIcon className="h-6 w-6 shrink-0" />
+                      <p className="m-0 text-[10px] italic leading-snug text-white/75">{activeNarrative.guide}</p>
+                    </div>
+
+                    {/* Acción secundaria muy discreta */}
+                    <a
+                      href={tourStartPanorama}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="pointer-events-auto absolute right-3 bottom-14 z-30 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] font-medium text-white/80 backdrop-blur-md transition hover:bg-black/60 hover:text-white"
+                    >
+                      <ExternalLink className="w-3 h-3" /> Ver imagen
+                    </a>
+                  </>
+                ) : (
+                  <SedeUnavailableFallback sede={activeSede} />
+                )}
               </div>
             </motion.div>
           )}
