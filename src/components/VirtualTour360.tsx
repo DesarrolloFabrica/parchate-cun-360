@@ -19,11 +19,19 @@ import {
   type TourHotspotDirection,
   type TourHotspotStyleVariant,
 } from '../data/tour360Nodes';
+import {
+  DEPLOY_FALLBACK_PANORAMA,
+  KNOWN_GOOD_PLACEHOLDER_PANORAMA,
+  type Tour360Campus,
+  type Tour360Config,
+} from '../data/tour360';
 
 
 interface VirtualTour360Props {
   nodes?: TourNode[];
   initialNodeId?: string;
+  selectedCampus?: Tour360Campus | null;
+  tourConfig?: Tour360Config | null;
 }
 
 type TourLink = {
@@ -204,9 +212,13 @@ const enhanceTourLinkTooltip = (
 // Photo Sphere Viewer base en npm run preview. Restaurar la implementacion completa
 // despues de confirmar que este visor default carga correctamente.
 export const VirtualTour360: React.FC<VirtualTour360Props> = ({
-   nodes = tour360Nodes,
-    initialNodeId = TOUR360_START_NODE_ID,
+  nodes: nodesProp,
+  initialNodeId: initialNodeIdProp,
+  selectedCampus = null,
+  tourConfig = null,
 }) => {
+  const nodes = tourConfig?.nodes ?? nodesProp ?? tour360Nodes;
+  const initialNodeId = tourConfig?.startNodeId ?? initialNodeIdProp ?? TOUR360_START_NODE_ID;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const [viewerReady, setViewerReady] = useState(false);
@@ -218,7 +230,8 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
   const defaultPanorama =
     tour360Nodes.find((node) => node.id === TOUR360_START_NODE_ID)?.panorama ??
     tour360Nodes[0]?.panorama ??
-    '/assets/calle-a-cjtfh270.png';
+    DEPLOY_FALLBACK_PANORAMA ??
+    KNOWN_GOOD_PLACEHOLDER_PANORAMA;
 
   const fallbackNode: TourNode = {
     id: 'psv-test',
@@ -237,6 +250,7 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
     safeNodes.find((node) => node.id === currentNodeId) ??
     safeStartNode;
   const currentSectionTitle =
+    selectedCampus?.title ??
     currentNode?.name ??
     currentNode?.caption ??
     currentNode?.id ??
@@ -547,7 +561,7 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
     
           <div className="pointer-events-none absolute left-3 top-3 z-20 max-w-[calc(100%-1.5rem)] rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-white shadow-xl backdrop-blur-md sm:left-4 sm:top-4 sm:max-w-[24rem] sm:px-5">
             <p className="m-0 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/70 sm:text-xs">
-              Tour 360
+              {selectedCampus ? 'Recorrido activo' : 'Tour 360'}
             </p>
             <h2 className="m-0 mt-1 truncate font-['Montserrat'] text-lg font-black leading-tight text-white sm:text-xl md:text-2xl">
               {currentSectionTitle}

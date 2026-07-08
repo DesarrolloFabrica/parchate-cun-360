@@ -9,10 +9,12 @@ import lottie from 'lottie-web/build/player/lottie_light';
 import { DEFAULT_HUB_TAB, isHubTab, type HubTab } from '../navigation';
 import { useSearchParams } from 'react-router-dom';
 import VirtualTour360 from './VirtualTour360';
+import { TourMapSelector } from './TourMapSelector';
 import { HudGlassModal } from './HudGlassModal';
 import { RoadmapView } from './RoadmapView';
+import { getTour360ConfigById, type Tour360Campus } from '../data/tour360Locations';
 import { hubTabToRoadmapVariant, hubTabUsesSequentialUnlock, loadAllRoadmapCompletedStationIds, filterCompletedStationIdsForVariant, saveCompletedStationIdsForVariant } from '../types/roadmap';
-import { TOUR360_START_NODE_ID, tour360Nodes } from '../data/tour360Nodes';
+import { tour360Nodes } from '../data/tour360Nodes';
 import EarthAnimation from '../assets/iconos/Earth.json';
 import '../styles/hub-tabs.css';
 
@@ -145,6 +147,18 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     previousStationName: string;
     stationNumber: number;
   } | null>(null);
+
+  const [selectedCampus, setSelectedCampus] = useState<Tour360Campus | null>(null);
+
+  const activeTourConfig = selectedCampus
+    ? getTour360ConfigById(selectedCampus.tourConfigId)
+    : null;
+
+  useEffect(() => {
+    if (activeTab !== 'recorrido360') {
+      setSelectedCampus(null);
+    }
+  }, [activeTab]);
 
   // 9 Stations for CUN 360 (Physical Campus Track)
   const cun360Stations: Station[] = [
@@ -881,33 +895,50 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
             >
               {/* Stage: el panorama flota sobre el fondo atmosférico */}
               <div className="tour-immersive-stage h-full w-full">
-                <VirtualTour360
-                  nodes={tour360Nodes}
-                  initialNodeId={TOUR360_START_NODE_ID}
-                />
+                {!selectedCampus ? (
+                  <TourMapSelector onSelectCampus={setSelectedCampus} />
+                ) : (
+                  <>
+                    <VirtualTour360
+                      key={selectedCampus.id}
+                      tourConfig={activeTourConfig}
+                      selectedCampus={selectedCampus}
+                    />
 
-                {/* Estado como overlay (no repite lo del Hero) */}
-                <div className="pointer-events-none absolute right-3 top-3 z-30 hidden items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-md sm:flex">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green-neon animate-pulse" />
-                  <span className="text-[11px] text-white/85">Avanza por la escena para descubrir la sede</span>
-                  <span className="ml-1 rounded-full bg-brand-green-neon/90 px-2 py-0.5 text-[9px] font-bold uppercase text-[#06130d]">En recorrido</span>
-                </div>
+                    <div className="pointer-events-none absolute right-3 top-3 z-30 hidden items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-md sm:flex">
+                      <span className="h-1.5 w-1.5 rounded-full bg-brand-green-neon animate-pulse" />
+                      <span className="text-[11px] text-white/85">Avanza por la escena para descubrir la sede</span>
+                      <span className="ml-1 rounded-full bg-brand-green-neon/90 px-2 py-0.5 text-[9px] font-bold uppercase text-[#06130d]">En recorrido</span>
+                    </div>
 
-                {/* Guía como acompañamiento dentro de la escena (oculto en móvil) */}
-                <div className="pointer-events-none absolute left-3 bottom-14 z-30 hidden max-w-[15rem] items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-sm md:flex">
-                  <AnimatedEarthIcon className="h-6 w-6 shrink-0" />
-                  <p className="m-0 text-[10px] italic leading-snug text-white/75">{activeNarrative.guide}</p>
-                </div>
+                    <div className="pointer-events-none absolute left-3 bottom-14 z-30 hidden max-w-[15rem] items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-sm md:flex">
+                      <AnimatedEarthIcon className="h-6 w-6 shrink-0" />
+                      <p className="m-0 text-[10px] italic leading-snug text-white/75">{activeNarrative.guide}</p>
+                    </div>
 
-                {/* Acción secundaria muy discreta */}
-                <a 
-                  href={tour360Nodes[0].panorama}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="pointer-events-auto absolute right-3 bottom-14 z-30 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] font-medium text-white/80 backdrop-blur-md transition hover:bg-black/60 hover:text-white"
-                >
-                  <ExternalLink className="w-3 h-3" /> Ver imagen
-                </a>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCampus(null)}
+                      className="pointer-events-auto absolute left-3 top-3 z-30 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] font-medium text-white/80 backdrop-blur-md transition hover:bg-black/60 hover:text-white"
+                    >
+                      Cambiar sede
+                    </button>
+
+                    <a
+                      href={
+                        activeTourConfig?.nodes.find((node) => node.id === activeTourConfig.startNodeId)
+                          ?.panorama ??
+                        activeTourConfig?.nodes[0]?.panorama ??
+                        tour360Nodes[0]?.panorama
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      className="pointer-events-auto absolute right-3 bottom-14 z-30 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] font-medium text-white/80 backdrop-blur-md transition hover:bg-black/60 hover:text-white"
+                    >
+                      <ExternalLink className="w-3 h-3" /> Ver imagen
+                    </a>
+                  </>
+                )}
               </div>
             </motion.div>
           )}
