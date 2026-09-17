@@ -14,10 +14,15 @@
 
 import type { Tour360Config } from './types';
 import { bogotaSede1TourConfig } from './tours/bogota-sede-1';
+import { bogotaSede2TourConfig } from './tours/bogota-sede-2';
+import { monteriaSedeATourConfig } from './tours/monteria-sede-a';
+import { neivaSedeATourConfig } from './tours/neiva-sede-a';
+import { santaMartaSedeATourConfig } from './tours/santa-marta-sede-a';
+import { sincelejoSedeATourConfig } from './tours/sincelejo-sede-a';
 import { createPlaceholderTourConfig } from './tours/createPlaceholderTour';
 import { KNOWN_GOOD_PLACEHOLDER_PANORAMA } from './panoramaUrls';
 
-const bogotaPlaceholderTours = [2, 3, 4, 5, 6, 7, 8].map((sedeNumber) =>
+const bogotaPlaceholderTours = [3, 4, 5, 6, 7, 8].map((sedeNumber) =>
   createPlaceholderTourConfig({
     id: `bogota-sede-${sedeNumber}`,
     label: `Sede Bogotá ${sedeNumber}`,
@@ -32,6 +37,11 @@ const bogotaPlaceholderTours = [2, 3, 4, 5, 6, 7, 8].map((sedeNumber) =>
 
 export const tour360Configs: Record<string, Tour360Config> = {
   'bogota-sede-1': bogotaSede1TourConfig,
+  'bogota-sede-2': bogotaSede2TourConfig,
+  'monteria-sede-a': monteriaSedeATourConfig,
+  'neiva-sede-a': neivaSedeATourConfig,
+  'santa-marta-sede-a': santaMartaSedeATourConfig,
+  'sincelejo-sede-a': sincelejoSedeATourConfig,
   ...Object.fromEntries(bogotaPlaceholderTours.map((config) => [config.id, config])),
 };
 

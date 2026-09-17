@@ -207,10 +207,6 @@ const enhanceTourLinkTooltip = (
   return `${content}<p class="psv-virtual-tour-tooltip-desc">${node.description}</p>`;
 };
 
-// TEMP PSV DEFAULT TEST:
-// Se desactivan plugins, nodos, hotspots, galeria y rutas temporalmente para validar
-// Photo Sphere Viewer base en npm run preview. Restaurar la implementacion completa
-// despues de confirmar que este visor default carga correctamente.
 export const VirtualTour360: React.FC<VirtualTour360Props> = ({
   nodes: nodesProp,
   initialNodeId: initialNodeIdProp,
@@ -246,6 +242,11 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
     ...node,
     thumbnail: node.thumbnail ?? node.panorama,
   }));
+  const virtualTourPositionMode = safeNodes.some((node) =>
+    node.links?.some((link) => Boolean(link.position)),
+  )
+    ? 'manual'
+    : 'gps';
   const currentNode =
     safeNodes.find((node) => node.id === currentNodeId) ??
     safeStartNode;
@@ -277,8 +278,6 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
 
     const { width, height } = containerRef.current.getBoundingClientRect();
 
-    console.log('[PSV TEST] container size:', { width, height });
-
     if (width === 0 || height === 0) {
       setViewerError(`El contenedor no tiene tamano valido: ${width}x${height}`);
       return;
@@ -291,18 +290,10 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
     let markersPluginForCleanup: any = null;
     let handleMarkerSelect: ((event: any) => void) | null = null;
     let handleVideoHotspotKeydown: ((event: KeyboardEvent) => void) | null = null;
+    let initializeVirtualTourNodes: (() => void) | null = null;
 
     try {
       validateVirtualTourNodes(nodes, initialNodeId);
-
-      console.table(
-        safeNodes.map((node) => ({
-          id: node.id,
-          panorama: node.panorama,
-          thumbnail: node.thumbnail,
-          links: node.links?.map((link) => link.nodeId).join(', '),
-        })),
-      );
 
       let viewerConfig: any;
 
@@ -331,10 +322,8 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         plugins.push([
           VirtualTourPlugin,
           {
-            positionMode: 'gps',
+            positionMode: virtualTourPositionMode,
             renderMode: '3d',
-            nodes: safeNodes,
-            startNodeId: safeStartNode.id,
             preload: false,
             showLinkTooltip: true,
             transitionOptions: {
@@ -360,6 +349,7 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
 
         viewerConfig = {
           container: containerRef.current,
+          panorama: safeStartNode.panorama,
           navbar: ENABLE_TOUR_NAVBAR
             ? ['zoom', 'move', 'markers', 'gallery', 'fullscreen']
             : ['zoom', 'move', 'fullscreen'],
@@ -386,16 +376,36 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
       if (ENABLE_VIRTUAL_TOUR) {
         const virtualTour = viewer.getPlugin(VirtualTourPlugin) as any;
         virtualTourForCleanup = virtualTour;
+        let tourNodesInitialized = false;
 
-        console.log('[Tour360 TEST] VirtualTourPlugin:', virtualTour);
-        console.log('[Tour360 TEST] Current node:', virtualTour?.getCurrentNode?.());
+        initializeVirtualTourNodes = () => {
+          if (!virtualTour || tourNodesInitialized) {
+            return;
+          }
+
+          tourNodesInitialized = true;
+          try {
+            virtualTour.setNodes(safeNodes, safeStartNode.id);
+          } catch (error) {
+            tourNodesInitialized = false;
+            console.error('[Tour360] Error cargando nodos del tour:', error);
+            setViewerError(
+              error instanceof Error
+                ? error.message
+                : 'Error cargando nodos del tour 360',
+            );
+          }
+        };
 
         handleNodeChanged = (event: any) => {
           const nextNodeId = event?.node?.id ?? event?.nodeId ?? null;
 
           if (nextNodeId) {
-            console.log('[Tour360] node changed:', nextNodeId);
             setCurrentNodeId(nextNodeId);
+            if (ENABLE_MEDIA_MARKERS) {
+              const markersPlugin = viewer?.getPlugin(MarkersPlugin) as any;
+              markersPlugin?.setMarkers?.(tour360MediaMarkersByNode[nextNodeId] ?? []);
+            }
           }
 
           setViewerReady(true);
@@ -407,24 +417,14 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         if (ENABLE_MEDIA_MARKERS) {
           const markersPlugin = viewer.getPlugin(MarkersPlugin) as any;
           markersPluginForCleanup = markersPlugin;
-          const currentNode = virtualTour?.getCurrentNode?.();
-          const currentNodeId = currentNode?.id ?? safeStartNode.id;
-          const mediaMarkers = tour360MediaMarkersByNode[currentNodeId] ?? [];
-
-          console.log('[Tour360 TEST] Media markers:', {
-            currentNodeId,
-            count: mediaMarkers.length,
-            mediaMarkers,
-          });
-
-          markersPlugin?.setMarkers?.(mediaMarkers);
+          markersPlugin?.setMarkers?.(tour360MediaMarkersByNode[safeStartNode.id] ?? []);
         }
 
         currentNodeFallbackId = window.setTimeout(() => {
+          initializeVirtualTourNodes?.();
           const currentPluginNode = virtualTour?.getCurrentNode?.();
 
           if (currentPluginNode?.id) {
-            console.log('[Tour360 TEST] Fallback ready:', currentPluginNode.id);
             setCurrentNodeId(currentPluginNode.id);
             setViewerReady(true);
             setViewerError(null);
@@ -490,20 +490,18 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
       markersPluginForCleanup?.addEventListener?.('select-marker', handleMarkerSelect);
       viewer.container.addEventListener('keydown', handleVideoHotspotKeydown);
 
-      console.log('[PSV TEST] viewer creado correctamente');
-
       const handleReady = () => {
-        console.log('[PSV TEST] viewer ready');
+        initializeVirtualTourNodes?.();
         setViewerReady(true);
         setViewerError(null);
       };
 
       const handlePanoramaError = (event: any) => {
-        console.error('[PSV TEST] panorama-error:', event);
+        console.error('[Tour360] Panorama load failed:', event);
         setViewerError(
           event?.error instanceof Error
             ? event.error.message
-            : 'No se pudo cargar el panorama de prueba',
+            : 'No se pudo cargar el panorama 360',
         );
       };
 
@@ -529,7 +527,7 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         viewerRef.current = null;
       };
     } catch (error) {
-      console.error('[PSV TEST] error creando viewer:', error);
+      console.error('[Tour360] Error creando Photo Sphere Viewer:', error);
       setViewerError(
         error instanceof Error
           ? error.message

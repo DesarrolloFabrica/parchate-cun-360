@@ -1,6 +1,6 @@
-export type AppRoute = 'home' | 'hub' | 'virtual' | 'presencial';
+export type AppRoute = 'home' | 'hub' | 'virtual' | 'presencial' | 'sedes';
 
-export const appRoutes = ['home', 'hub', 'virtual', 'presencial'] as const;
+export const appRoutes = ['home', 'hub', 'virtual', 'presencial', 'sedes'] as const;
 
 export type HubTab =
   | 'recorrido360'
@@ -46,6 +46,8 @@ export const getRouteFromPathname = (pathname: string): AppRoute => {
       return 'virtual';
     case '/presencial':
       return 'presencial';
+    case '/sedes':
+      return 'sedes';
     default:
       return 'home';
   }
@@ -61,5 +63,14 @@ export const getPathForRoute = (route: AppRoute): string => {
       return '/virtual';
     case 'presencial':
       return '/presencial';
+    case 'sedes':
+      return '/sedes';
   }
+};
+
+export const buildHubUrl = (sedeId: string, tab: HubTab = DEFAULT_HUB_TAB): string => {
+  const params = new URLSearchParams();
+  params.set('sede', sedeId);
+  params.set('tab', tab);
+  return `/?${params.toString()}`;
 };

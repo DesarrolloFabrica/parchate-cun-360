@@ -10,6 +10,8 @@ node_modules/
 # Build / producción
 dist/
 build/
+build-check/
+build-check*/
 .vite/
 
 # Variables de entorno
@@ -59,3 +61,7 @@ tmp/
 temp/
 *.tmp
 *.temp
+# Backups de reescalado local
+*.original.png
+*.original.jpg
+

@@ -21,24 +21,26 @@ const baseUrl = import.meta.env.BASE_URL;
 export const TOUR_PUBLIC_ROOT = `${baseUrl}tours/`;
 export const PANORAMA_PUBLIC_ROOT = `${baseUrl}panoramas/`;
 
-/** Panorama de respaldo verificado en public/panoramas/Sede_A/Calle_A.png */
-export const KNOWN_GOOD_PLACEHOLDER_PANORAMA = `${PANORAMA_PUBLIC_ROOT}Sede_A/Calle_A.png`;
+/** Panorama de respaldo verificado y optimizado para Photo Sphere Viewer. */
+export const KNOWN_GOOD_PLACEHOLDER_PANORAMA = `${PANORAMA_PUBLIC_ROOT}Sede_A_optimized/Calle_A.jpg`;
 
-/** Fallback PSV documentado en public/assets/ (misma imagen que Calle A, nombre estable). */
-export const DEPLOY_FALLBACK_PANORAMA = `${baseUrl}assets/calle-a-cjtfh270.png`;
+/** Fallback PSV verificado en public/panoramas/ (misma imagen que Calle A, nombre estable). */
+export const DEPLOY_FALLBACK_PANORAMA = KNOWN_GOOD_PLACEHOLDER_PANORAMA;
 
 /**
  * Assets de panorama con copia verificada en public/panoramas/.
  * Priorizar estas rutas en deploy evita URLs hasheadas de Vite.
  */
 const PUBLIC_PANORAMA_ALIASES: Record<string, string> = {
-  'Calle_A.png': 'Sede_A/Calle_A.png',
-  '3SA.jpeg': 'Sede_A/3SA.png',
-  '3SA.png': 'Sede_A/3SA.png',
-  '5SA.png': 'Sede_A/5SA.png',
-  '6SA.png': 'Sede_A/6SA.png',
-  'Sede_A/LobbySA.png': 'Sede_A/LobbySA.png',
-  'Sede_Test.png': 'Sede_Test.png',
+  'Calle_A.png': 'Sede_A_optimized/Calle_A.jpg',
+  '3SA.jpeg': 'Sede_A_optimized/3SA.jpg',
+  '5SA.png': 'Sede_A_optimized/5SA.jpg',
+  '6SA.png': 'Sede_A_optimized/6SA.jpg',
+  'Sede_A/LobbySA.png': 'Sede_A_optimized/LobbySA.jpg',
+  'MARCO.png': 'iconos/MARCO.png',
+  'AS.png': 'iconos/AS.png',
+  'iconos/alizon.png': 'iconos/alizon.png',
+  'sede_test.png': 'test_optimized/sede_test.jpg',
 };
 
 export function resolvePanoramaUrl(options: {
@@ -85,9 +87,13 @@ export function getBundledPanoramaUrl(assetPath: string): string | null {
   return bundledImageModules[moduleKey] ?? null;
 }
 
-/** URL estable en public/panoramas/ */
+/** URL estable en public/panoramas/ (codifica espacios y caracteres especiales por segmento). */
 export function getPublicPanoramaUrl(relativePath: string): string {
-  return `${PANORAMA_PUBLIC_ROOT}${normalizeAssetPath(relativePath)}`;
+  const encodedPath = normalizeAssetPath(relativePath)
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  return `${PANORAMA_PUBLIC_ROOT}${encodedPath}`;
 }
 
 /**

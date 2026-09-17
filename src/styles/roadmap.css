@@ -111,31 +111,31 @@
 
 .roadmap-view--soporte-cami,
 .roadmap--soporte-cami {
-  --roadmap-accent: rgba(74, 222, 128, 1);
-  --roadmap-accent-soft: rgba(74, 222, 128, 0.15);
-  --roadmap-accent-glow: rgba(74, 222, 128, 0.4);
-  --roadmap-secondary: rgba(20, 184, 166, 0.42);
+  --roadmap-accent: rgba(168, 85, 247, 1);
+  --roadmap-accent-soft: rgba(168, 85, 247, 0.16);
+  --roadmap-accent-glow: rgba(168, 85, 247, 0.44);
+  --roadmap-secondary: rgba(196, 181, 253, 0.38);
   --roadmap-glow-strength: 0.85;
   --roadmap-path-width: 0.42;
   --roadmap-path-dash: 1.2 1.3;
   --roadmap-path-flow-duration: 12s;
-  --roadmap-panel-tint: rgba(10, 18, 24, 0.96);
-  --roadmap-panel-deep: rgba(8, 14, 22, 0.98);
+  --roadmap-panel-tint: rgba(28, 16, 44, 0.96);
+  --roadmap-panel-deep: rgba(12, 10, 28, 0.98);
   --roadmap-grid-opacity: 0.22;
 }
 
 .roadmap-view--parche-virtual,
 .roadmap--parche-virtual {
-  --roadmap-accent: rgba(163, 230, 53, 1);
-  --roadmap-accent-soft: rgba(163, 230, 53, 0.16);
-  --roadmap-accent-glow: rgba(163, 230, 53, 0.5);
-  --roadmap-secondary: rgba(56, 189, 248, 0.38);
+  --roadmap-accent: rgba(251, 146, 60, 1);
+  --roadmap-accent-soft: rgba(251, 146, 60, 0.16);
+  --roadmap-accent-glow: rgba(251, 146, 60, 0.48);
+  --roadmap-secondary: rgba(253, 186, 116, 0.36);
   --roadmap-glow-strength: 1;
   --roadmap-path-width: 0.43;
   --roadmap-path-dash: 0.95 1.05;
   --roadmap-path-flow-duration: 10s;
-  --roadmap-panel-tint: rgba(12, 16, 22, 0.96);
-  --roadmap-panel-deep: rgba(10, 12, 20, 0.98);
+  --roadmap-panel-tint: rgba(40, 18, 10, 0.96);
+  --roadmap-panel-deep: rgba(24, 14, 8, 0.98);
   --roadmap-grid-opacity: 0.28;
 }
 
@@ -799,9 +799,9 @@
 
 .roadmap-node--completed .roadmap-node__button {
   background:
-    radial-gradient(circle at 35% 25%, rgba(34, 211, 238, 0.7), rgba(16, 185, 129, 0.9) 70%);
+  rgba(53, 53, 53, 0.137);
   border-color: color-mix(in srgb, var(--roadmap-accent) 95%, white 5%);
-  color: #06130c;
+  color: #ffffff;
   box-shadow:
     0 14px 34px rgba(0, 0, 0, 0.45),
     0 0 24px color-mix(in srgb, var(--roadmap-accent) 35%, transparent);
@@ -809,13 +809,12 @@
 
 .roadmap-node--active .roadmap-node__button {
   border-color: var(--roadmap-accent);
-  background:
-    radial-gradient(circle at 35% 25%, color-mix(in srgb, var(--roadmap-accent) 75%, white 5%), rgba(16, 185, 129, 0.92) 70%);
+  background: radial-gradient(circle at 35% 25%, rgba(34, 211, 238, 0.7), rgba(16, 185, 129, 0.9) 70%);;
   color: #06130c;
   box-shadow:
-    0 16px 38px rgba(0, 0, 0, 0.48),
-    0 0 0 6px color-mix(in srgb, var(--roadmap-accent) 12%, transparent),
-    0 0 28px color-mix(in srgb, var(--roadmap-accent) 34%, transparent);
+    0 14px 32px rgba(0, 0, 0, 0.42),
+    0 0 0 1px color-mix(in srgb, var(--roadmap-accent) 45%, transparent),
+    0 0 16px color-mix(in srgb, var(--roadmap-accent) 22%, transparent);
   animation: roadmapActivePulse 1.9s ease-in-out infinite;
 }
 
@@ -824,17 +823,17 @@
   100% {
     transform: scale(1);
     box-shadow:
-      0 16px 38px rgba(0, 0, 0, 0.48),
-      0 0 0 6px color-mix(in srgb, var(--roadmap-accent) 12%, transparent),
-      0 0 28px color-mix(in srgb, var(--roadmap-accent) 34%, transparent);
+      0 14px 32px rgba(0, 0, 0, 0.42),
+      0 0 0 1px color-mix(in srgb, var(--roadmap-accent) 45%, transparent),
+      0 0 16px color-mix(in srgb, var(--roadmap-accent) 22%, transparent);
   }
 
   50% {
-    transform: scale(1.07);
+    transform: scale(1.04);
     box-shadow:
-      0 18px 44px rgba(0, 0, 0, 0.52),
-      0 0 0 14px color-mix(in srgb, var(--roadmap-accent) 0%, transparent),
-      0 0 38px color-mix(in srgb, var(--roadmap-accent) 46%, transparent);
+      0 16px 36px rgba(0, 0, 0, 0.46),
+      0 0 0 1px color-mix(in srgb, var(--roadmap-accent) 55%, transparent),
+      0 0 22px color-mix(in srgb, var(--roadmap-accent) 30%, transparent);
   }
 }
 

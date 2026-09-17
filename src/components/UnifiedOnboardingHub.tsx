@@ -10,18 +10,56 @@ import { DEFAULT_HUB_TAB, isHubTab, type HubTab } from '../navigation';
 import { useSearchParams } from 'react-router-dom';
 import VirtualTour360 from './VirtualTour360';
 import { TourMapSelector } from './TourMapSelector';
+import { ColombiaMapSvg } from './ColombiaMapSvg';
 import { HudGlassModal } from './HudGlassModal';
 import { RoadmapView } from './RoadmapView';
-import { getTour360ConfigById, type Tour360Campus } from '../data/tour360Locations';
+import { getTour360ConfigById, tourLocations, type Tour360Campus } from '../data/tour360Locations';
+import { getMapCityPins } from '../data/sedes';
+import { SedeUnavailableFallback } from './SedeUnavailableFallback';
 import { hubTabToRoadmapVariant, hubTabUsesSequentialUnlock, loadAllRoadmapCompletedStationIds, filterCompletedStationIdsForVariant, saveCompletedStationIdsForVariant } from '../types/roadmap';
+import { useActiveSede } from '../hooks/useActiveSede';
 import { tour360Nodes } from '../data/tour360Nodes';
-import EarthAnimation from '../assets/iconos/Earth.json';
+import EarthAnimation from '../assets/lottie/Earth.json';
 import '../styles/hub-tabs.css';
 
 type StationType = 'video' | 'pdf' | 'infografia' | 'drive-video' | 'drive-image' | 'drive-pdf' | 'drive-pdf-audio';
 
+interface DriveImageSlide {
+  title?: string;
+  driveImageUrl?: string;
+  driveImagePreviewUrl?: string;
+  alt?: string;
+}
+
+interface DriveDocumentSlide {
+  title?: string;
+  drivePdfPreviewUrl: string;
+  alt?: string;
+}
+
 const stationUsesIframeLayout = (type: StationType): boolean =>
-  type === 'video' || type === 'drive-video' || type === 'drive-pdf' || type === 'drive-pdf-audio';
+  type === 'video' ||
+  type === 'drive-video' ||
+  type === 'drive-image' ||
+  type === 'drive-pdf' ||
+  type === 'drive-pdf-audio';
+
+const isRoadmapDriveImageStation = (station: Station | null | undefined): boolean =>
+  station?.type === 'drive-image' ||
+  Boolean(station?.driveImageUrl || station?.driveImagePreviewUrl);
+
+const isRoadmapDriveVideoStation = (station: Station | null | undefined): boolean =>
+  station?.type === 'drive-video' ||
+  Boolean(station?.driveVideoPreviewUrl);
+
+const getRoadmapPanelClassName = (station: Station | null | undefined): string =>
+  [
+    'hud-glass-modal__panel--roadmap',
+    isRoadmapDriveImageStation(station) ? 'hud-glass-modal__panel--roadmap-drive-image' : '',
+    isRoadmapDriveVideoStation(station) ? 'hud-glass-modal__panel--roadmap-drive-video' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
 interface Station {
   id: string;
@@ -30,6 +68,7 @@ interface Station {
   subtitle: string;
   description: string;
   type: StationType;
+  // LEGACY: campos locales mantenidos como fallback temporal fuera del roadmap Drive.
   videoUrl?: string;
   pdfPages?: string[];
   pdfTitle?: string;
@@ -37,6 +76,8 @@ interface Station {
   driveVideoPreviewUrl?: string;
   driveImageUrl?: string;
   driveImagePreviewUrl?: string;
+  driveImageSlides?: DriveImageSlide[];
+  driveDocumentSlides?: DriveDocumentSlide[];
   drivePdfPreviewUrl?: string;
   driveAudioUrl?: string;
   driveAudioPreviewUrl?: string;
@@ -59,6 +100,8 @@ interface CalendarActivity {
 interface UnifiedOnboardingHubProps {
 }
 
+type Tour360EntryView = 'colombia-map' | 'bogota-sites';
+
 const AnimatedEarthIcon: React.FC<{ className?: string }> = ({ className }) => {
   const containerRef = useRef<HTMLSpanElement | null>(null);
 
@@ -70,7 +113,7 @@ const AnimatedEarthIcon: React.FC<{ className?: string }> = ({ className }) => {
       renderer: 'svg',
       loop: true,
       autoplay: true,
-      animationData: EarthAnimation,
+      animationData: EarthAnimation as object,
       rendererSettings: {
         preserveAspectRatio: 'xMidYMid meet',
       },
@@ -105,20 +148,61 @@ const CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL = `https://drive.google.com/file/d/
 // El archivo debe estar compartido como "Cualquier persona con el enlace puede ver".
 // Usar formato:
 // https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
-const CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1-IfwFm4nt4x5tH2kciEzHqZXwm8tZ2x7/preview';
+const CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview';
 
 // Estacion 4 CUN 360: PDF de infografia + audio podcast.
 // PDF Drive preview: https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
 // Audio MP3 directo: https://drive.google.com/uc?export=download&id=ID_DEL_ARCHIVO
 // Ambos archivos deben estar compartidos como "Cualquier persona con el enlace puede ver".
-const CUN360_POINT_4_DRIVE_PDF_FILE_ID = 'REEMPLAZAR_ID_PDF_ESTACION_4';
-const CUN360_POINT_4_DRIVE_AUDIO_FILE_ID = 'REEMPLAZAR_ID_AUDIO_MP3_ESTACION_4';
-const CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL = `https://drive.google.com/file/d/${CUN360_POINT_4_DRIVE_PDF_FILE_ID}/preview`;
-const CUN360_POINT_4_DRIVE_AUDIO_URL = `https://drive.google.com/uc?export=download&id=${CUN360_POINT_4_DRIVE_AUDIO_FILE_ID}`;
-const CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL = `https://drive.google.com/file/d/${CUN360_POINT_4_DRIVE_AUDIO_FILE_ID}/preview`;
+// TODO Fase podcast: reemplazar por URL directa reproducible MP3 si se requiere <audio>.
+const CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL = `https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview`;
+const CUN360_POINT_4_DRIVE_AUDIO_URL = '';
+const CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL = `https://drive.google.com/file/d/1kDvrxavTQ2EvZ-lKpGB49D6V_w_cQQjX/preview`;
+// TEMP: podcast fallback reutilizado para estaciones drive-pdf hasta tener audios propios.
+const ROADMAP_DEFAULT_PODCAST_DRIVE_PREVIEW_URL = CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL;
+
+// TODO CUN360 estación 5: reemplazar por el ID real del PDF cuando esté disponible.
+const CUN360_POINT_5_DRIVE_PDF_PREVIEW_URL = `https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview`;
+
+// TODO Fase 5: reemplazar placeholders por URLs preview reales de Google Drive.
+const CUN360_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview';
+const CUN360_POINT_7_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
+const CUN360_POINT_8_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview';
+const CUN360_POINT_9_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview';
+
+const CDIGITAL_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
+const CDIGITAL_POINT_2_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CDIGITAL_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CDIGITAL_POINT_4_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
+const CDIGITAL_POINT_5_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CDIGITAL_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CDIGITAL_POINT_7_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
+const CDIGITAL_POINT_8_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CDIGITAL_POINT_9_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+
+const CAMI_POINT_1_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CAMI_POINT_2_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CAMI_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CAMI_POINT_4_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CAMI_POINT_5_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CAMI_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CAMI_POINT_7_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CAMI_POINT_8_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const CAMI_POINT_9_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+
+const PARCHE_POINT_1_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const PARCHE_POINT_2_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const PARCHE_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const PARCHE_POINT_4_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const PARCHE_POINT_5_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const PARCHE_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const PARCHE_POINT_7_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const PARCHE_POINT_8_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const PARCHE_POINT_9_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
 
 export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { activeSede } = useActiveSede();
 
   const requestedTab = searchParams.get('tab') ?? '';
   const activeTab: HubTab = isHubTab(requestedTab) ? requestedTab : DEFAULT_HUB_TAB;
@@ -137,6 +221,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   // Modal State for popped up station content
   const [activePopupStation, setActivePopupStation] = useState<Station | null>(null);
   const [activePdfPage, setActivePdfPage] = useState<number>(0);
+  const [activeDriveImageSlideIndex, setActiveDriveImageSlideIndex] = useState(0);
+  const [activeDriveDocumentSlideIndex, setActiveDriveDocumentSlideIndex] = useState(0);
 
   // Active chosen calendar activity day. Starts with the first configured event.
   const [selectedDay, setSelectedDay] = useState<number>(5);
@@ -148,17 +234,74 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     stationNumber: number;
   } | null>(null);
 
+  const [tourEntryView, setTourEntryView] = useState<Tour360EntryView>('colombia-map');
+  const [selectedTourCityId, setSelectedTourCityId] = useState('bogota');
+  const [tourMapMessage, setTourMapMessage] = useState<string | null>(null);
   const [selectedCampus, setSelectedCampus] = useState<Tour360Campus | null>(null);
 
+  const activeTourCityIds = new Set(
+    tourLocations
+      .filter((location) =>
+        location.campuses.some((campus) =>
+          Boolean(getTour360ConfigById(campus.tourConfigId)?.nodes?.length),
+        ),
+      )
+      .map((location) => location.id),
+  );
+  const tourMapCities = getMapCityPins().map((city) =>
+    activeTourCityIds.has(city.id)
+      ? { ...city, status: 'active' as const }
+      : city,
+  );
   const activeTourConfig = selectedCampus
     ? getTour360ConfigById(selectedCampus.tourConfigId)
     : null;
+  const selectedCampusTourAvailable = Boolean(activeTourConfig?.nodes?.length);
 
   useEffect(() => {
     if (activeTab !== 'recorrido360') {
       setSelectedCampus(null);
+      setTourEntryView('colombia-map');
+      setSelectedTourCityId('bogota');
+      setTourMapMessage(null);
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    setActiveDriveImageSlideIndex(0);
+    setActiveDriveDocumentSlideIndex(0);
+  }, [activePopupStation?.id]);
+
+  const handleTourCitySelect = (cityId: string) => {
+    setSelectedTourCityId(cityId);
+
+    if (cityId === 'bogota') {
+      setTourEntryView('bogota-sites');
+      setTourMapMessage(null);
+      return;
+    }
+
+    const tourLocation = tourLocations.find((location) => location.id === cityId);
+    const availableCampus = tourLocation?.campuses.find((campus) =>
+      Boolean(getTour360ConfigById(campus.tourConfigId)?.nodes?.length),
+    );
+
+    if (availableCampus) {
+      setSelectedCampus(availableCampus);
+      setTourEntryView('colombia-map');
+      setTourMapMessage(null);
+      return;
+    }
+
+    setTourMapMessage('Esta ciudad estará disponible próximamente. Por ahora puedes explorar Bogotá, Sincelejo, Montería, Santa Marta o Neiva.');
+  };
+
+  const handleReturnToColombiaMap = () => {
+    setSelectedCampus(null);
+    setTourEntryView('colombia-map');
+    setSelectedTourCityId('bogota');
+    setTourMapMessage(null);
+  };
 
   // 9 Stations for CUN 360 (Physical Campus Track)
   const cun360Stations: Station[] = [
@@ -175,9 +318,26 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       title: 'Biblioteca e Innovación Interactiva', subtitle: 'Imagen de Espacios',
       description: 'Imagen externa de Google Drive para visualizar el contenido del punto 2.',
       type: 'drive-image',
-      driveImageUrl: CUN360_POINT_2_DRIVE_IMAGE_URL,
       driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
-      hideContentTitle: true,
+      driveImageSlides: [
+        {
+          title: 'Infografía 1',
+          driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
+          alt: 'Infografía CUN360 estación 2 - slide 1',
+        },
+        // TEMP: segunda slide duplicada solo para validar navegación del slider
+        {
+          title: 'Infografía 2 - prueba slider',
+          driveImagePreviewUrl: CDIGITAL_POINT_2_DRIVE_PDF_PREVIEW_URL,
+          alt: 'Infografía CUN360 estación 2 - slide 2',
+        },
+        {
+          title: 'Infografía 3',
+          driveImagePreviewUrl: "https://drive.google.com/file/d/1tDYCktfxaHpMpKBY1zEvwakEB794m3_F/preview",
+          alt: 'Infografía CUN360 estación 2 - slide 3',
+        },
+      ],
+      hideContentTitle: false,
       accentColor: '#35B84A', extraTip: 'Las salas MAC se pueden separar en bloques de hasta 2 horas diarias.',
       coordinateX: 20, coordinateY: 40
     },
@@ -195,64 +355,63 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       description: 'Infografía embebida desde Google Drive con podcast MP3 de apoyo para conocer los beneficios físicos y espacios de bienestar.',
       type: 'drive-pdf-audio',
       drivePdfPreviewUrl: CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL,
+      driveDocumentSlides: [
+        {
+          title: 'Infografía 1',
+          drivePdfPreviewUrl: CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL,
+        },
+        // TEMP: segunda slide duplicada solo para validar navegación del slider de documentos
+        {
+          title: 'Infografía 2 - prueba slider',
+          drivePdfPreviewUrl: CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL,
+        },
+      ],
       driveAudioUrl: CUN360_POINT_4_DRIVE_AUDIO_URL,
       driveAudioPreviewUrl: CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL,
-      audioTitle: 'Podcast de beneficios físicos',
+      audioTitle: 'Podcast',
       accentColor: '#FF2D55', extraTip: 'Inscríbete gratis los primeros 10 días hábiles del semestre.',
-      coordinateX: 42, coordinateY: 35
+      coordinateX: 42, coordinateY: 55
     },
     {
       id: 'c360-5', number: 5,
       title: 'Oficina Registro y Control', subtitle: 'Manual PDF Académico',
       description: 'Pautas oficiales para homologación de materias, certificados de estudio y reingresos.',
-      type: 'pdf', pdfTitle: 'Reglamento_Sinu_Notas.pdf',
-      pdfPages: [
-        'Página 1: Las notas oficiales se registran directamente en la plataforma SINU Académica.',
-        'Página 2: Tienes derecho a solicitar revisión de notas en un plazo de 3 días calendario después de publicadas.'
-      ],
+      type: 'drive-pdf',
+      drivePdfPreviewUrl: CUN360_POINT_5_DRIVE_PDF_PREVIEW_URL,
       accentColor: '#5856D6', extraTip: 'Evita perder materias por fallas, tu asistencia cuenta en la nota virtual.',
-      coordinateX: 54, coordinateY: 60
+      coordinateX: 54, coordinateY: 40
     },
     {
       id: 'c360-6', number: 6,
       title: 'Relaciones Internacionales (ORI)', subtitle: 'Infografía de Becas Académicas',
       description: 'Convenios de movilidad académica con México, España y Argentina para estancias estudiantiles.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Intercambio Virtual', desc: 'Cursa materias extracurriculares con universidades aliadas sin salir de casa o pagar más.' },
-        { title: 'Club de Idiomas', desc: 'Clases gratuitas semanales conversacionales de inglés y francés.' }
-      ],
-      accentColor: '#007AFF', coordinateX: 66, coordinateY: 30
+      type: 'drive-image',
+      driveImagePreviewUrl: CUN360_POINT_6_DRIVE_IMAGE_PREVIEW_URL,
+      accentColor: '#007AFF', coordinateX: 66, coordinateY: 25
     },
     {
       id: 'c360-7', number: 7,
       title: 'Bienestar y Apoyo Psicológico', subtitle: 'Video Salud Estudiantil',
       description: 'Línea de acompañamiento psicológico privado, talleres de manejo del estrés académico y tutorías emocionales.',
-      type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
+      type: 'drive-video', driveVideoPreviewUrl: CUN360_POINT_7_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#AF52DE', extraTip: 'Servicio 100% gratuito y confidencial para todo el Parche CUN.',
-      coordinateX: 76, coordinateY: 60
+      coordinateX: 70, coordinateY: 60
     },
     {
       id: 'c360-8', number: 8,
       title: 'Fondo de Emprendimiento CUNbre', subtitle: 'Resumen PDF Convocatorias',
       description: 'Capital semilla e incubación de proyectos de negocio creados por estudiantes nuevos.',
-      type: 'pdf', pdfTitle: 'Convocatoria_Cunbre_2026.pdf',
-      pdfPages: [
-        'Página 1: El programa te capacita en metodologías ágiles de negocio para crear tu propio emprendimiento.',
-        'Página 2: Puedes sustituir tu práctica profesional obligatoria si tu modelo es validado por el comité de CUNbre.'
-      ],
+      type: 'drive-pdf',
+      drivePdfPreviewUrl: CUN360_POINT_8_DRIVE_PDF_PREVIEW_URL,
       accentColor: '#FFCC00', extraTip: 'Presenta tu idea estrella en la feria de fin de cuatrimestre.',
-      coordinateX: 86, coordinateY: 45
+      coordinateX: 82, coordinateY: 45
     },
     {
       id: 'c360-9', number: 9,
       title: 'Ubicación y Vida Bogotá Colectiva', subtitle: 'Infografía de Rutas de Bogotá',
       description: 'Estaciones de Transmilenio recomendadas, parqueaderos seguros para ciclistas en la Sede Central.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Estaciones Clave', desc: 'Estación Las Aguas y Calle 19 son las más cercanas a los accesos principales.' },
-        { title: 'Bici-CUN Gratis', desc: 'Parqueaderos vigilados gratuitos para asegurar tu patineta o bicicleta escolar.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CUN360_POINT_9_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#00E5FF', coordinateX: 95, coordinateY: 70
     }
   ];
@@ -263,7 +422,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-1', number: 1,
       title: 'Ingreso Seguro al Aula Virtual', subtitle: 'Video Tutorial Clave',
       description: 'Aprende los pasos correctos para activar tu cuenta de correo @cun.edu.co e ingresar por primera vez al aula interactiva.',
-      type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
+      type: 'drive-video', driveVideoPreviewUrl: CDIGITAL_POINT_1_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#9BFF00', extraTip: 'Configura tu autenticación de dos factores al primer ingreso para resguardar notas.',
       coordinateX: 10, coordinateY: 35
     },
@@ -271,11 +430,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-2', number: 2,
       title: 'Metodología Simplificada del ACA', subtitle: 'Manual PDF para Estudiantes',
       description: 'Entiende cómo la Actividad de Construcción Aplicada reparte tu nota en tres fases para validar tus competencias.',
-      type: 'pdf', pdfTitle: 'Metodologia_ACA_2026.pdf',
-      pdfPages: [
-        'Página 1: El ACA es un entregable de aplicación práctica para la industria, dividido en Cortes de 30%, 30% y 40%.',
-        'Página 2: Súbelo antes del domingo a media noche en cada semana asignada por tu docente tutor en la plataforma.'
-      ],
+      type: 'drive-pdf',
+      drivePdfPreviewUrl: CDIGITAL_POINT_2_DRIVE_PDF_PREVIEW_URL,
       accentColor: '#35B84A', extraTip: 'Comienza a desarrollarlo desde la primera semana para resolver dudas con tutores.',
       coordinateX: 20, coordinateY: 60
     },
@@ -283,18 +439,15 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-3', number: 3,
       title: 'Maletín Tecnológico Digital', subtitle: 'Infografía Ecosistema Gratis',
       description: 'Licencias premium completamente gratis de Office 365, Google Suite, espacio ilimitado y SINU.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Google Suite Educativa', desc: 'Correo electrónico con dominio oficial y videoconferencias Meet ILIMITADAS.' },
-        { title: 'SINU Académico', desc: 'Tu oficina de auto-servicio para programar horarios, ver calificaciones y extractos.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CDIGITAL_POINT_3_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#FF9500', coordinateX: 30, coordinateY: 40
     },
     {
       id: 'cdig-4', number: 4,
       title: 'Soporte con Cami y Canal Ticket', subtitle: 'Video de Trámites Rápidos',
       description: 'Conoce cómo levantar un ticket para solucionar problemas de inscripción o cambio de clave rápidamente.',
-      type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
+      type: 'drive-video', driveVideoPreviewUrl: CDIGITAL_POINT_4_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#FF2D55', extraTip: 'Usa el agente de IA para solucionar dudas en 5 segundos sin filas.',
       coordinateX: 42, coordinateY: 65
     },
@@ -302,11 +455,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-5', number: 5,
       title: 'Duración e Inducción Modular', subtitle: 'Esquema PDF del Período',
       description: 'Aprende cómo funciona el régimen dividiendo las materias en bloques semanales de alta concentración académica.',
-      type: 'pdf', pdfTitle: 'Guia_Estudio_Bloques.pdf',
-      pdfPages: [
-        'Página 1: Los bloques duran exactamente 8 semanas. Estudiarás 2 o 3 materias simultáneas para optimizar tu tiempo.',
-        'Página 2: Las tutorías presenciales/sincrúnicas quedan grabadas en el aula por si no te puedes conectar en vivo.'
-      ],
+      type: 'drive-pdf',
+      drivePdfPreviewUrl: CDIGITAL_POINT_5_DRIVE_PDF_PREVIEW_URL,
       accentColor: '#5856D6', extraTip: 'Dedica por lo menos 1 hora diaria a revisar el foro de anuncios corporativo.',
       coordinateX: 54, coordinateY: 45
     },
@@ -314,18 +464,15 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-6', number: 6,
       title: 'Canales del Parche en Redes', subtitle: 'Infografía de Socialización',
       description: 'Comunidades oficiales en WhatsApp, Discord y TikTok para interactuar con estudiantes de tu misma carrera.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Canal Discord', desc: 'Espacios de estudio virtual grupal temático abierto 24/7.' },
-        { title: 'Grupo Informativo Telegram', desc: 'Notificaciones en tiempo real sobre becas, eventos y recesos.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CDIGITAL_POINT_6_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#007AFF', coordinateX: 66, coordinateY: 60
     },
     {
       id: 'cdig-7', number: 7,
       title: 'Framework de Aprendizaje Remoto', subtitle: 'Video Tips de Alto Impacto',
       description: 'Metodologías de hábitos ágiles probadas por estudiantes virtuales de alto rendimiento en Colombia.',
-      type: 'video', videoUrl: 'https://www.youtube.com/embed/Lq_GdgRt_vs',
+      type: 'drive-video', driveVideoPreviewUrl: CDIGITAL_POINT_7_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#AF52DE', extraTip: 'Crea un espacio físico libre de distracciones en casa para estudiar.',
       coordinateX: 76, coordinateY: 40
     },
@@ -333,11 +480,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-8', number: 8,
       title: 'Estándares de í‰tica Estudiantil', subtitle: 'Compendio PDF Institucional',
       description: 'Evita problemas de derechos de autor y aprende normas APA reglamentarias vigentes.',
-      type: 'pdf', pdfTitle: 'Normograma_Etica_Academica.pdf',
-      pdfPages: [
-        'Página 1: El plagio académico acarrea sanciones de pérdida de bloque y amonestación en hoja de vida.',
-        'Página 2: Conoce las plantillas APA descargables y generadores automáticos en la biblioteca virtual.'
-      ],
+      type: 'drive-pdf',
+      drivePdfPreviewUrl: CDIGITAL_POINT_8_DRIVE_PDF_PREVIEW_URL,
       accentColor: '#FFCC00', extraTip: 'Toda cita bibliográfica debe contener autor, año y enlace persistente.',
       coordinateX: 86, coordinateY: 65
     },
@@ -345,11 +489,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-9', number: 9,
       title: 'Insignias Cortas de Empleabilidad', subtitle: 'Infografía de Credenciales',
       description: 'Acreditaciones complementarias que expide la CUN para certificar tus habilidades en plataformas asociadas.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Certificaciones Cisco', desc: 'Rutas gratuitas de ciberseguridad, IoT y redes con certificación internacional.' },
-        { title: 'Insignia de Liderazgo', desc: 'Insignia digital para tu LinkedIn oficial que demuestra tus virtudes directivas.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CDIGITAL_POINT_9_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#00E5FF', coordinateX: 95, coordinateY: 35
     }
   ];
@@ -360,23 +501,17 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cami-1', number: 1,
       title: 'Primer contacto con Cami', subtitle: 'Ruta de atención inicial',
       description: 'Contenido pendiente para el punto 1. Aquí se explicará cómo iniciar una conversación efectiva con Cami.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Objetivo', desc: 'Orientar al estudiante en el primer contacto con el canal de soporte.' },
-        { title: 'Estado', desc: 'Contenido editable pendiente de reemplazo por información oficial.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CAMI_POINT_1_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#9BFF00', extraTip: 'Describe el problema con datos concretos para recibir una mejor orientación.',
-      coordinateX: 10, coordinateY: 35
+      coordinateX: 10, coordinateY: 25
     },
     {
       id: 'cami-2', number: 2,
       title: 'Crear un ticket', subtitle: 'Radicación de solicitudes',
       description: 'Contenido pendiente para el punto 2. Este punto debe explicar cuándo crear un ticket y qué información adjuntar.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Datos básicos', desc: 'Nombre, documento, programa, sede y una descripción clara del caso.' },
-        { title: 'Adjuntos', desc: 'Capturas, soportes de pago o evidencias que ayuden a resolver el caso.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CAMI_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#35B84A', extraTip: 'Un ticket bien documentado reduce tiempos de respuesta.',
       coordinateX: 20, coordinateY: 60
     },
@@ -384,47 +519,35 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cami-3', number: 3,
       title: 'Seguimiento del caso', subtitle: 'Consulta de estado',
       description: 'Contenido pendiente para el punto 3. Aquí se explicará cómo revisar avances y responder solicitudes de soporte.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Estado del ticket', desc: 'Verifica si está recibido, en gestión, pendiente de información o cerrado.' },
-        { title: 'Respuesta oportuna', desc: 'Contesta las solicitudes de información para evitar pausas en el trámite.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CAMI_POINT_3_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#FF9500', extraTip: 'Conserva el número de radicado para cualquier consulta posterior.',
-      coordinateX: 30, coordinateY: 40
+      coordinateX: 32, coordinateY: 60
     },
     {
       id: 'cami-4', number: 4,
       title: 'Homologaciones', subtitle: 'Gestión académica',
       description: 'Contenido pendiente para el punto 4. Espacio para explicar solicitudes relacionadas con homologación de asignaturas.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Soportes', desc: 'Ten a la mano certificados, contenidos programáticos y documentos requeridos.' },
-        { title: 'Revisión', desc: 'El caso puede requerir validación académica antes de su cierre.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CAMI_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#FF2D55', extraTip: 'Adjunta documentos completos y legibles.',
-      coordinateX: 42, coordinateY: 65
+      coordinateX: 43, coordinateY: 50
     },
     {
       id: 'cami-5', number: 5,
       title: 'Pagos y caja', subtitle: 'Soporte financiero',
       description: 'Contenido pendiente para el punto 5. Aquí se documentarán dudas frecuentes sobre pagos, recibos y estado financiero.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Consulta', desc: 'Revisa número de recibo, referencia de pago y fecha de transacción.' },
-        { title: 'Evidencia', desc: 'Adjunta comprobante si el pago no se ve reflejado.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CAMI_POINT_5_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#5856D6', extraTip: 'Verifica que el comprobante tenga fecha, valor y referencia.',
-      coordinateX: 54, coordinateY: 45
+      coordinateX: 54, coordinateY: 35
     },
     {
       id: 'cami-6', number: 6,
       title: 'Acceso a plataformas', subtitle: 'Credenciales y sistemas',
       description: 'Contenido pendiente para el punto 6. Punto dedicado a problemas con correo, aula virtual, SINU u otros accesos.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Validación', desc: 'Confirma usuario, correo institucional y mensaje de error.' },
-        { title: 'Seguridad', desc: 'No compartas contraseñas; solicita restablecimiento por los canales oficiales.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CAMI_POINT_6_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#007AFF', extraTip: 'Incluye captura del error para acelerar el diagnóstico.',
       coordinateX: 66, coordinateY: 60
     },
@@ -432,11 +555,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cami-7', number: 7,
       title: 'Escalamiento', subtitle: 'Casos especiales',
       description: 'Contenido pendiente para el punto 7. Aquí se explicará cuándo un caso debe pasar a otra dependencia.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Criterio', desc: 'Un caso puede escalarse cuando requiere aprobación o revisión especializada.' },
-        { title: 'Trazabilidad', desc: 'El número de ticket conserva el historial de la solicitud.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CAMI_POINT_7_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#AF52DE', extraTip: 'Evita crear tickets duplicados para el mismo caso.',
       coordinateX: 76, coordinateY: 40
     },
@@ -444,11 +564,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cami-8', number: 8,
       title: 'Cierre del ticket', subtitle: 'Confirmación de solución',
       description: 'Contenido pendiente para el punto 8. Espacio para explicar cómo confirmar solución y cerrar solicitudes.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Revisión final', desc: 'Comprueba que la respuesta solucione el caso antes de cerrar.' },
-        { title: 'Retroalimentación', desc: 'Registra observaciones si la solución no fue suficiente.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CAMI_POINT_8_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#FFCC00', extraTip: 'Cierra el ciclo cuando tu solicitud haya quedado resuelta.',
       coordinateX: 86, coordinateY: 65
     },
@@ -456,11 +573,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cami-9', number: 9,
       title: 'Buenas prácticas', subtitle: 'Guía rápida de soporte',
       description: 'Contenido pendiente para el punto 9. Recomendaciones generales para usar correctamente Soporte Cami.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Claridad', desc: 'Resume el problema, indica qué intentaste y qué resultado esperas.' },
-        { title: 'Un solo canal', desc: 'Usa un mismo ticket para conservar contexto y evitar duplicidad.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: CAMI_POINT_9_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#00E5FF', extraTip: 'Un buen reporte ayuda a resolver mejor y más rápido.',
       coordinateX: 95, coordinateY: 35
     }
@@ -472,11 +586,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-1', number: 1,
       title: 'Bienvenida al Parche Virtual', subtitle: 'Inicio de comunidad',
       description: 'Contenido pendiente para el punto 1. Presentación general de la comunidad virtual CUN.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Propósito', desc: 'Conectar estudiantes nuevos con espacios de acompañamiento y socialización.' },
-        { title: 'Estado', desc: 'Contenido placeholder listo para reemplazar.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: PARCHE_POINT_1_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#9BFF00', extraTip: 'Participa con respeto y actitud colaborativa.',
       coordinateX: 10, coordinateY: 70
     },
@@ -484,11 +595,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-2', number: 2,
       title: 'Canales oficiales', subtitle: 'Comunicación de comunidad',
       description: 'Contenido pendiente para el punto 2. Aquí se listarán canales oficiales y normas de uso.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Canales', desc: 'Espacios informativos para avisos, actividades y convocatorias.' },
-        { title: 'Cuidado', desc: 'Verifica que los enlaces sean oficiales antes de compartir datos.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: PARCHE_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#35B84A', extraTip: 'Guarda los canales oficiales para no perder comunicaciones importantes.',
       coordinateX: 20, coordinateY: 40
     },
@@ -496,11 +604,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-3', number: 3,
       title: 'Presentación personal', subtitle: 'Primer contacto social',
       description: 'Contenido pendiente para el punto 3. Guía para presentarte y conectar con otros estudiantes.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Perfil', desc: 'Comparte carrera, modalidad, intereses y expectativas.' },
-        { title: 'Conexión', desc: 'Busca compañeros con intereses académicos o personales similares.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: PARCHE_POINT_3_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#FF9500', extraTip: 'Una buena presentación ayuda a crear red desde el primer día.',
       coordinateX: 30, coordinateY: 65
     },
@@ -508,11 +613,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-4', number: 4,
       title: 'Grupos por carrera', subtitle: 'Comunidades académicas',
       description: 'Contenido pendiente para el punto 4. Espacio para explicar grupos por programa o facultad.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Ubicación', desc: 'Encuentra comunidades relacionadas con tu programa académico.' },
-        { title: 'Participación', desc: 'Haz preguntas, comparte recursos y respeta las reglas del grupo.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: PARCHE_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#FF2D55', extraTip: 'Los grupos por carrera son útiles para resolver dudas rápidas.',
       coordinateX: 42, coordinateY: 35
     },
@@ -520,11 +622,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-5', number: 5,
       title: 'Retos y dinámicas', subtitle: 'Activaciones virtuales',
       description: 'Contenido pendiente para el punto 5. Aquí se describirán retos, trivias y actividades de integración.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Dinámicas', desc: 'Actividades diseñadas para romper el hielo y participar en comunidad.' },
-        { title: 'Reconocimiento', desc: 'Algunos retos pueden entregar insignias, menciones o incentivos.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: PARCHE_POINT_5_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#5856D6', extraTip: 'Participar te ayuda a conocer personas y recursos útiles.',
       coordinateX: 54, coordinateY: 60
     },
@@ -532,11 +631,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-6', number: 6,
       title: 'Mentores y aliados', subtitle: 'Acompañamiento entre pares',
       description: 'Contenido pendiente para el punto 6. Explicación de referentes, monitores o compañeros guía.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Apoyo', desc: 'Identifica personas que puedan orientar tus primeras semanas.' },
-        { title: 'Alcance', desc: 'Los mentores acompañan, pero no reemplazan canales oficiales.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: PARCHE_POINT_6_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#007AFF', extraTip: 'Pregunta a tiempo; no esperes a que la duda crezca.',
       coordinateX: 66, coordinateY: 30
     },
@@ -544,11 +640,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-7', number: 7,
       title: 'Eventos en vivo', subtitle: 'Encuentros digitales',
       description: 'Contenido pendiente para el punto 7. Programación de lives, charlas y espacios sincrónicos.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Agenda', desc: 'Consulta horarios, enlaces y temas de cada encuentro.' },
-        { title: 'Participación', desc: 'Llega con preguntas y aprovecha los espacios en vivo.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: PARCHE_POINT_7_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#AF52DE', extraTip: 'Agrega los encuentros importantes a tu calendario.',
       coordinateX: 76, coordinateY: 60
     },
@@ -556,11 +649,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-8', number: 8,
       title: 'Recursos compartidos', subtitle: 'Biblioteca del parche',
       description: 'Contenido pendiente para el punto 8. Espacio para alojar guías, enlaces y materiales de apoyo.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Materiales', desc: 'Guías de inicio, enlaces frecuentes y recomendaciones de estudio.' },
-        { title: 'Actualización', desc: 'Mantén los recursos revisados y vigentes.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: PARCHE_POINT_8_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#FFCC00', extraTip: 'Comparte recursos útiles y evita información no verificada.',
       coordinateX: 86, coordinateY: 45
     },
@@ -568,11 +658,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-9', number: 9,
       title: 'Cierre de integración', subtitle: 'Siguiente paso',
       description: 'Contenido pendiente para el punto 9. Cierre de la ruta del Parche Virtual y próximos pasos.',
-      type: 'infografia',
-      infogData: [
-        { title: 'Resumen', desc: 'Repasa canales, grupos, eventos y recursos clave.' },
-        { title: 'Continuidad', desc: 'Mantente activo en los espacios que aporten a tu proceso.' }
-      ],
+      type: 'drive-image',
+      driveImagePreviewUrl: PARCHE_POINT_9_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#00E5FF', extraTip: 'La comunidad se construye con participación constante.',
       coordinateX: 95, coordinateY: 70
     }
@@ -726,6 +813,28 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const isLockedModule = activeTab === 'bienestarLocked';
   // Fase 4B — El capítulo Tour 360 usa un layout inmersivo exclusivo.
   const isImmersive = activeTab === 'recorrido360';
+  const isNationalMapSelection =
+    activeTab === 'recorrido360' &&
+    !selectedCampus &&
+    tourEntryView === 'colombia-map';
+  const getHubTabVariantClass = (tabId: HubTab, isActive = false) =>
+    [
+      tabId === 'cdigital' ? 'hub-tab--cdigital' : '',
+      tabId === 'soporteCami' ? 'hub-tab--cami' : '',
+      tabId === 'virtual' ? 'hub-tab--parche' : '',
+      isActive ? 'is-active' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+  const hubSectionVariantClass =
+    activeTab === 'cdigital'
+      ? 'hub-section--cdigital'
+      : activeTab === 'soporteCami'
+        ? 'hub-section--cami'
+        : activeTab === 'virtual'
+          ? 'hub-section--parche'
+          : '';
   // Fase C — Tema ambiental del escenario según el capítulo (solo visual).
   const chapterTheme =
     activeTab === 'recorrido360' ? 'tour'
@@ -818,12 +927,100 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       guide: 'Aquí encontrarás apoyo y actividades para tu bienestar.',
     },
   };
-  const activeNarrative = moduleNarrative[activeTab];
+  const baseNarrative = moduleNarrative[activeTab];
+  const activeNarrative =
+    activeTab === 'recorrido360'
+      ? {
+          ...baseNarrative,
+          chapter: activeSede.narrative.chapter ?? baseNarrative.chapter,
+          mission: activeSede.narrative.mission ?? baseNarrative.mission,
+          title: activeSede.narrative.title,
+          description: activeSede.narrative.description,
+          nextStep: activeSede.narrative.nextStep ?? baseNarrative.nextStep,
+          reward: activeSede.narrative.reward ?? baseNarrative.reward,
+          ctaLabel: activeSede.narrative.ctaLabel ?? baseNarrative.ctaLabel,
+          guide: activeSede.narrative.guide,
+        }
+      : baseNarrative;
+
+  const driveImageSlides: DriveImageSlide[] =
+    activePopupStation?.type === 'drive-image'
+      ? activePopupStation.driveImageSlides?.length
+        ? activePopupStation.driveImageSlides
+        : activePopupStation.driveImagePreviewUrl || activePopupStation.driveImageUrl
+          ? [
+              {
+                title: activePopupStation.title,
+                driveImageUrl: activePopupStation.driveImageUrl,
+                driveImagePreviewUrl: activePopupStation.driveImagePreviewUrl,
+                alt: activePopupStation.title,
+              },
+            ]
+          : []
+      : [];
+
+  const activeDriveImageSlide =
+    driveImageSlides[activeDriveImageSlideIndex] ?? driveImageSlides[0];
+
+  const hasMultipleDriveImageSlides = driveImageSlides.length > 1;
+
+  const driveDocumentSlides: DriveDocumentSlide[] =
+    activePopupStation?.type === 'drive-pdf' || activePopupStation?.type === 'drive-pdf-audio'
+      ? activePopupStation.driveDocumentSlides?.length
+        ? activePopupStation.driveDocumentSlides
+        : activePopupStation.drivePdfPreviewUrl
+          ? [
+              {
+                title: activePopupStation.title,
+                drivePdfPreviewUrl: activePopupStation.drivePdfPreviewUrl,
+                alt: activePopupStation.title,
+              },
+            ]
+          : []
+      : [];
+
+  const activeDriveDocumentSlide =
+    driveDocumentSlides[activeDriveDocumentSlideIndex] ?? driveDocumentSlides[0];
+
+  const hasMultipleDriveDocumentSlides = driveDocumentSlides.length > 1;
+
+  const handlePreviousDriveImageSlide = () => {
+    setActiveDriveImageSlideIndex((currentIndex) =>
+      driveImageSlides.length > 0
+        ? (currentIndex - 1 + driveImageSlides.length) % driveImageSlides.length
+        : 0,
+    );
+  };
+
+  const handleNextDriveImageSlide = () => {
+    setActiveDriveImageSlideIndex((currentIndex) =>
+      driveImageSlides.length > 0
+        ? (currentIndex + 1) % driveImageSlides.length
+        : 0,
+    );
+  };
+
+  const handlePreviousDriveDocumentSlide = () => {
+    setActiveDriveDocumentSlideIndex((currentIndex) =>
+      driveDocumentSlides.length > 0
+        ? (currentIndex - 1 + driveDocumentSlides.length) % driveDocumentSlides.length
+        : 0,
+    );
+  };
+
+  const handleNextDriveDocumentSlide = () => {
+    setActiveDriveDocumentSlideIndex((currentIndex) =>
+      driveDocumentSlides.length > 0
+        ? (currentIndex + 1) % driveDocumentSlides.length
+        : 0,
+    );
+  };
 
   return (
-    <div className={`w-full max-w-[1500px] 2xl:max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-5 relative z-10 flex flex-col h-[calc(100vh-88px)] sm:h-[min(90vh,960px)] min-h-[620px] sm:min-h-[720px] lg:min-h-[760px] overflow-hidden ${isImmersive ? 'tour-immersive-shell' : 'stage-platform'}`} data-chapter={chapterTheme} id="onboarding-viewport-fixed">
+    <div className={`w-full max-w-[1500px] 2xl:max-w-[1680px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-5 relative z-10 flex flex-col h-[calc(100vh-88px)] sm:h-[min(90vh,960px)] min-h-[620px] sm:min-h-[720px] lg:min-h-[760px] overflow-hidden ${isImmersive ? 'tour-immersive-shell' : 'stage-platform'} ${isNationalMapSelection ? 'hub--map-selection-mode' : ''}`} data-chapter={chapterTheme} id="onboarding-viewport-fixed">
       
       {/* ===== HERO EDITORIAL — portada del capítulo (Fase D) ===== */}
+      {!isNationalMapSelection && (
       <div className="relative z-[2] flex items-end justify-between gap-4 sm:gap-8 mb-4 sm:mb-6 shrink-0 pt-1">
         <div className="min-w-0 flex flex-col gap-1.5">
           <span className={`section-eyebrow ${isLockedModule ? 'text-amber-400' : ''}`}>
@@ -847,8 +1044,10 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
           </button>
         )}
       </div>
+      )}
 
       {/* MODULE SELECTOR — chips tipo consola tecnológica (solo visual) */}
+      {!isNationalMapSelection && (
       <div className="hub-tabs-wrapper w-full min-w-0 max-w-full shrink-0">
         <div className="hub-tabs flex bg-transparent overflow-x-auto max-w-full scrollbar-none select-none z-10 mb-3 items-stretch px-0.5 sm:px-1 py-1 shrink-0 gap-2 sm:gap-2.5">
         {tabsList.map((tab) => {
@@ -858,7 +1057,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`hub-tab focus-ring-soft group relative flex items-center gap-2.5 rounded-[14px] border px-4 sm:px-5 py-2.5 sm:py-3 cursor-pointer whitespace-nowrap transition-all duration-150 ease-out ${
+              className={`hub-tab ${getHubTabVariantClass(tab.id, isActive)} focus-ring-soft group relative flex items-center gap-2.5 rounded-[14px] border px-4 sm:px-5 py-2.5 sm:py-3 cursor-pointer whitespace-nowrap transition-all duration-150 ease-out ${
                 isActive
                   ? 'hub-tab-active z-20 -translate-y-0.5 border-brand-green-main bg-white/[0.08] text-white shadow-[0_0_0_1px_rgba(53,184,74,0.3),0_12px_28px_-12px_rgba(53,184,74,0.38),inset_0_1px_0_rgba(255,255,255,0.12)]'
                   : 'z-10 border-white/15 bg-white/[0.03] text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:-translate-y-px hover:border-white/25 hover:bg-white/[0.06] hover:text-text-primary'
@@ -871,12 +1070,13 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
         })}
         </div>
       </div>
+      )}
 
       {/* TAB WORKSPACE BOX — Panel/tarjeta para módulos normales; en Tour 360 es un stage sin caja. */}
       <div className={
         isImmersive
           ? 'flex-1 relative flex flex-col min-h-0 p-1.5 sm:p-2.5'
-          : 'flex-1 bg-surface-panel border border-border-subtle rounded-3xl relative overflow-hidden flex flex-col p-3 sm:p-5 shadow-panel backdrop-blur-xl min-h-0'
+          : `flex-1 bg-surface-panel border border-border-subtle rounded-3xl relative overflow-hidden flex flex-col p-3 sm:p-5 shadow-panel backdrop-blur-xl min-h-0 ${hubSectionVariantClass}`
       }>
         {!isImmersive && (
           <div className="hud-layer pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(53,184,74,0.10),transparent_38%),linear-gradient(180deg,rgba(255,255,255,0.03),transparent_44%)]" />
@@ -894,37 +1094,96 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               className="w-full h-full"
             >
               {/* Stage: el panorama flota sobre el fondo atmosférico */}
-              <div className="tour-immersive-stage h-full w-full">
-                {!selectedCampus ? (
-                  <TourMapSelector onSelectCampus={setSelectedCampus} />
-                ) : (
+              <div className="tour-immersive-stage relative h-full w-full">
+                {!selectedCampus && tourEntryView === 'colombia-map' ? (
+                  <section className="relative h-full w-full overflow-hidden rounded-[28px] border border-white/10 bg-[#020603] text-white shadow-[0_28px_90px_rgba(0,0,0,0.55)]">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgba(155,255,0,0.14),transparent_30%),radial-gradient(circle_at_76%_76%,rgba(0,255,102,0.10),transparent_34%),linear-gradient(135deg,rgba(8,12,9,0.98),rgba(0,0,0,0.98))]" />
+                    <div className="pointer-events-none absolute inset-0 opacity-35 [background-image:radial-gradient(circle,rgba(155,255,0,0.34)_1px,transparent_1px)] [background-size:clamp(14px,2vw,20px)_clamp(14px,2vw,20px)] [mask-image:radial-gradient(circle_at_50%_48%,black,transparent_78%)]" />
+
+                    <div className="relative z-10 grid h-full min-h-[clamp(560px,78vh,820px)] grid-cols-1 gap-0 lg:grid-cols-[minmax(280px,0.75fr)_minmax(520px,1.25fr)]">
+                      <div className="flex flex-col justify-between gap-6 border-b border-[#9BFF00]/15 bg-black/35 p-5 backdrop-blur-xl sm:p-7 lg:border-b-0 lg:border-r">
+                        <div>
+                          <p className="m-0 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.28em] text-[#9BFF00]">
+                            <MapPin className="h-4 w-4" />
+                            Mapa nacional
+                          </p>
+                          <h2 className="m-0 mt-3 text-3xl font-black leading-none text-white sm:text-4xl">
+                            Selecciona tu ciudad
+                          </h2>
+                          <p className="m-0 mt-4 max-w-sm text-sm font-semibold leading-relaxed text-white/68">
+                            Haz click en Bogotá, Sincelejo, Montería, Santa Marta o Neiva para continuar hacia el recorrido 360.
+                          </p>
+                        </div>
+
+                        <div className="rounded-3xl border border-[#9BFF00]/15 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                          <p className="m-0 text-[10px] font-black uppercase tracking-[0.22em] text-white/45">
+                            Estado
+                          </p>
+                          <p className="m-0 mt-2 text-base font-black text-white">
+                            Bogotá, Sincelejo, Montería, Santa Marta y Neiva disponibles
+                          </p>
+                          <p className="m-0 mt-2 text-xs font-semibold leading-relaxed text-white/58">
+                            Las demás ciudades quedan visibles como parte del mapa nacional y se activarán en próximas fases.
+                          </p>
+                          {tourMapMessage && (
+                            <p className="m-0 mt-3 rounded-2xl border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-xs font-bold text-amber-100">
+                              {tourMapMessage}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="relative flex min-h-[420px] items-center justify-center p-4 sm:p-6 lg:p-8">
+                        <div className="absolute inset-4 rounded-[32px] border border-[#9BFF00]/15 bg-black/20 shadow-[0_0_50px_rgba(155,255,0,0.10),inset_0_0_90px_rgba(155,255,0,0.05)]" />
+                        {/* TEMP: ajuste de escala del mapa para mejorar encuadre en el visor Tour360. */}
+                        <div className="relative z-10 mx-auto flex h-full max-h-[55vh] w-full max-w-[min(92vw,520px)] items-center justify-center sm:max-h-[64vh] sm:max-w-[620px] lg:max-h-[min(72vh,680px)] lg:max-w-[680px]">
+                          <ColombiaMapSvg
+                            cities={tourMapCities}
+                            selectedCityId={selectedTourCityId}
+                            onSelectCity={handleTourCitySelect}
+                            className="h-auto max-h-full w-full max-w-full drop-shadow-[0_0_34px_rgba(155,255,0,0.18)]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                ) : !selectedCampus ? (
+                  <TourMapSelector
+                    initialLocationId={selectedTourCityId}
+                    onSelectCampus={setSelectedCampus}
+                    onBackToMap={handleReturnToColombiaMap}
+                  />
+                ) : selectedCampusTourAvailable && activeTourConfig ? (
                   <>
+                    <div className="absolute right-3 top-3 z-40 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCampus(null)}
+                        className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/90 backdrop-blur-md transition hover:border-brand-green-main hover:bg-black/60 hover:text-white"
+                      >
+                        <MapPin className="h-3 w-3 text-brand-green-neon" />
+                        Cambiar sede
+                      </button>
+
+                      <div className="pointer-events-none hidden items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-md sm:flex">
+                        <span className="h-1.5 w-1.5 rounded-full bg-brand-green-neon animate-pulse" />
+                        <span className="text-[11px] text-white/85">Avanza por la escena para descubrir la sede</span>
+                        <span className="ml-1 rounded-full bg-brand-green-neon/90 px-2 py-0.5 text-[9px] font-bold uppercase text-[#06130d]">En recorrido</span>
+                      </div>
+                    </div>
+
                     <VirtualTour360
                       key={selectedCampus.id}
                       tourConfig={activeTourConfig}
                       selectedCampus={selectedCampus}
                     />
 
-                    <div className="pointer-events-none absolute right-3 top-3 z-30 hidden items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 backdrop-blur-md sm:flex">
-                      <span className="h-1.5 w-1.5 rounded-full bg-brand-green-neon animate-pulse" />
-                      <span className="text-[11px] text-white/85">Avanza por la escena para descubrir la sede</span>
-                      <span className="ml-1 rounded-full bg-brand-green-neon/90 px-2 py-0.5 text-[9px] font-bold uppercase text-[#06130d]">En recorrido</span>
-                    </div>
-
                     <div className="pointer-events-none absolute left-3 bottom-14 z-30 hidden max-w-[15rem] items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-sm md:flex">
                       <AnimatedEarthIcon className="h-6 w-6 shrink-0" />
                       <p className="m-0 text-[10px] italic leading-snug text-white/75">{activeNarrative.guide}</p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCampus(null)}
-                      className="pointer-events-auto absolute left-3 top-3 z-30 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[10px] font-medium text-white/80 backdrop-blur-md transition hover:bg-black/60 hover:text-white"
-                    >
-                      Cambiar sede
-                    </button>
-
-                    <a
+                    <a 
                       href={
                         activeTourConfig?.nodes.find((node) => node.id === activeTourConfig.startNodeId)
                           ?.panorama ??
@@ -937,7 +1196,10 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                     >
                       <ExternalLink className="w-3 h-3" /> Ver imagen
                     </a>
+                    
                   </>
+                ) : (
+                  <SedeUnavailableFallback sede={activeSede} />
                 )}
               </div>
             </motion.div>
@@ -1209,7 +1471,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       <HudGlassModal
         isOpen={Boolean(activePopupStation)}
         onClose={() => setActivePopupStation(null)}
-        panelClassName="hud-glass-modal__panel--roadmap"
+        panelClassName={getRoadmapPanelClassName(activePopupStation)}
         overlayClassName="hud-glass-modal__overlay--roadmap"
         size="roadmap"
         title={activePopupStation?.hideContentTitle ? undefined : activePopupStation?.title}
@@ -1240,13 +1502,14 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               className={`hud-glass-modal__media${
                 activePopupStation.type === 'drive-image'
                   ? ' hud-glass-modal__media--drive-image'
-                  : activePopupStation.type === 'drive-pdf-audio'
+                  : activePopupStation.type === 'drive-pdf' || activePopupStation.type === 'drive-pdf-audio'
                     ? ' hud-glass-modal__media--pdf-audio'
                   : stationUsesIframeLayout(activePopupStation.type)
                     ? ' hud-glass-modal__media--iframe'
                     : ''
               }`}
             >
+                {/* LEGACY: render local mantenido como fallback temporal fuera del roadmap Drive. */}
                 {activePopupStation.type === 'video' && (
                   <div className="hud-glass-modal__media-video">
                     <iframe
@@ -1269,82 +1532,190 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                   />
                 )}
 
-                {activePopupStation.type === 'drive-image' && activePopupStation.driveImageUrl && (
-                  <>
-                    <img
-                      src={activePopupStation.driveImageUrl}
-                      alt={activePopupStation.title}
-                      className="hud-glass-modal__image"
-                      onError={(event) => {
-                        event.currentTarget.classList.add('hidden');
-                        event.currentTarget.nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                    {activePopupStation.driveImagePreviewUrl && (
-                      <iframe
-                        src={activePopupStation.driveImagePreviewUrl}
-                        title={activePopupStation.title}
-                        className="hidden hud-glass-modal__iframe"
-                        allow="autoplay"
-                      />
-                    )}
-                  </>
-                )}
-
-                {activePopupStation.type === 'drive-pdf' && activePopupStation.drivePdfPreviewUrl && (
-                  <iframe
-                    src={activePopupStation.drivePdfPreviewUrl}
-                    title={activePopupStation.title}
-                    className="hud-glass-modal__iframe hud-glass-modal__iframe--document"
-                    allow="autoplay"
-                  />
-                )}
-
-                {activePopupStation.type === 'drive-pdf-audio' && activePopupStation.drivePdfPreviewUrl && (
-                  <>
-                    <div className="hud-glass-modal__pdf-audio-frame">
-                      <iframe
-                        src={activePopupStation.drivePdfPreviewUrl}
-                        title={`${activePopupStation.title} - Infografia`}
-                        className="hud-glass-modal__iframe hud-glass-modal__iframe--document"
-                        allow="autoplay; fullscreen"
-                        allowFullScreen
-                      />
+                {activePopupStation.type === 'drive-image' && activeDriveImageSlide && (
+                  <div className="hud-glass-modal__drive-slider">
+                    <div className="hud-glass-modal__drive-slider-frame">
+                      {activeDriveImageSlide.driveImageUrl && (
+                        <img
+                          key={`drive-slide-img-${activePopupStation.id}-${activeDriveImageSlideIndex}-${activeDriveImageSlide.driveImageUrl}`}
+                          src={activeDriveImageSlide.driveImageUrl}
+                          alt={activeDriveImageSlide.alt ?? activeDriveImageSlide.title ?? activePopupStation.title}
+                          className="hud-glass-modal__image"
+                          onError={(event) => {
+                            event.currentTarget.classList.add('hidden');
+                            event.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      )}
+                      {activeDriveImageSlide.driveImagePreviewUrl && (
+                        <iframe
+                          key={`drive-slide-iframe-${activePopupStation.id}-${activeDriveImageSlideIndex}-${activeDriveImageSlide.driveImagePreviewUrl}`}
+                          src={activeDriveImageSlide.driveImagePreviewUrl}
+                          title={activeDriveImageSlide.title ?? activePopupStation.title}
+                          className={`${activeDriveImageSlide.driveImageUrl ? 'hidden ' : ''}hud-glass-modal__iframe`}
+                          allow="autoplay"
+                        />
+                      )}
                     </div>
 
-                    <div className="hud-glass-modal__audio-panel">
-                      <div className="hud-glass-modal__audio-copy">
-                        <span className="hud-glass-modal__audio-kicker">Podcast</span>
-                        <strong>{activePopupStation.audioTitle ?? 'Escucha el podcast'}</strong>
-                      </div>
-
-                      <div className="hud-glass-modal__audio-controls">
-                        <audio
-                          controls
-                          preload="metadata"
-                          className="hud-glass-modal__audio"
+                    {hasMultipleDriveImageSlides && (
+                      <>
+                        <button
+                          type="button"
+                          aria-label="Imagen anterior"
+                          className="hud-glass-modal__drive-slider-button hud-glass-modal__drive-slider-button--prev"
+                          onClick={handlePreviousDriveImageSlide}
                         >
-                          {activePopupStation.driveAudioUrl && (
-                            <source src={activePopupStation.driveAudioUrl} type="audio/mpeg" />
-                          )}
-                          Tu navegador no soporta el reproductor de audio.
-                        </audio>
+                          ←
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Imagen siguiente"
+                          className="hud-glass-modal__drive-slider-button hud-glass-modal__drive-slider-button--next"
+                          onClick={handleNextDriveImageSlide}
+                        >
+                          →
+                        </button>
+                        <span className="hud-glass-modal__drive-slider-counter">
+                          {activeDriveImageSlideIndex + 1} / {driveImageSlides.length}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
 
-                        {activePopupStation.driveAudioPreviewUrl && (
-                          <a
-                            href={activePopupStation.driveAudioPreviewUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="hud-glass-modal__audio-link"
-                          >
-                            Abrir audio en Google Drive
-                          </a>
+                {activePopupStation.type === 'drive-pdf' && activeDriveDocumentSlide && (
+                  <div className="hud-glass-modal__pdf-podcast-layout">
+                    <div className="hud-glass-modal__pdf-audio-frame hud-glass-modal__pdf-podcast-main">
+                      <div className="hud-glass-modal__drive-slider hud-glass-modal__drive-slider--document">
+                        <div className="hud-glass-modal__drive-slider-frame">
+                          <iframe
+                            key={`drive-doc-slide-${activePopupStation.id}-${activeDriveDocumentSlideIndex}-${activeDriveDocumentSlide.drivePdfPreviewUrl}`}
+                            src={activeDriveDocumentSlide.drivePdfPreviewUrl}
+                            title={activeDriveDocumentSlide.title ?? activePopupStation.title}
+                            className="hud-glass-modal__iframe hud-glass-modal__iframe--document"
+                            allow="autoplay"
+                          />
+                        </div>
+
+                        {hasMultipleDriveDocumentSlides && (
+                          <>
+                            <button
+                              type="button"
+                              className="hud-glass-modal__drive-slider-button hud-glass-modal__drive-slider-button--prev"
+                              onClick={handlePreviousDriveDocumentSlide}
+                              aria-label="Documento anterior"
+                            >
+                              ‹
+                            </button>
+                            <button
+                              type="button"
+                              className="hud-glass-modal__drive-slider-button hud-glass-modal__drive-slider-button--next"
+                              onClick={handleNextDriveDocumentSlide}
+                              aria-label="Documento siguiente"
+                            >
+                              ›
+                            </button>
+                            <span className="hud-glass-modal__drive-slider-counter">
+                              {activeDriveDocumentSlideIndex + 1} / {driveDocumentSlides.length}
+                            </span>
+                          </>
                         )}
                       </div>
                     </div>
-                  </>
+
+                    <div className="hud-glass-modal__podcast-compact hud-glass-modal__podcast-compact--mini">
+                      <p className="hud-glass-modal__podcast-title">Podcast</p>
+
+                      {activePopupStation.driveAudioUrl ? (
+                        <audio
+                          controls
+                          preload="metadata"
+                          src={activePopupStation.driveAudioUrl}
+                          className="hud-glass-modal__podcast-audio"
+                        >
+                          Tu navegador no soporta el reproductor de audio.
+                        </audio>
+                      ) : (
+                        <iframe
+                          src={activePopupStation.driveAudioPreviewUrl ?? ROADMAP_DEFAULT_PODCAST_DRIVE_PREVIEW_URL}
+                          title={`Podcast - ${activePopupStation.title}`}
+                          className="hud-glass-modal__podcast-iframe"
+                          allow="autoplay"
+                        />
+                      )}
+                    </div>
+                  </div>
                 )}
 
+                {activePopupStation.type === 'drive-pdf-audio' && activeDriveDocumentSlide && (
+                  <div className="hud-glass-modal__pdf-podcast-layout">
+                    <div className="hud-glass-modal__pdf-audio-frame hud-glass-modal__pdf-podcast-main">
+                      <div className="hud-glass-modal__drive-slider hud-glass-modal__drive-slider--document">
+                        <div className="hud-glass-modal__drive-slider-frame">
+                          <iframe
+                            key={`drive-doc-slide-${activePopupStation.id}-${activeDriveDocumentSlideIndex}-${activeDriveDocumentSlide.drivePdfPreviewUrl}`}
+                            src={activeDriveDocumentSlide.drivePdfPreviewUrl}
+                            title={activeDriveDocumentSlide.title ?? `${activePopupStation.title} - Infografia`}
+                            className="hud-glass-modal__iframe hud-glass-modal__iframe--document"
+                            allow="autoplay; fullscreen"
+                            allowFullScreen
+                          />
+                        </div>
+
+                        {hasMultipleDriveDocumentSlides && (
+                          <>
+                            <button
+                              type="button"
+                              className="hud-glass-modal__drive-slider-button hud-glass-modal__drive-slider-button--prev"
+                              onClick={handlePreviousDriveDocumentSlide}
+                              aria-label="Documento anterior"
+                            >
+                              ‹
+                            </button>
+                            <button
+                              type="button"
+                              className="hud-glass-modal__drive-slider-button hud-glass-modal__drive-slider-button--next"
+                              onClick={handleNextDriveDocumentSlide}
+                              aria-label="Documento siguiente"
+                            >
+                              ›
+                            </button>
+                            <span className="hud-glass-modal__drive-slider-counter">
+                              {activeDriveDocumentSlideIndex + 1} / {driveDocumentSlides.length}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="hud-glass-modal__podcast-compact hud-glass-modal__podcast-compact--mini">
+                      <p className="hud-glass-modal__podcast-title">
+                        {activePopupStation.audioTitle ?? 'Podcast'}
+                      </p>
+
+                      {activePopupStation.driveAudioUrl ? (
+                        <audio
+                          controls
+                          preload="metadata"
+                          src={activePopupStation.driveAudioUrl}
+                          className="hud-glass-modal__podcast-audio"
+                        >
+                          Tu navegador no soporta el reproductor de audio.
+                        </audio>
+                      ) : (
+                        <iframe
+                          src={activePopupStation.driveAudioPreviewUrl ?? ROADMAP_DEFAULT_PODCAST_DRIVE_PREVIEW_URL}
+                          title={`Podcast - ${activePopupStation.title}`}
+                          className="hud-glass-modal__podcast-iframe"
+                          allow="autoplay"
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* LEGACY: PDF local paginado mantenido como fallback temporal fuera del roadmap Drive. */}
                 {activePopupStation.type === 'pdf' && activePopupStation.pdfPages && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-[9px] font-mono text-zinc-400 uppercase pb-1.5 border-b border-white/5">
@@ -1375,6 +1746,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                   </div>
                 )}
 
+                {/* LEGACY: infografía local mantenida como fallback temporal fuera del roadmap Drive. */}
                 {activePopupStation.type === 'infografia' && activePopupStation.infogData && (
                   <div className="space-y-2.5">
                     {activePopupStation.infogData.map((info, i) => (
@@ -1390,6 +1762,4 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
         )}
       </HudGlassModal>
 
-    </div>
-  );
-};
+  

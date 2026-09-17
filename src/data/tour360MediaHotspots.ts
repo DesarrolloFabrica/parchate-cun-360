@@ -80,12 +80,12 @@ export const tour360MediaHotspots = {
       // Aumentar pitch sube el elemento.
       // Disminuir pitch baja el elemento.
       position: {
-        yaw: 2.50,
+        yaw: 0,
         pitch: -0.15,
       },
       size: {
-        width: 360,
-        height: 210,
+        width: 240,
+        height: 140,
       },
     },
   ],

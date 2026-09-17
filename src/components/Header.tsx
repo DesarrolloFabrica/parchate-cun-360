@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Globe, Compass, GraduationCap, ArrowLeft, HeartHandshake } from 'lucide-react';
+import { Sparkles, Globe, Compass, GraduationCap, ArrowLeft } from 'lucide-react';
 import type { AppRoute } from '../navigation';
 
 interface HeaderProps {
@@ -31,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRoute, setRoute }) => {
         </div>
 
         {/* Center: píldora de modalidad — borde sutil, neón como acento */}
-        {currentRoute !== 'home' && (
+        {currentRoute !== 'home' && currentRoute !== 'sedes' && (
           <div className="hidden md:flex items-center py-1.5 px-4 rounded-full bg-surface-raised/80 border border-border-subtle text-xs">
             <span className="text-text-muted mr-2 uppercase tracking-wider">Modo:</span>
             {currentRoute === 'virtual' ? (
@@ -53,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRoute, setRoute }) => {
           </div>
         )}
 
-        {/* Right Side: Back/Home Controls + Help Support */}
+        {/* Right Side: Back/Home Controls */}
         <div className="flex items-center space-x-3 text-white">
           {currentRoute !== 'home' ? (
             <button
@@ -64,16 +64,6 @@ export const Header: React.FC<HeaderProps> = ({ currentRoute, setRoute }) => {
               Inicio
             </button>
           ) : null}
-
-          {/* Contact help lineart badge 
-          <div className="relative group p-2 text-white hover:text-brand-green-neon rounded-xl border border-brand-green-main/30 hover:border-brand-green-neon hover:shadow-[0_0_10px_rgba(155,255,0,0.3)] transition-all bg-brand-green-dark/50 cursor-pointer">
-            <HeartHandshake className="w-5 h-5 pointer-events-none" strokeWidth={1.8} />
-            <span className="absolute right-0 top-12 w-48 p-3 text-[10px] font-mono leading-relaxed text-brand-blue-dark bg-white border-2 border-brand-green-neon rounded-xl shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-200 text-center font-bold">
-              ¿DUDAS O PREGUNTAS? <br/>
-              <span className="text-brand-green-main">Contáctanos con Bienestar CUN para guiarte de inmediato.</span>
-            </span>
-          </div>
-          */}
         </div>
 
       </div>

@@ -1,0 +1,40 @@
+.colombia-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+.colombia-map-svg .colombia-dept-path {
+  fill: rgba(11, 61, 46, 0.74);
+  stroke: rgba(155, 255, 0, 0.34);
+  stroke-width: 1;
+  transition:
+    fill 180ms ease,
+    stroke 180ms ease;
+  cursor: default;
+}
+
+.colombia-map-svg .colombia-dept-path:hover {
+  fill: rgba(53, 184, 74, 0.42);
+  stroke: rgba(155, 255, 0, 0.58);
+}
+
+.colombia-map-svg .colombia-sede-pin-label {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  fill: #ffffff;
+  pointer-events: none;
+  user-select: none;
+  paint-order: stroke fill;
+  stroke: rgba(11, 61, 46, 0.9);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+}
+
+@media (min-width: 1024px) {
+  .colombia-map-svg .colombia-sede-pin-label {
+    font-size: 13px;
+  }
+}
