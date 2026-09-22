@@ -148,12 +148,10 @@ export function getCityMapStatus(cityId: CityId): MapCityPin['status'] {
 
 /**
  * Ciudades ocultas en el mapa de Colombia (pins).
- * Para reactivar Ibagué: quitar 'ibague' de este arreglo.
  */
 export const HIDDEN_MAP_CITY_IDS: readonly CityId[] = [
   'barranquilla',
   'medellin',
-  'ibague', // pendiente de activar más adelante
 ];
 
 export function getMapCityPins(): MapCityPin[] {

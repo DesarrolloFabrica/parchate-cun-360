@@ -257,6 +257,19 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
     currentNode?.id ??
     'Ruta sede A';
 
+  const getMarkersForNode = (nodeId: string) => {
+    const nodeMarkers = safeNodes.find((node) => node.id === nodeId)?.markers ?? [];
+    const mediaMarkers = tour360MediaMarkersByNode[nodeId] ?? [];
+    const markersById = new Map<string, any>();
+
+    for (const marker of [...nodeMarkers, ...mediaMarkers]) {
+      const markerId = typeof marker?.id === 'string' ? marker.id : JSON.stringify(marker);
+      markersById.set(markerId, marker);
+    }
+
+    return Array.from(markersById.values());
+  };
+
   useEffect(() => {
     if (!activeVideo) return;
 
@@ -340,7 +353,9 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
                   arrowStyle: {
                     element: createTourArrowElement,
                     className: 'tour-hotspot-link',
-                    size: { width: 180, height: 150 },
+                    // Hitbox compacta: solo el círculo/chevron (~64px). El label
+                    // se dibuja fuera con overflow visible + pointer-events:none.
+                    size: { width: 64, height: 64 },
                   },
                 }
               : {}),
@@ -404,7 +419,7 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
             setCurrentNodeId(nextNodeId);
             if (ENABLE_MEDIA_MARKERS) {
               const markersPlugin = viewer?.getPlugin(MarkersPlugin) as any;
-              markersPlugin?.setMarkers?.(tour360MediaMarkersByNode[nextNodeId] ?? []);
+              markersPlugin?.setMarkers?.(getMarkersForNode(nextNodeId));
             }
           }
 
@@ -417,7 +432,7 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         if (ENABLE_MEDIA_MARKERS) {
           const markersPlugin = viewer.getPlugin(MarkersPlugin) as any;
           markersPluginForCleanup = markersPlugin;
-          markersPlugin?.setMarkers?.(tour360MediaMarkersByNode[safeStartNode.id] ?? []);
+          markersPlugin?.setMarkers?.(getMarkersForNode(safeStartNode.id));
         }
 
         currentNodeFallbackId = window.setTimeout(() => {

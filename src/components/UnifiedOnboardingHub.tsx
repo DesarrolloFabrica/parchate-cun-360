@@ -136,69 +136,59 @@ const AnimatedEarthIcon: React.FC<{ className?: string }> = ({ className }) => {
 // Para videos de Google Drive usar formato:
 // https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
 // El archivo debe estar compartido como "Cualquier persona con el enlace puede ver".
-const CUN360_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
+const CUN360_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1EUFET7nY21WuybYa6INnEPw-7ja1ul8h/preview';
 
 // Para imágenes de Google Drive:
 // usar formato https://drive.google.com/uc?export=view&id=ID_DEL_ARCHIVO
 // y verificar que el archivo esté compartido como "Cualquier persona con el enlace puede ver".
-const CUN360_POINT_2_DRIVE_IMAGE_URL = `https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview`;
-const CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL = `https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview`;
+const CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL = `https://drive.google.com/file/d/1bTR8vK7o4YmvzoisVmRoVUyB2DIf58nc/preview`;
 
 // Para PDFs de Google Drive:
 // El archivo debe estar compartido como "Cualquier persona con el enlace puede ver".
 // Usar formato:
 // https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
-const CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview';
+const CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1mz1UtwJ_3QrWdbDaHC8xMfRtLDB2zT3-/preview';
+const CUN360_POINT_3_DRIVE_AUDIO_PREVIEW_URL = 'https://drive.google.com/file/d/1BMHCxc-1NNr3qPwj3rSSPB5HQ3vFQh5q/preview';
 
-// Estacion 4 CUN 360: PDF de infografia + audio podcast.
+// Estacion 3 CUN 360: PDF de infografia + audio podcast.
 // PDF Drive preview: https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
 // Audio MP3 directo: https://drive.google.com/uc?export=download&id=ID_DEL_ARCHIVO
 // Ambos archivos deben estar compartidos como "Cualquier persona con el enlace puede ver".
 // TODO Fase podcast: reemplazar por URL directa reproducible MP3 si se requiere <audio>.
-const CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL = `https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview`;
-const CUN360_POINT_4_DRIVE_AUDIO_URL = '';
-const CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL = `https://drive.google.com/file/d/1kDvrxavTQ2EvZ-lKpGB49D6V_w_cQQjX/preview`;
+const CUN360_POINT_3_DRIVE_AUDIO_URL = '';
 // TEMP: podcast fallback reutilizado para estaciones drive-pdf hasta tener audios propios.
-const ROADMAP_DEFAULT_PODCAST_DRIVE_PREVIEW_URL = CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL;
+const ROADMAP_DEFAULT_PODCAST_DRIVE_PREVIEW_URL = CUN360_POINT_3_DRIVE_AUDIO_PREVIEW_URL;
 
-// TODO CUN360 estación 5: reemplazar por el ID real del PDF cuando esté disponible.
-const CUN360_POINT_5_DRIVE_PDF_PREVIEW_URL = `https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview`;
+const CUN360_POINT_4_DRIVE_IMAGE_PREVIEW_URL = `https://drive.google.com/file/d/1WlYluPRG40Hp6fsOtHaLulnOMde1Vg90/preview`;
+const CUN360_POINT_5_DRIVE_VIDEO_PREVIEW_URL = `https://drive.google.com/file/d/1_1z1ynY7f4xtqDaEOCyp0r1xBLGBWdT4/preview`;
 
 // TODO Fase 5: reemplazar placeholders por URLs preview reales de Google Drive.
-const CUN360_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview';
-const CUN360_POINT_7_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
-const CUN360_POINT_8_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview';
-const CUN360_POINT_9_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1UdH_BVpKr3NHOrV-BiYuCSLkkxaL2G4n/preview';
+const CUN360_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1pVFecnap-AH7hbmysdjC8nms8HxV1E-F/preview';
+const CDIGITAL_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1NSMa6aPK83ehUNre-GT7mT-LmAPwdrug/preview';
+const CDIGITAL_POINT_2_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1bnLQwHzPuRQDh0QRebRy6A-gFKTBzYEl/preview';
+const CDIGITAL_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1PBTHR789-kUjbziheDOwJK9irDvL1Ixy/preview';
+const CDIGITAL_POINT_4_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1DGNCC3njK5Jv94ViOHZ1Te_xi5fP0ARn/preview';
+const CDIGITAL_POINT_5_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1unwpiz3NOOAwn1eUJUzf9sBcm3bnVjCn/preview';
+const CDIGITAL_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1pVFecnap-AH7hbmysdjC8nms8HxV1E-F/preview';
+const CDIGITAL_POINT_7_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/14Eg-aT8pCKfJ9NEUA5cTXb_SAPZpaarF/preview';
+const CAMI_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1zwro4i_jGeY-q9vhHMcRGLeuPDnYvTzb/preview';
+const CAMI_POINT_2_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1-9Z0HdUBGGKGgl9gHUtZZmZB5WXItsG7/preview';
+const CAMI_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1X8VVKYzHUAlpEmZKqT77eCMd8xywbzSn/preview';
+const CAMI_POINT_4_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1pwuSzCLdmUXqNqAbb63bhRwFtgbNHfQX/preview';
+const CAMI_POINT_5_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1C4XC3zTRuI-y8OQ-qWrvdhuzhhiGBcPO/preview';
+const CAMI_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1UldMoFN2WPKkCEBeD3WMpkmSIiRQkTf9/preview';
 
-const CDIGITAL_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
-const CDIGITAL_POINT_2_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CDIGITAL_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CDIGITAL_POINT_4_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
-const CDIGITAL_POINT_5_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CDIGITAL_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CDIGITAL_POINT_7_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jwATNThvKeZ7fWw3-GIATNxFfcfbKNC4/preview';
-const CDIGITAL_POINT_8_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CDIGITAL_POINT_9_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-
-const CAMI_POINT_1_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CAMI_POINT_2_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CAMI_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CAMI_POINT_4_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CAMI_POINT_5_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CAMI_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CAMI_POINT_7_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CAMI_POINT_8_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const CAMI_POINT_9_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-
-const PARCHE_POINT_1_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const PARCHE_POINT_2_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const PARCHE_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const PARCHE_POINT_4_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const PARCHE_POINT_5_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const PARCHE_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const PARCHE_POINT_7_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const PARCHE_POINT_8_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
-const PARCHE_POINT_9_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1qobkTLvZOJdA-38zXGcJeoBJ2vtK-jgU/preview';
+const PARCHE_POINT_1_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1fB8GR-HHuSESu_CLOpRp_lWE3XfpRkU-/preview';
+const PARCHE_POINT_2_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1JpkucJ6pW2Z5i1aXTpZStprg6k4nvySu/preview';
+const PARCHE_POINT_3_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/14aFszFMefV7viEKBV-0oK2uGxGh2o5Jd/preview';
+const PARCHE_POINT_3_DRIVE_AUDIO_URL = '';
+const PARCHE_POINT_3_DRIVE_AUDIO_PREVIEW_URL = 'https://drive.google.com/file/d/102meBF98jMBNCiRpM__9QKygEC_NTgVO/preview';
+const PARCHE_POINT_4_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1lsgL_ryBaVYa_Kk03XzVyETUNjEPJ0OC/preview';
+const PARCHE_POINT_5_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1-HdT-Hr-9U8sJ_roBtn8-BUJ2PfKngfl/preview';
+const PARCHE_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1QwLCyNyXaCcv4I5qHqFE8FhGEygzFR8m/preview';
+const PARCHE_POINT_7_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/14Nw_B4WaR9FJXwYulYw6Q4Hxy-DU42Es/preview';
+const PARCHE_POINT_8_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1tW00TlhyfVcDu9dICwYHChSA-2IVxODO/preview';
+const PARCHE_POINT_9_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/16PDjWL96RloQkfoCGMFWy1H5cWV3LFJr/preview';
 
 export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -293,7 +283,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       return;
     }
 
-    setTourMapMessage('Esta ciudad estará disponible próximamente. Por ahora puedes explorar Bogotá, Sincelejo, Montería, Santa Marta o Neiva.');
+    setTourMapMessage('Esta ciudad estará disponible próximamente. Por ahora puedes explorar Bogotá, Sincelejo, Montería, Santa Marta, Neiva o Ibagué.');
   };
 
   const handleReturnToColombiaMap = () => {
@@ -321,20 +311,9 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
       driveImageSlides: [
         {
-          title: 'Infografía 1',
+          title: 'Infografía',
           driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
-          alt: 'Infografía CUN360 estación 2 - slide 1',
-        },
-        // TEMP: segunda slide duplicada solo para validar navegación del slider
-        {
-          title: 'Infografía 2 - prueba slider',
-          driveImagePreviewUrl: CDIGITAL_POINT_2_DRIVE_PDF_PREVIEW_URL,
-          alt: 'Infografía CUN360 estación 2 - slide 2',
-        },
-        {
-          title: 'Infografía 3',
-          driveImagePreviewUrl: "https://drive.google.com/file/d/1tDYCktfxaHpMpKBY1zEvwakEB794m3_F/preview",
-          alt: 'Infografía CUN360 estación 2 - slide 3',
+          alt: 'Infografía CUN360 estación 2',
         },
       ],
       hideContentTitle: false,
@@ -344,31 +323,26 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     {
       id: 'c360-3', number: 3,
       title: 'Ágora CUNlista / Coworking', subtitle: 'PDF de Áreas Comunes',
-      description: 'PDF externo de Google Drive para visualizar el contenido del punto 3.',
-      type: 'drive-pdf',
+      description: 'Infografía embebida desde Google Drive con podcast de apoyo para visualizar el contenido del punto 3.',
+      type: 'drive-pdf-audio',
       drivePdfPreviewUrl: CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL,
+      driveDocumentSlides: [
+        {
+          title: 'Infografía',
+          drivePdfPreviewUrl: CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL,
+        },
+      ],
+      driveAudioUrl: CUN360_POINT_3_DRIVE_AUDIO_URL,
+      driveAudioPreviewUrl: CUN360_POINT_3_DRIVE_AUDIO_PREVIEW_URL,
+      audioTitle: 'Podcast',
       accentColor: '#FF9500', coordinateX: 30, coordinateY: 65
     },
     {
       id: 'c360-4', number: 4,
       title: 'Gimnasio y Zonas Lúdicas (Sede H)', subtitle: 'Infografía PDF + Podcast',
-      description: 'Infografía embebida desde Google Drive con podcast MP3 de apoyo para conocer los beneficios físicos y espacios de bienestar.',
-      type: 'drive-pdf-audio',
-      drivePdfPreviewUrl: CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL,
-      driveDocumentSlides: [
-        {
-          title: 'Infografía 1',
-          drivePdfPreviewUrl: CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL,
-        },
-        // TEMP: segunda slide duplicada solo para validar navegación del slider de documentos
-        {
-          title: 'Infografía 2 - prueba slider',
-          drivePdfPreviewUrl: CUN360_POINT_4_DRIVE_PDF_PREVIEW_URL,
-        },
-      ],
-      driveAudioUrl: CUN360_POINT_4_DRIVE_AUDIO_URL,
-      driveAudioPreviewUrl: CUN360_POINT_4_DRIVE_AUDIO_PREVIEW_URL,
-      audioTitle: 'Podcast',
+      description: 'Infografía embebida desde Google Drive para conocer los beneficios físicos y espacios de bienestar.',
+      type: 'drive-image',
+      driveImagePreviewUrl: CUN360_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#FF2D55', extraTip: 'Inscríbete gratis los primeros 10 días hábiles del semestre.',
       coordinateX: 42, coordinateY: 55
     },
@@ -376,8 +350,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'c360-5', number: 5,
       title: 'Oficina Registro y Control', subtitle: 'Manual PDF Académico',
       description: 'Pautas oficiales para homologación de materias, certificados de estudio y reingresos.',
-      type: 'drive-pdf',
-      drivePdfPreviewUrl: CUN360_POINT_5_DRIVE_PDF_PREVIEW_URL,
+      type: 'drive-video',
+      driveVideoPreviewUrl: CUN360_POINT_5_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#5856D6', extraTip: 'Evita perder materias por fallas, tu asistencia cuenta en la nota virtual.',
       coordinateX: 54, coordinateY: 40
     },
@@ -388,31 +362,6 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       type: 'drive-image',
       driveImagePreviewUrl: CUN360_POINT_6_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#007AFF', coordinateX: 66, coordinateY: 25
-    },
-    {
-      id: 'c360-7', number: 7,
-      title: 'Bienestar y Apoyo Psicológico', subtitle: 'Video Salud Estudiantil',
-      description: 'Línea de acompañamiento psicológico privado, talleres de manejo del estrés académico y tutorías emocionales.',
-      type: 'drive-video', driveVideoPreviewUrl: CUN360_POINT_7_DRIVE_VIDEO_PREVIEW_URL,
-      accentColor: '#AF52DE', extraTip: 'Servicio 100% gratuito y confidencial para todo el Parche CUN.',
-      coordinateX: 70, coordinateY: 60
-    },
-    {
-      id: 'c360-8', number: 8,
-      title: 'Fondo de Emprendimiento CUNbre', subtitle: 'Resumen PDF Convocatorias',
-      description: 'Capital semilla e incubación de proyectos de negocio creados por estudiantes nuevos.',
-      type: 'drive-pdf',
-      drivePdfPreviewUrl: CUN360_POINT_8_DRIVE_PDF_PREVIEW_URL,
-      accentColor: '#FFCC00', extraTip: 'Presenta tu idea estrella en la feria de fin de cuatrimestre.',
-      coordinateX: 82, coordinateY: 45
-    },
-    {
-      id: 'c360-9', number: 9,
-      title: 'Ubicación y Vida Bogotá Colectiva', subtitle: 'Infografía de Rutas de Bogotá',
-      description: 'Estaciones de Transmilenio recomendadas, parqueaderos seguros para ciclistas en la Sede Central.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CUN360_POINT_9_DRIVE_IMAGE_PREVIEW_URL,
-      accentColor: '#00E5FF', coordinateX: 95, coordinateY: 70
     }
   ];
 
@@ -430,8 +379,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-2', number: 2,
       title: 'Metodología Simplificada del ACA', subtitle: 'Manual PDF para Estudiantes',
       description: 'Entiende cómo la Actividad de Construcción Aplicada reparte tu nota en tres fases para validar tus competencias.',
-      type: 'drive-pdf',
-      drivePdfPreviewUrl: CDIGITAL_POINT_2_DRIVE_PDF_PREVIEW_URL,
+      type: 'drive-image',
+      driveImagePreviewUrl: CDIGITAL_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#35B84A', extraTip: 'Comienza a desarrollarlo desde la primera semana para resolver dudas con tutores.',
       coordinateX: 20, coordinateY: 60
     },
@@ -447,7 +396,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-4', number: 4,
       title: 'Soporte con Cami y Canal Ticket', subtitle: 'Video de Trámites Rápidos',
       description: 'Conoce cómo levantar un ticket para solucionar problemas de inscripción o cambio de clave rápidamente.',
-      type: 'drive-video', driveVideoPreviewUrl: CDIGITAL_POINT_4_DRIVE_VIDEO_PREVIEW_URL,
+      type: 'drive-image', driveImagePreviewUrl: CDIGITAL_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#FF2D55', extraTip: 'Usa el agente de IA para solucionar dudas en 5 segundos sin filas.',
       coordinateX: 42, coordinateY: 65
     },
@@ -455,8 +404,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-5', number: 5,
       title: 'Duración e Inducción Modular', subtitle: 'Esquema PDF del Período',
       description: 'Aprende cómo funciona el régimen dividiendo las materias en bloques semanales de alta concentración académica.',
-      type: 'drive-pdf',
-      drivePdfPreviewUrl: CDIGITAL_POINT_5_DRIVE_PDF_PREVIEW_URL,
+      type: 'drive-video',
+      driveVideoPreviewUrl: CDIGITAL_POINT_5_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#5856D6', extraTip: 'Dedica por lo menos 1 hora diaria a revisar el foro de anuncios corporativo.',
       coordinateX: 54, coordinateY: 45
     },
@@ -472,26 +421,9 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cdig-7', number: 7,
       title: 'Framework de Aprendizaje Remoto', subtitle: 'Video Tips de Alto Impacto',
       description: 'Metodologías de hábitos ágiles probadas por estudiantes virtuales de alto rendimiento en Colombia.',
-      type: 'drive-video', driveVideoPreviewUrl: CDIGITAL_POINT_7_DRIVE_VIDEO_PREVIEW_URL,
+      type: 'drive-image', driveImagePreviewUrl: CDIGITAL_POINT_7_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#AF52DE', extraTip: 'Crea un espacio físico libre de distracciones en casa para estudiar.',
       coordinateX: 76, coordinateY: 40
-    },
-    {
-      id: 'cdig-8', number: 8,
-      title: 'Estándares de í‰tica Estudiantil', subtitle: 'Compendio PDF Institucional',
-      description: 'Evita problemas de derechos de autor y aprende normas APA reglamentarias vigentes.',
-      type: 'drive-pdf',
-      drivePdfPreviewUrl: CDIGITAL_POINT_8_DRIVE_PDF_PREVIEW_URL,
-      accentColor: '#FFCC00', extraTip: 'Toda cita bibliográfica debe contener autor, año y enlace persistente.',
-      coordinateX: 86, coordinateY: 65
-    },
-    {
-      id: 'cdig-9', number: 9,
-      title: 'Insignias Cortas de Empleabilidad', subtitle: 'Infografía de Credenciales',
-      description: 'Acreditaciones complementarias que expide la CUN para certificar tus habilidades en plataformas asociadas.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CDIGITAL_POINT_9_DRIVE_IMAGE_PREVIEW_URL,
-      accentColor: '#00E5FF', coordinateX: 95, coordinateY: 35
     }
   ];
 
@@ -501,8 +433,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cami-1', number: 1,
       title: 'Primer contacto con Cami', subtitle: 'Ruta de atención inicial',
       description: 'Contenido pendiente para el punto 1. Aquí se explicará cómo iniciar una conversación efectiva con Cami.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CAMI_POINT_1_DRIVE_IMAGE_PREVIEW_URL,
+      type: 'drive-video',
+      driveVideoPreviewUrl: CAMI_POINT_1_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#9BFF00', extraTip: 'Describe el problema con datos concretos para recibir una mejor orientación.',
       coordinateX: 10, coordinateY: 25
     },
@@ -537,8 +469,8 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'cami-5', number: 5,
       title: 'Pagos y caja', subtitle: 'Soporte financiero',
       description: 'Contenido pendiente para el punto 5. Aquí se documentarán dudas frecuentes sobre pagos, recibos y estado financiero.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CAMI_POINT_5_DRIVE_IMAGE_PREVIEW_URL,
+      type: 'drive-video',
+      driveVideoPreviewUrl: CAMI_POINT_5_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#5856D6', extraTip: 'Verifica que el comprobante tenga fecha, valor y referencia.',
       coordinateX: 54, coordinateY: 35
     },
@@ -550,33 +482,6 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       driveImagePreviewUrl: CAMI_POINT_6_DRIVE_IMAGE_PREVIEW_URL,
       accentColor: '#007AFF', extraTip: 'Incluye captura del error para acelerar el diagnóstico.',
       coordinateX: 66, coordinateY: 60
-    },
-    {
-      id: 'cami-7', number: 7,
-      title: 'Escalamiento', subtitle: 'Casos especiales',
-      description: 'Contenido pendiente para el punto 7. Aquí se explicará cuándo un caso debe pasar a otra dependencia.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CAMI_POINT_7_DRIVE_IMAGE_PREVIEW_URL,
-      accentColor: '#AF52DE', extraTip: 'Evita crear tickets duplicados para el mismo caso.',
-      coordinateX: 76, coordinateY: 40
-    },
-    {
-      id: 'cami-8', number: 8,
-      title: 'Cierre del ticket', subtitle: 'Confirmación de solución',
-      description: 'Contenido pendiente para el punto 8. Espacio para explicar cómo confirmar solución y cerrar solicitudes.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CAMI_POINT_8_DRIVE_IMAGE_PREVIEW_URL,
-      accentColor: '#FFCC00', extraTip: 'Cierra el ciclo cuando tu solicitud haya quedado resuelta.',
-      coordinateX: 86, coordinateY: 65
-    },
-    {
-      id: 'cami-9', number: 9,
-      title: 'Buenas prácticas', subtitle: 'Guía rápida de soporte',
-      description: 'Contenido pendiente para el punto 9. Recomendaciones generales para usar correctamente Soporte Cami.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CAMI_POINT_9_DRIVE_IMAGE_PREVIEW_URL,
-      accentColor: '#00E5FF', extraTip: 'Un buen reporte ayuda a resolver mejor y más rápido.',
-      coordinateX: 95, coordinateY: 35
     }
   ];
 
@@ -604,8 +509,17 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       id: 'parche-3', number: 3,
       title: 'Presentación personal', subtitle: 'Primer contacto social',
       description: 'Contenido pendiente para el punto 3. Guía para presentarte y conectar con otros estudiantes.',
-      type: 'drive-image',
-      driveImagePreviewUrl: PARCHE_POINT_3_DRIVE_IMAGE_PREVIEW_URL,
+      type: 'drive-pdf-audio',
+      drivePdfPreviewUrl: PARCHE_POINT_3_DRIVE_PDF_PREVIEW_URL,
+      driveDocumentSlides: [
+        {
+          title: 'Infografía',
+          drivePdfPreviewUrl: PARCHE_POINT_3_DRIVE_PDF_PREVIEW_URL,
+        },
+      ],
+      driveAudioUrl: PARCHE_POINT_3_DRIVE_AUDIO_URL,
+      driveAudioPreviewUrl: PARCHE_POINT_3_DRIVE_AUDIO_PREVIEW_URL,
+      audioTitle: 'Podcast',
       accentColor: '#FF9500', extraTip: 'Una buena presentación ayuda a crear red desde el primer día.',
       coordinateX: 30, coordinateY: 65
     },
@@ -1761,5 +1675,6 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
           </>
         )}
       </HudGlassModal>
-
-  
+    </div>
+  );
+};

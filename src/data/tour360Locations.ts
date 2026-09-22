@@ -110,6 +110,19 @@ export const tourLocations: Tour360Location[] = [
       buildTourCampus('sede-neiva-a', 'Sede Neiva', 'neiva-sede-a', { x: 43, y: 65 }),
     ],
   },
+  {
+    id: 'ibague',
+    department: 'Tolima',
+    city: 'Ibagué',
+    label: 'Ibagué',
+    marker: {
+      x: 44,
+      y: 57,
+    },
+    campuses: [
+      buildTourCampus('sede-ibague-a', 'Sede Ibagué', 'ibague-sede-a', { x: 44, y: 57 }),
+    ],
+  },
 ];
 
 export { getTour360ConfigById } from './tour360';

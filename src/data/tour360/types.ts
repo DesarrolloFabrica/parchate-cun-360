@@ -12,7 +12,7 @@ export type Tour360ManualPosition =
     };
 
 export type TourHotspotDirection = 'forward' | 'back';
-export type TourHotspotStyleVariant = 'floor-arrow' | 'three-d-arrow';
+export type TourHotspotStyleVariant = 'floor-arrow' | 'three-d-arrow' | 'up-arrow' | 'down-arrow';
 
 export type Tour360Link = {
   nodeId: string;

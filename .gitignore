@@ -61,7 +61,3 @@ tmp/
 temp/
 *.tmp
 *.temp
-# Backups de reescalado local
-*.original.png
-*.original.jpg
-
