@@ -19,16 +19,6 @@ const sincelejoGps = (nodeNumber: number): GpsPosition => [
   0,
 ];
 
-const forwardPosition = (nodeNumber: number): Tour360ManualPosition => ({
-  yaw: `${14 + (nodeNumber % 5) * 8}deg`,
-  pitch: '-18deg',
-});
-
-const backPosition = (nodeNumber: number): Tour360ManualPosition => ({
-  yaw: `${-150 + (nodeNumber % 5) * 7}deg`,
-  pitch: '-16deg',
-});
-
 const getStyleVariant = (nodeNumber: number): 'floor-arrow' | 'three-d-arrow' =>
   nodeNumber <= 4 ? 'floor-arrow' : 'three-d-arrow';
 
@@ -37,6 +27,7 @@ type SincelejoLinkInput = {
   to: number;
   direction: 'forward' | 'back';
   position: Tour360ManualPosition;
+  rotationDeg: number;
 };
 
 const createTourLink = ({
@@ -44,6 +35,7 @@ const createTourLink = ({
   to,
   direction,
   position,
+  rotationDeg,
 }: SincelejoLinkInput): Tour360Link => {
   const targetImage = sincelejoPanoramaPath(to);
   const isForward = direction === 'forward';
@@ -59,7 +51,7 @@ const createTourLink = ({
       visibleText: isForward ? 'Avanzar' : 'Regresar',
       tooltipTitle: isForward ? `Ir al punto ${to}` : `Regresar al punto ${to}`,
       tooltipImage: targetImage,
-      rotationDeg: isForward ? 110 : 220,
+      rotationDeg,
       scale: isForward ? 1 : 0.95,
       direction,
       styleVariant: getStyleVariant(from),
@@ -67,31 +59,14 @@ const createTourLink = ({
   };
 };
 
-const createSincelejoNode = (nodeNumber: number): Tour360Node => {
+const createSincelejoNode = ({
+  nodeNumber,
+  links,
+}: {
+  nodeNumber: number;
+  links: Tour360Link[];
+}): Tour360Node => {
   const panorama = sincelejoPanoramaPath(nodeNumber);
-  const links: Tour360Link[] = [];
-
-  if (nodeNumber > 1) {
-    links.push(
-      createTourLink({
-        from: nodeNumber,
-        to: nodeNumber - 1,
-        direction: 'back',
-        position: backPosition(nodeNumber),
-      }),
-    );
-  }
-
-  if (nodeNumber < SINCELEJO_NODE_COUNT) {
-    links.push(
-      createTourLink({
-        from: nodeNumber,
-        to: nodeNumber + 1,
-        direction: 'forward',
-        position: forwardPosition(nodeNumber),
-      }),
-    );
-  }
 
   return {
     id: String(nodeNumber),
@@ -110,10 +85,130 @@ const createSincelejoNode = (nodeNumber: number): Tour360Node => {
   };
 };
 
-export const sincelejoSedeANodes: Tour360Node[] = Array.from(
-  { length: SINCELEJO_NODE_COUNT },
-  (_, index) => createSincelejoNode(index + 1),
-);
+export const sincelejoSedeANodes: Tour360Node[] = [
+  createSincelejoNode({
+    nodeNumber: 1,
+    links: [
+      createTourLink({
+        from: 1,
+        to: 2,
+        direction: 'forward',
+        position: {
+          yaw: '315.3deg',
+          pitch: '-7.6deg',
+        },
+        rotationDeg: -90,
+      }),
+    ],
+  }),
+  createSincelejoNode({
+    nodeNumber: 2,
+    links: [
+      createTourLink({
+        from: 2,
+        to: 1,
+        direction: 'back',
+        position: { yaw: '-136deg', pitch: '-16deg' },
+        rotationDeg: 0,
+      }),
+      createTourLink({
+        from: 2,
+        to: 3,
+        direction: 'forward',
+        position: { yaw: '30deg', pitch: '-18deg' },
+        rotationDeg: 0,
+      }),
+    ],
+  }),
+  createSincelejoNode({
+    nodeNumber: 3,
+    links: [
+      createTourLink({
+        from: 3,
+        to: 2,
+        direction: 'back',
+        position: { yaw: '-129deg', pitch: '-16deg' },
+        rotationDeg: 0,
+      }),
+      createTourLink({
+        from: 3,
+        to: 4,
+        direction: 'forward',
+        position: { yaw: '38deg', pitch: '-18deg' },
+        rotationDeg: 0,
+      }),
+    ],
+  }),
+  createSincelejoNode({
+    nodeNumber: 4,
+    links: [
+      createTourLink({
+        from: 4,
+        to: 3,
+        direction: 'back',
+        position: { yaw: '-122deg', pitch: '-16deg' },
+        rotationDeg: 0,
+      }),
+      createTourLink({
+        from: 4,
+        to: 5,
+        direction: 'forward',
+        position: { yaw: '46deg', pitch: '-18deg' },
+        rotationDeg: 0,
+      }),
+    ],
+  }),
+  createSincelejoNode({
+    nodeNumber: 5,
+    links: [
+      createTourLink({
+        from: 5,
+        to: 4,
+        direction: 'back',
+        position: { yaw: '-150deg', pitch: '-16deg' },
+        rotationDeg: 0,
+      }),
+      createTourLink({
+        from: 5,
+        to: 6,
+        direction: 'forward',
+        position: { yaw: '14deg', pitch: '-18deg' },
+        rotationDeg: 0,
+      }),
+    ],
+  }),
+  createSincelejoNode({
+    nodeNumber: 6,
+    links: [
+      createTourLink({
+        from: 6,
+        to: 5,
+        direction: 'back',
+        position: { yaw: '-143deg', pitch: '-16deg' },
+        rotationDeg: 0,
+      }),
+      createTourLink({
+        from: 6,
+        to: 7,
+        direction: 'forward',
+        position: { yaw: '22deg', pitch: '-18deg' },
+        rotationDeg: 0,
+      }),
+    ],
+  }),
+  createSincelejoNode({
+    nodeNumber: 7,
+    links: [
+      createTourLink({
+        from: 7,
+        to: 6,
+        direction: 'back',
+        position: { yaw: '-136deg', pitch: '-16deg' },
+        rotationDeg: 0,
+      }),
+    ],
+  }),
+];
 
 export const sincelejoSedeATourConfig: Tour360Config = {
   id: 'sincelejo-sede-a',

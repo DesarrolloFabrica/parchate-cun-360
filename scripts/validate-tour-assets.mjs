@@ -34,7 +34,10 @@ const REQUIRED_PUBLIC_FILES = [
   'public/panoramas/Sede FPH/3-EntradaSf.jpeg',
   'public/panoramas/Sede FPH/4-entrada-sedeSf.png',
   'public/panoramas/Sede FPH/4-patio.png',
+  'public/panoramas/Sede FPH/4-patio2.png',
+  'public/panoramas/Sede FPH/4-patio-3.png',
   'public/panoramas/Sede FPH/5-zonaverde.png',
+  'public/panoramas/Sede FPH/6-Interior.png',
   'public/panoramas/Sede FPH/6-12S.png',
   'public/panoramas/Sede FPH/7-13S.png',
   'public/panoramas/Sede_FPH_optimized/1-InicioSf.jpg',
@@ -42,7 +45,10 @@ const REQUIRED_PUBLIC_FILES = [
   'public/panoramas/Sede_FPH_optimized/3-EntradaSf.jpg',
   'public/panoramas/Sede_FPH_optimized/4-entrada-sedeSf.jpg',
   'public/panoramas/Sede_FPH_optimized/4-patio.jpg',
+  'public/panoramas/Sede_FPH_optimized/4-patio2.jpg',
+  'public/panoramas/Sede_FPH_optimized/4-patio-3.jpg',
   'public/panoramas/Sede_FPH_optimized/5-zonaverde.jpg',
+  'public/panoramas/Sede_FPH_optimized/6-Interior.jpg',
   'public/panoramas/Sede_FPH_optimized/6-12S.jpg',
   'public/panoramas/Sede_FPH_optimized/7-13S.jpg',
   'public/panoramas/Sincelejo/1.png',
@@ -71,6 +77,7 @@ const REQUIRED_PUBLIC_FILES = [
   'public/panoramas/monteria/16.png',
   'public/panoramas/monteria/17.png',
   'public/panoramas/monteria/18.png',
+  'public/panoramas/monteria/19.png',
   'public/panoramas/Santa Marta/1A.png',
   'public/panoramas/Santa Marta/2A.png',
   'public/panoramas/Santa Marta/3A.png',
@@ -149,12 +156,50 @@ function validatePublicAssets() {
   for (const relativePath of REQUIRED_PUBLIC_FILES) {
     const absolutePath = path.join(rootDir, relativePath);
     if (!fs.existsSync(absolutePath)) {
-      errors.push(`Falta asset público requerido: ${relativePath}`);
+      errors.push(`Falta asset publico requerido: ${relativePath}`);
+      continue;
     }
 
+    validateImageAssetIntegrity(absolutePath, relativePath);
   }
 }
 
+function validateImageAssetIntegrity(absolutePath, relativePath) {
+  const stat = fs.statSync(absolutePath);
+
+  if (!stat.isFile()) {
+    errors.push(`Asset requerido no es archivo: ${relativePath}`);
+    return;
+  }
+
+  if (stat.size < 1024) {
+    errors.push(`Asset requerido demasiado pequeno o incompleto: ${relativePath}`);
+    return;
+  }
+
+  const header = Buffer.alloc(12);
+  const fd = fs.openSync(absolutePath, 'r');
+
+  try {
+    fs.readSync(fd, header, 0, header.length, 0);
+  } finally {
+    fs.closeSync(fd);
+  }
+
+  const isPng =
+    header[0] === 0x89 &&
+    header[1] === 0x50 &&
+    header[2] === 0x4e &&
+    header[3] === 0x47;
+  const isJpeg = header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
+  const isWebp =
+    header.toString('ascii', 0, 4) === 'RIFF' &&
+    header.toString('ascii', 8, 12) === 'WEBP';
+
+  if (!isPng && !isJpeg && !isWebp) {
+    errors.push(`Asset requerido no parece una imagen valida: ${relativePath}`);
+  }
+}
 function validateSourcePatterns() {
   const sourceFiles = [
     ...walkFiles(path.join(rootDir, 'src'), ['.ts', '.tsx']),

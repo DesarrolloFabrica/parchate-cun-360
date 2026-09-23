@@ -48,16 +48,6 @@ const gps = (index: number): GpsPosition => [
   0,
 ];
 
-const forwardPosition = (yaw: string, pitch = '-20deg'): Tour360ManualPosition => ({
-  yaw,
-  pitch,
-});
-
-const backPosition = (yaw: string, pitch = '-18deg'): Tour360ManualPosition => ({
-  yaw,
-  pitch,
-});
-
 /** Subir piso: centro-arriba, separado de bajar. */
 const upFloorPosition = (): Tour360ManualPosition => ({
   yaw: '18deg',
@@ -157,12 +147,12 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '1',
         to: '2',
-        position: forwardPosition('12deg'),
+        position: { yaw: '1.6deg', pitch: '-9.8deg' },
         label: 'Avanzar',
-        tooltipTitle: 'Ir a 2',
+        tooltipTitle: 'Ir a Ingreso a la sede',
         direction: 'forward',
         styleVariant: 'floor-arrow',
-        rotationDeg: 110,
+        rotationDeg: -90,
       }),
     ],
   }),
@@ -175,32 +165,41 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '2',
         to: '1',
-        position: backPosition('-150deg'),
+        position: {
+          "yaw": "166.1deg",
+          "pitch": "-18.9deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 1',
+        tooltipTitle: 'Volver a la Entrada',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '2',
         to: '3',
-        position: forwardPosition('-70deg', '-22deg'),
-        label: 'Acceder a 3',
-        tooltipTitle: 'Ir a 3',
+        position: {
+          "yaw": "331.0deg",
+          "pitch": "-6.7deg"
+      },
+        label: 'Interior de Canchas',
+        tooltipTitle: 'Ir a Canchas',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 250,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '2',
         to: '4',
-        position: forwardPosition('70deg', '-22deg'),
-        label: 'Avanzar a 4',
-        tooltipTitle: 'Ir a 4 → 5TC',
+        position: {
+          "yaw": "60.0deg",
+          "pitch": "-14.7deg"
+      },
+        label: 'Avanzar a Telecampus',
+        tooltipTitle: 'Ingreso al telecampus',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -213,22 +212,28 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '3',
         to: '2',
-        position: backPosition('-150deg'),
+        position: {
+          "yaw": "135.0deg",
+          "pitch": "-8.4deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 2',
+        tooltipTitle: 'Volver a Lobby',
         direction: 'back',
         styleVariant: 'floor-arrow',
-        rotationDeg: 220,
+        rotationDeg: -90,
       }),
       createTourLink({
         from: '3',
         to: '6Aud',
-        position: forwardPosition('28deg'),
-        label: 'Avanzar a 6Aud',
+        position: {
+          "yaw": "252.5deg",
+          "pitch": "-9.7deg"
+      },
+        label: 'Avanzar a Canchas',
         tooltipTitle: 'Ir a auditorio',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -241,9 +246,9 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '4',
         to: '2',
-        position: backPosition('-150deg'),
-        label: 'Volver a 2',
-        tooltipTitle: 'Volver a 2',
+        position: { yaw: '-150deg', pitch: '-18deg' },
+        label: 'Volver a Lobby',
+        tooltipTitle: 'Regresar',
         direction: 'back',
         styleVariant: 'floor-arrow',
         rotationDeg: 220,
@@ -251,15 +256,20 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '4',
         to: '5TC',
-        position: forwardPosition('28deg'),
-        label: 'Avanzar a 5TC',
-        tooltipTitle: 'Ir a 5TC',
+        position: {
+          "yaw": "300.1deg",
+          "pitch": "-9.1deg"
+      },
+        label: 'Avanzar a Salon de Juegos',
+        tooltipTitle: 'Ingreso al salon de juegos',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
+
+  //OFICINA TELECAMPUS
   createIbagueNode({
     id: '5TC',
     caption: 'Telecampus oficina',
@@ -269,15 +279,17 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '5TC',
         to: '4',
-        position: backPosition('-145deg'),
+        position: { yaw: '-145deg', pitch: '-18deg' },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 4',
+        tooltipTitle: 'Volver a Telecampus',
         direction: 'back',
         styleVariant: 'three-d-arrow',
         rotationDeg: 220,
       }),
     ],
   }),
+
+  //CANCHAS 1
   createIbagueNode({
     id: '6Aud',
     caption: 'Entrada de Auditorio',
@@ -287,35 +299,45 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '6Aud',
         to: '3',
-        position: backPosition('-150deg'),
-        label: 'Volver a 3',
-        tooltipTitle: 'Volver a 3',
+        position: {
+          "yaw": "227.4deg",
+          "pitch": "-12.3deg"
+      },
+        label: 'Volver',
+        tooltipTitle: 'Volver a Entrada de Canchas',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '6Aud',
         to: '6B',
-        position: forwardPosition('-70deg', '-22deg'),
-        label: 'Ir a 6B',
-        tooltipTitle: 'Ir a 6B',
+        position: {
+          "yaw": "345.4deg",
+          "pitch": "-15.7deg"
+      },
+        label: 'Auditorio',
+        tooltipTitle: 'Ingreso al auditorio',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 250,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '6Aud',
         to: '7',
-        position: forwardPosition('70deg', '-22deg'),
-        label: 'Avanzar a 7',
-        tooltipTitle: 'Ir a 7',
+        position: {
+          "yaw": "111.8deg",
+          "pitch": "-22.6deg"
+      },
+        label: 'Avanzar a Canchas',
+        tooltipTitle: 'Ir a Interior de sede',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
+
   createIbagueNode({
     id: '6B',
     caption: 'Auditorio primer piso',
@@ -325,12 +347,15 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '6B',
         to: '6Aud',
-        position: backPosition('-145deg'),
+        position: {
+    "yaw": "67.1deg",
+    "pitch": "-0.5deg"
+},
         label: 'Regresar',
-        tooltipTitle: 'Volver a auditorio',
+        tooltipTitle: 'Volver a canchas',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -343,32 +368,41 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '7',
         to: '6Aud',
-        position: backPosition('-150deg'),
-        label: 'Volver a 6Aud',
-        tooltipTitle: 'Volver a auditorio',
+        position: {
+          "yaw": "56.5deg",
+          "pitch": "-3.0deg"
+      },
+        label: 'Volver a Canchas 1',
+        tooltipTitle: 'Volver a auditorio - Lobby',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '7',
         to: '7A',
-        position: forwardPosition('70deg', '-22deg'),
-        label: 'Ir a 7A',
-        tooltipTitle: 'Ir a 7A',
+        position: {
+          "yaw": "189.9deg",
+          "pitch": "-14.3deg"
+      },
+        label: 'Sala de Moda',
+        tooltipTitle: 'Ir a la Sala de Alta Moda',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '7',
         to: '11',
-        position: forwardPosition('-80deg', '-22deg'),
-        label: 'Avanzar a 11',
+        position: {
+          "yaw": "264.1deg",
+          "pitch": "-3.6deg"
+      },
+        label: 'Cafeteria',
         tooltipTitle: 'Ir a 11 (izquierda)',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 250,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -381,12 +415,15 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '7A',
         to: '7',
-        position: backPosition('-145deg'),
+        position: {
+          "yaw": "23.4deg",
+          "pitch": "2.7deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 7',
+        tooltipTitle: 'Volver a Canchas',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -399,29 +436,51 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '11',
         to: '7',
-        position: backPosition('-150deg'),
-        label: 'Volver a 7',
-        tooltipTitle: 'Volver a 7',
+        position: {
+          "yaw": "200.6deg",
+          "pitch": "-1.4deg"
+      },
+        label: 'Volver a Mitad de canchas',
+        tooltipTitle: 'Mitad de canchas: Alta moda',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '11',
         to: '9',
-        position: forwardPosition('-80deg', '-22deg'),
-        label: 'Avanzar a 9',
-        tooltipTitle: 'Ruta 9 → 10sis',
+        position: {
+          "yaw": "250.3deg",
+          "pitch": "-9.4deg"
+      },
+        label: 'Cesped sintetico',
+        tooltipTitle: 'Ir a Cesped sintético - Sala de sistemas',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 250,
+        rotationDeg: 0,
+      }),
+      createTourLink({
+        from: '11',
+        to: '10bien',
+        position: {
+          "yaw": "146.4deg",
+          "pitch": "-5.5deg"
+      },
+        label: 'Oficina de bienestar',
+        tooltipTitle: 'Ir a Oficina de bienestar',
+        direction: 'forward',
+        styleVariant: 'three-d-arrow',
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '11',
         to: '12A',
-        position: upFloorPosition(),
-        label: 'Subir piso a 12A',
-        tooltipTitle: 'Subir a 12A',
+        position: {
+          "yaw": "63.0deg",
+          "pitch": "-5.8deg"
+      },
+        label: 'Segundo piso',
+        tooltipTitle: 'Subir a segundo piso',
         direction: 'forward',
         styleVariant: 'up-arrow',
         rotationDeg: 0,
@@ -437,50 +496,61 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '9',
         to: '11',
-        position: backPosition('-150deg'),
-        label: 'Volver a 11',
-        tooltipTitle: 'Volver a 11',
+        position: {
+          "yaw": "282.3deg",
+          "pitch": "-4.7deg"
+      },
+        label: 'Volver a Cafeteria',
+        tooltipTitle: 'Regresar a canchas - Cafeteria - Escaleras Piso 1',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '9',
         to: '10',
-        position: forwardPosition('28deg'),
-        label: 'Avanzar a 10',
-        tooltipTitle: 'Ir a 10',
+        position: {
+          "yaw": "155.7deg",
+          "pitch": "-18.4deg"
+      },
+        label: 'Avanzar a Pasillo Lateral',
+        tooltipTitle: 'Ir a Sala de Sistemas',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
   createIbagueNode({
     id: '10',
-    caption: 'Ingreso a Bienestar',
-    description: 'Ingreso a Bienestar.',
+    caption: 'Pasillo Lateral',
+    description: 'Pasillo Lateral.',
     gpsIndex: 13,
     links: [
       createTourLink({
         from: '10',
         to: '9',
-        position: backPosition('-150deg'),
+        position: {
+          "yaw": "221.4deg",
+          "pitch": "-16.3deg"},
         label: 'Regresar',
-        tooltipTitle: 'Volver a 9',
+        tooltipTitle: 'Volver a Cesped',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '10',
-        to: '10bien',
-        position: forwardPosition('28deg'),
-        label: 'Avanzar a 10bien',
-        tooltipTitle: 'Ir a 10bien',
+        to: '10sis',
+        position: {
+          "yaw": "354.8deg",
+          "pitch": "-10.4deg"
+      },
+        label: 'Sala de sistemas',
+        tooltipTitle: 'Ingreso a sala de sistemas',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -492,23 +562,16 @@ export const ibagueSedeANodes: Tour360Node[] = [
     links: [
       createTourLink({
         from: '10bien',
-        to: '10',
-        position: backPosition('-145deg'),
+        to: '11',
+        position: {
+          "yaw": "198.0deg",
+          "pitch": "2.8deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 10',
+        tooltipTitle: 'Volver a Cafeteria',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
-      }),
-      createTourLink({
-        from: '10bien',
-        to: '10sis',
-        position: forwardPosition('28deg'),
-        label: 'Avanzar a 10sis',
-        tooltipTitle: 'Ir a 10sis',
-        direction: 'forward',
-        styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -520,13 +583,16 @@ export const ibagueSedeANodes: Tour360Node[] = [
     links: [
       createTourLink({
         from: '10sis',
-        to: '10bien',
-        position: backPosition('-145deg'),
+        to: '10',
+        position: {
+          "yaw": "165.3deg",
+          "pitch": "-14.9deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 10bien',
+        tooltipTitle: 'Volver a Pasillo Lateral',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -539,31 +605,40 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '12A',
         to: '11',
-        position: downFloorPosition(),
-        label: 'Bajar a 11',
-        tooltipTitle: 'Volver a 11',
-        direction: 'back',
+        position: {
+          "yaw": "321.0deg",
+          "pitch": "-7.7deg"
+      },
+        label: 'Bajar a Piso 1',
+        tooltipTitle: 'Volver al piso 1 - Cafeteria',
+        direction: 'forward',
         styleVariant: 'down-arrow',
-        rotationDeg: 180,
+        rotationDeg: -180,
       }),
       createTourLink({
         from: '12A',
         to: '12B',
-        position: forwardPosition('-70deg', '-22deg'),
-        label: 'Avanzar a 12B',
-        tooltipTitle: 'Ir a 12B',
+        position: {
+          "yaw": "130.0deg",
+          "pitch": "-1.8deg"
+      },
+        label: 'Emisora',
+        tooltipTitle: 'Avanzar a emisora',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 250,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '12A',
         to: '13A',
-        position: upFloorPosition(),
-        label: 'Subir piso a 13A',
-        tooltipTitle: 'Subir a 13A',
+        position: {
+          "yaw": "221.7deg",
+          "pitch": "4.4deg"
+      },
+        label: 'Avanzar a Pasillo Piso 2',
+        tooltipTitle: 'Avanzar a Sala de Dibujo y Auditorio',
         direction: 'forward',
-        styleVariant: 'up-arrow',
+        styleVariant: 'three-d-arrow',
         rotationDeg: 0,
       }),
     ],
@@ -577,15 +652,16 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '12B',
         to: '12A',
-        position: backPosition('-145deg'),
+        position: { yaw: '-145deg', pitch: '-18deg' },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 12A',
+        tooltipTitle: 'Volver a Piso 2 - Ingreso',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),
+
   createIbagueNode({
     id: '13A',
     caption: 'Piso 2 - Ingreso sala de dibujo y auditorio',
@@ -595,39 +671,48 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '13A',
         to: '12A',
-        position: downFloorPosition(),
-        label: 'Bajar a 12A',
-        tooltipTitle: 'Volver a 12A',
-        direction: 'back',
-        styleVariant: 'down-arrow',
-        rotationDeg: 180,
+        position: {
+          "yaw": "134.6deg",
+          "pitch": "-0.1deg"
+      },
+        label: 'Volver a entrada',
+        tooltipTitle: 'Volver a entrada de piso 2',
+        direction: 'forward',
+        styleVariant: 'three-d-arrow',
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '13A',
         to: '13B',
-        position: forwardPosition('-80deg', '-22deg'),
-        label: 'Avanzar a 13B',
-        tooltipTitle: 'Ir a 13B',
+        position: {
+          "yaw": "205.9deg",
+          "pitch": "-1.5deg"
+      },
+        label: 'Sala de dibujo',
+        tooltipTitle: 'Avanzar a sala de dibujo',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 250,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '13A',
         to: '13C',
-        position: forwardPosition('80deg', '-22deg'),
-        label: 'Avanzar a 13C',
-        tooltipTitle: 'Ir a 13C',
+        position: {
+          "yaw": "244.6deg",
+          "pitch": "-0.0deg"
+      },
+      label: 'Auditorio piso 2',
+      tooltipTitle: 'Avanzar al Auditorio piso 2',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '13A',
         to: '14',
         position: upFloorPosition(),
-        label: 'Subir piso a 14',
-        tooltipTitle: 'Subir a 14',
+        label: 'Subir piso 3',
+        tooltipTitle: 'Subir a Piso 3',
         direction: 'forward',
         styleVariant: 'up-arrow',
         rotationDeg: 0,
@@ -643,7 +728,7 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '13B',
         to: '13A',
-        position: backPosition('-145deg'),
+        position: { yaw: '-145deg', pitch: '-18deg' },
         label: 'Regresar',
         tooltipTitle: 'Volver a 13A',
         direction: 'back',
@@ -661,15 +746,19 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '13C',
         to: '13A',
-        position: backPosition('-145deg'),
+        position: {
+          "yaw": "138.5deg",
+          "pitch": "-1.1deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 13A',
+        tooltipTitle: 'Volver a Piso 2 - Pasillo',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),
+
   createIbagueNode({
     id: '14',
     caption: 'Piso 3',
@@ -680,8 +769,8 @@ export const ibagueSedeANodes: Tour360Node[] = [
         from: '14',
         to: '13A',
         position: downFloorPosition(),
-        label: 'Bajar a 13A',
-        tooltipTitle: 'Volver a 13A',
+        label: 'Bajar a Piso 2',
+        tooltipTitle: 'Volver a Piso 2 - Pasillo',
         direction: 'back',
         styleVariant: 'down-arrow',
         rotationDeg: 180,
@@ -689,50 +778,62 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '14',
         to: '14A',
-        position: forwardPosition('-70deg', '-22deg'),
-        label: 'Avanzar a 14A',
-        tooltipTitle: 'Ir a 14A',
+        position: {
+          "yaw": "84.2deg",
+          "pitch": "-4.6deg"
+      },
+        label: 'Avanzar a Sala de música',
+        tooltipTitle: 'Ir por el pasillo lateral a Sala de música',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 250,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '14',
         to: '15P3',
-        position: forwardPosition('70deg', '-22deg'),
-        label: 'Avanzar a 15P3',
-        tooltipTitle: 'Ir a 15P3',
+        position: {
+          "yaw": "353.2deg",
+          "pitch": "-4.8deg"
+      },
+        label: 'Pasillo izquierdo',
+        tooltipTitle: 'Ir por el pasillo izquierdo a Biblioteca',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
   createIbagueNode({
     id: '14A',
-    caption: 'Ingreso sala de música Piso 3',
+    caption: 'Pasillo derecho',
     description: 'Ingreso a la sala de música Piso 3.',
     gpsIndex: 22,
     links: [
       createTourLink({
         from: '14A',
         to: '14',
-        position: backPosition('-150deg'),
+        position: {
+          "yaw": "282.2deg",
+          "pitch": "1.5deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 14',
+        tooltipTitle: 'Volver a Entrada piso 3',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '14A',
         to: '14B',
-        position: forwardPosition('28deg'),
-        label: 'Avanzar a 14B',
-        tooltipTitle: 'Ir a 14B',
+        position: {
+          "yaw": "208.9deg",
+          "pitch": "-9.0deg"
+      },
+        label: 'Sala de música',
+        tooltipTitle: 'Ir a Sala de música',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -745,12 +846,15 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '14B',
         to: '14A',
-        position: backPosition('-145deg'),
+        position: {
+          "yaw": "162.9deg",
+          "pitch": "-15.8deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 14A',
+        tooltipTitle: 'Volver a Entrada Sala de música',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -763,22 +867,28 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '15P3',
         to: '14',
-        position: backPosition('-150deg'),
+        position: {
+          "yaw": "98.8deg",
+          "pitch": "3.9deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 14',
+        tooltipTitle: 'Volver a entrada piso 3',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '15P3',
         to: '15a',
-        position: forwardPosition('28deg'),
-        label: 'Avanzar a 15a',
-        tooltipTitle: 'Ir a 15a',
+        position: {
+          "yaw": "217.5deg",
+          "pitch": "-3.9deg"
+      },
+        label: 'Biblioteca',
+        tooltipTitle: 'Avanzar a Biblioteca',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -791,12 +901,15 @@ export const ibagueSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '15a',
         to: '15P3',
-        position: backPosition('-145deg'),
+        position: {
+          "yaw": "163.7deg",
+          "pitch": "-13.6deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 15P3',
+        tooltipTitle: 'Volver a pasillo izquierdo',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),

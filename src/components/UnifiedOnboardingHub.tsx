@@ -102,6 +102,37 @@ interface UnifiedOnboardingHubProps {
 
 type Tour360EntryView = 'colombia-map' | 'bogota-sites';
 
+type CalendarSnapshot = {
+  day: number;
+  month: number;
+  year: number;
+  daysInMonth: number;
+  monthLabel: string;
+};
+
+const formatCalendarMonthLabel = (date: Date) => {
+  const label = new Intl.DateTimeFormat('es-CO', {
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+
+  return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
+const getCurrentCalendarSnapshot = (): CalendarSnapshot => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  return {
+    day: now.getDate(),
+    month,
+    year,
+    daysInMonth: new Date(year, month + 1, 0).getDate(),
+    monthLabel: formatCalendarMonthLabel(now),
+  };
+};
+
 const AnimatedEarthIcon: React.FC<{ className?: string }> = ({ className }) => {
   const containerRef = useRef<HTMLSpanElement | null>(null);
 
@@ -214,8 +245,11 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const [activeDriveImageSlideIndex, setActiveDriveImageSlideIndex] = useState(0);
   const [activeDriveDocumentSlideIndex, setActiveDriveDocumentSlideIndex] = useState(0);
 
-  // Active chosen calendar activity day. Starts with the first configured event.
-  const [selectedDay, setSelectedDay] = useState<number>(5);
+  // Active chosen calendar activity day. Starts on the real current date.
+  const [calendarToday, setCalendarToday] = useState<CalendarSnapshot>(() =>
+    getCurrentCalendarSnapshot(),
+  );
+  const [selectedDay, setSelectedDay] = useState<number>(() => getCurrentCalendarSnapshot().day);
 
   // Lock progression alert warning state
   const [stationLockWarning, setStationLockWarning] = useState<{
@@ -261,6 +295,32 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     setActiveDriveImageSlideIndex(0);
     setActiveDriveDocumentSlideIndex(0);
   }, [activePopupStation?.id]);
+
+  useEffect(() => {
+    const syncCalendarDate = () => {
+      setCalendarToday((previous) => {
+        const next = getCurrentCalendarSnapshot();
+        const dateChanged =
+          previous.day !== next.day ||
+          previous.month !== next.month ||
+          previous.year !== next.year;
+
+        if (dateChanged) {
+          setSelectedDay(next.day);
+          return next;
+        }
+
+        return previous;
+      });
+    };
+
+    syncCalendarDate();
+    const intervalId = window.setInterval(syncCalendarDate, 60_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   const handleTourCitySelect = (cityId: string) => {
     setSelectedTourCityId(cityId);
@@ -655,7 +715,12 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     ? filterCompletedStationIdsForVariant(roadmapVariant, completedStations).length
     : 0;
   const selectedDayActivities = calendarActivities.filter(act => act.day === selectedDay);
-  const selectedDateLabel = `Día ${selectedDay} de inducción`;
+  const selectedDate = new Date(calendarToday.year, calendarToday.month, selectedDay);
+  const selectedDateLabel = new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(selectedDate);
   const getCalendarTypeLabel = (type: CalendarActivity['type']) => {
     if (type === 'academic') return 'Académico';
     if (type === 'wellness') return 'Bienestar';
@@ -842,18 +907,47 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     },
   };
   const baseNarrative = moduleNarrative[activeTab];
+
+  const selectedTourLocation =
+    tourLocations.find((location) => location.id === selectedTourCityId) ??
+    (selectedCampus
+      ? tourLocations.find((location) =>
+          location.campuses.some((campus) => campus.id === selectedCampus.id),
+        )
+      : undefined);
+
+  const tourNarrativeTitle = selectedCampus
+    ? selectedTourLocation
+      ? `${selectedCampus.title} — ${
+          selectedTourLocation.id === 'bogota'
+            ? selectedTourLocation.city
+            : selectedTourLocation.department
+        }`
+      : selectedCampus.title
+    : selectedTourLocation && tourEntryView !== 'colombia-map'
+      ? `Sedes ${selectedTourLocation.city}`
+      : 'Explora tu sede CUN';
+
+  const tourNarrativeDescription = selectedCampus
+    ? `Recorre los espacios de ${selectedCampus.title}, descubre servicios y familiarízate con tu campus antes de llegar.`
+    : selectedTourLocation && tourEntryView !== 'colombia-map'
+      ? `Elige una sede de ${selectedTourLocation.city} para iniciar el recorrido 360.`
+      : 'Selecciona tu ciudad en el mapa y recorre los espacios de tu sede antes de llegar.';
+
   const activeNarrative =
     activeTab === 'recorrido360'
       ? {
           ...baseNarrative,
           chapter: activeSede.narrative.chapter ?? baseNarrative.chapter,
           mission: activeSede.narrative.mission ?? baseNarrative.mission,
-          title: activeSede.narrative.title,
-          description: activeSede.narrative.description,
+          title: tourNarrativeTitle,
+          description: tourNarrativeDescription,
           nextStep: activeSede.narrative.nextStep ?? baseNarrative.nextStep,
           reward: activeSede.narrative.reward ?? baseNarrative.reward,
           ctaLabel: activeSede.narrative.ctaLabel ?? baseNarrative.ctaLabel,
-          guide: activeSede.narrative.guide,
+          guide: selectedCampus
+            ? `Estás explorando ${selectedCampus.title}. Avanza con las flechas para conocer cada espacio.`
+            : baseNarrative.guide,
         }
       : baseNarrative;
 
@@ -1086,11 +1180,13 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                       </div>
                     </div>
 
-                    <VirtualTour360
-                      key={selectedCampus.id}
-                      tourConfig={activeTourConfig}
-                      selectedCampus={selectedCampus}
-                    />
+                    <div className="tour-viewer-scaled">
+                      <VirtualTour360
+                        key={selectedCampus.id}
+                        tourConfig={activeTourConfig}
+                        selectedCampus={selectedCampus}
+                      />
+                    </div>
 
                     <div className="pointer-events-none absolute left-3 bottom-14 z-30 hidden max-w-[15rem] items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-sm md:flex">
                       <AnimatedEarthIcon className="h-6 w-6 shrink-0" />
@@ -1154,7 +1250,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
               <div className="flex flex-col gap-2 border-b border-border-subtle pb-4 text-left sm:flex-row sm:items-end sm:justify-between shrink-0 select-none">
                 <div className="flex flex-col gap-1">
                   <span className="section-eyebrow">Cronograma de inducción</span>
-                  <h2 className="section-title text-2xl sm:text-3xl m-0">Junio 2026</h2>
+                  <h2 className="section-title text-2xl sm:text-3xl m-0">{calendarToday.monthLabel}</h2>
                   <p className="section-description text-sm m-0">
                     Consulta las fechas clave de tu proceso de inducción.
                   </p>
@@ -1175,7 +1271,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                   </div>
 
                   <div className="grid flex-1 grid-cols-7 gap-1.5 pt-1 sm:gap-2">
-                    {Array.from({ length: 30 }, (_, index) => {
+                    {Array.from({ length: calendarToday.daysInMonth }, (_, index) => {
                       const dayNumber = index + 1;
                       const hasActivity = calendarActivities.some(act => act.day === dayNumber);
                       const isSelected = selectedDay === dayNumber;

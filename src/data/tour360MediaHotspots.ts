@@ -157,12 +157,6 @@ export const tour360MediaHotspots = {
       pitch: -0.1,
     }),
   ],
-  SphereTest: [
-    createCun360Hotspot(cun360Resources[5], {
-      yaw: 0,
-      pitch: -0.12,
-    }),
-  ],
 } satisfies Record<string, Tour360MediaHotspot[]>;
 
 const createVideoMarker = (hotspot: Tour360MediaHotspot): MarkerConfig => ({

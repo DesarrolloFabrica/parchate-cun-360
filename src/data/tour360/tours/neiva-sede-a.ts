@@ -40,16 +40,6 @@ const gps = (index: number): GpsPosition => [
   0,
 ];
 
-const forwardPosition = (yaw: string, pitch = '-20deg'): Tour360ManualPosition => ({
-  yaw,
-  pitch,
-});
-
-const backPosition = (yaw: string, pitch = '-18deg'): Tour360ManualPosition => ({
-  yaw,
-  pitch,
-});
-
 export const NEIVA_SEDE_A_START_NODE_ID = '1';
 
 type NeivaLinkInput = {
@@ -139,12 +129,13 @@ export const neivaSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '1',
         to: '2',
-        position: forwardPosition('12deg'),
+        position:
+        {yaw: '2.1deg', pitch: '-19.6deg'},
         label: 'Avanzar',
         tooltipTitle: 'Ir a entrada Telecampus',
         direction: 'forward',
         styleVariant: 'floor-arrow',
-        rotationDeg: 110,
+        rotationDeg: -90,
       }),
     ],
   }),
@@ -157,36 +148,55 @@ export const neivaSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '2',
         to: '1',
-        position: backPosition('-160deg'),
+        position: {
+          yaw: "197.1deg",
+          pitch: "-14.6deg"
+      },
         label: 'Regresar',
         tooltipTitle: 'Volver a fachada',
         direction: 'back',
         styleVariant: 'floor-arrow',
-        rotationDeg: 220,
+        rotationDeg: -90,
       }),
       createTourLink({
         from: '2',
         to: '3',
-        position: forwardPosition('25deg'),
+        position: {
+          yaw: "18.6deg",
+          pitch: "-14.8deg"
+      },
         label: 'Avanzar',
         tooltipTitle: 'Ir a Telecampus',
         direction: 'forward',
         styleVariant: 'floor-arrow',
-        rotationDeg: 110,
+        rotationDeg: -90,
+      }),
+      createTourLink({
+        from: '2',
+        to: '14',
+        position: {
+          "yaw": "71.0deg",
+          "pitch": "-14.3deg"
+      },
+        label: 'Acceder a Bloque A',
+        tooltipTitle: 'Bloque A',
+        direction: 'forward',
+        styleVariant: 'floor-arrow',
+        rotationDeg: -45,
       }),
     ],
   }),
   createNeivaNode({
     id: '3',
     caption: 'Telecampus',
-    description: 'Hub central: puedes avanzar a 4 o acceder a Bloque A, Bloque C o Bloque D.',
+    description: 'Hub central: puedes avanzar a Bienestar o acceder a Bloque C.',
     gpsIndex: 3,
     links: [
       // Anillo ~90° + pitches distintos: menos solape visual y de hitbox.
       createTourLink({
         from: '3',
         to: '2',
-        position: backPosition('-160deg', '-14deg'),
+        position: { yaw: '-160deg', pitch: '-14deg' },
         label: 'Regresar',
         tooltipTitle: 'Volver a entrada',
         direction: 'back',
@@ -195,61 +205,50 @@ export const neivaSedeANodes: Tour360Node[] = [
       }),
       createTourLink({
         from: '3',
-        to: '14',
-        position: forwardPosition('-90deg', '-20deg'),
-        label: 'Acceder a Bloque A',
-        tooltipTitle: 'Bloque A',
-        direction: 'forward',
-        styleVariant: 'three-d-arrow',
-        rotationDeg: 270,
-      }),
-      createTourLink({
-        from: '3',
         to: '4',
-        position: forwardPosition('0deg', '-28deg'),
-        label: 'Avanzar a 4',
-        tooltipTitle: 'Avanzar a 4',
+        position: {
+          "yaw": "310.6deg",
+          "pitch": "-13.0deg"
+      },
+        label: 'Oficina Telecampus',
+        tooltipTitle: 'Telecampus - Oficina Bienestar',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 180,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '3',
         to: '5',
-        position: forwardPosition('90deg', '-20deg'),
+        position: {
+          "yaw": "77.6deg",
+          "pitch": "-15.6deg"
+      },
         label: 'Acceder a Bloque C',
         tooltipTitle: 'Bloque C',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 90,
-      }),
-      createTourLink({
-        from: '3',
-        to: '8',
-        position: forwardPosition('160deg', '-14deg'),
-        label: 'Acceder a Bloque D',
-        tooltipTitle: 'Bloque D',
-        direction: 'forward',
-        styleVariant: 'three-d-arrow',
-        rotationDeg: 20,
+        rotationDeg: 0,
       }),
     ],
   }),
   createNeivaNode({
     id: '4',
-    caption: 'Punto 4',
-    description: 'Estacion 4 del recorrido de Neiva.',
+    caption: 'Telecampus',
+    description: 'Oficina Bienestar.',
     gpsIndex: 4,
     links: [
       createTourLink({
         from: '4',
         to: '3',
-        position: backPosition('-150deg'),
+        position: {
+          "yaw": "357.3deg",
+          "pitch": "-6.4deg"
+      },
         label: 'Volver a Telecampus',
         tooltipTitle: 'Volver a Telecampus',
         direction: 'back',
         styleVariant: 'floor-arrow',
-        rotationDeg: 220,
+        rotationDeg: -90,
       }),
     ],
   }),
@@ -264,68 +263,96 @@ export const neivaSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '5',
         to: '3',
-        position: backPosition('-155deg'),
+        position: {
+          "yaw": "81.4deg",
+          "pitch": "-18.7deg"
+      },
         label: 'Volver a Telecampus',
         tooltipTitle: 'Volver a Telecampus',
         direction: 'back',
         styleVariant: 'floor-arrow',
-        rotationDeg: 220,
+        rotationDeg: -45,
+      }),
+      createTourLink({
+        from: '5',
+        to: '8',
+        position: {
+          "yaw": "210.5deg",
+          "pitch": "-20.2deg"
+      },
+        label: 'Acceder a Bloque D',
+        tooltipTitle: 'Bloque D',
+        direction: 'forward',
+        styleVariant: 'three-d-arrow',
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '5',
         to: '6',
-        position: forwardPosition('30deg'),
-        label: 'Avanzar',
-        tooltipTitle: 'Ir a 6',
+        position: {
+          "yaw": "344.0deg",
+          "pitch": "-25.6deg"
+      },
+        label: 'Biblioteca',
+        tooltipTitle: 'Bloque C - Biblioteca',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
+      }),
+      createTourLink({
+        from: '5',
+        to: '7',
+        position: {
+          "yaw": "287.2deg",
+          "pitch": "-25.6deg"
+      },
+        label: 'Salon de Confeccion',
+        tooltipTitle: 'Salon de Confeccion',
+        direction: 'forward',
+        styleVariant: 'three-d-arrow',
+        rotationDeg: 0,
       }),
     ],
   }),
   createNeivaNode({
     id: '6',
-    caption: 'Bloque C · 6',
-    description: 'Interior Bloque C, punto 6.',
+    caption: 'Bloque C - Biblioteca',
+    description: 'Biblioteca del Bloque C.',
     gpsIndex: 6,
     links: [
       createTourLink({
         from: '6',
         to: '5',
-        position: backPosition('-150deg'),
+        position: {
+          "yaw": "149.8deg",
+          "pitch": "-5.8deg"
+      },
         label: 'Regresar',
         tooltipTitle: 'Volver a Bloque C',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
-      }),
-      createTourLink({
-        from: '6',
-        to: '7',
-        position: forwardPosition('35deg'),
-        label: 'Avanzar',
-        tooltipTitle: 'Ir a 7',
-        direction: 'forward',
-        styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
   createNeivaNode({
     id: '7',
-    caption: 'Bloque C · 7',
-    description: 'Ultima estacion del Bloque C.',
+    caption: 'Salon de Confeccion',
+    description: 'Salon de Confeccion del Bloque C.',
     gpsIndex: 7,
     links: [
       createTourLink({
         from: '7',
-        to: '6',
-        position: backPosition('-145deg'),
+        to: '5',
+        position: {
+          "yaw": "163.6deg",
+          "pitch": "-22.2deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 6',
+        tooltipTitle: 'Volver a Bloque C',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),
@@ -339,150 +366,177 @@ export const neivaSedeANodes: Tour360Node[] = [
     links: [
       createTourLink({
         from: '8',
-        to: '3',
-        position: backPosition('-160deg', '-18deg'),
-        label: 'Volver a Telecampus',
-        tooltipTitle: 'Volver a Telecampus',
+        to: '5',
+        position: {
+          "yaw": "86.3deg",
+          "pitch": "-10.5deg"
+      },
+        label: 'Volver a Bloque C',
+        tooltipTitle: 'Volver a Bloque C',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '8',
         to: '9AG',
-        position: forwardPosition('-70deg', '-22deg'),
-        label: 'Ir a 9AG',
-        tooltipTitle: 'Ruta 9AG → 10D',
+        position: {
+          "yaw": "17.8deg",
+          "pitch": "-20.9deg"
+      },
+        label: 'Salon de Aerografia',
+        tooltipTitle: 'Salon de Aerografia',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 70,
+        rotationDeg: 0,
+      }),
+      createTourLink({
+        from: '8',
+        to: '10D',
+        position: {
+          "yaw": "310.0deg",
+          "pitch": "-21.3deg"
+      },
+        label: 'Sala de sistemas',
+        tooltipTitle: 'Sala de sistemas',
+        direction: 'forward',
+        styleVariant: 'three-d-arrow',
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '8',
         to: '11TV',
-        position: forwardPosition('70deg', '-22deg'),
-        label: 'Ir a 11TV',
-        tooltipTitle: 'Ruta 11TV → 12B',
+        position: {
+          "yaw": "217.6deg",
+          "pitch": "-13.7deg"
+      },
+        label: 'Ir a Estudio de Radio y TV',
+        tooltipTitle: 'Estudio de Radio y TV',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
   createNeivaNode({
     id: '9AG',
-    caption: 'Bloque D · 9AG',
+    caption: 'Salon de Aerografia',
     description: 'Rama 9AG del Bloque D.',
     gpsIndex: 9,
     links: [
       createTourLink({
         from: '9AG',
         to: '8',
-        position: backPosition('-150deg'),
+        position: { yaw: '-150deg', pitch: '-18deg' },
         label: 'Regresar',
         tooltipTitle: 'Volver a Bloque D',
         direction: 'back',
         styleVariant: 'three-d-arrow',
         rotationDeg: 220,
-      }),
-      createTourLink({
-        from: '9AG',
-        to: '10D',
-        position: forwardPosition('30deg'),
-        label: 'Avanzar',
-        tooltipTitle: 'Ir a 10D',
-        direction: 'forward',
-        styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
       }),
     ],
   }),
   createNeivaNode({
     id: '10D',
-    caption: 'Bloque D · 10D',
+    caption: 'Sala de sistemas',
     description: 'Final de la rama 9AG → 10D.',
     gpsIndex: 10,
     links: [
       createTourLink({
         from: '10D',
-        to: '9AG',
-        position: backPosition('-145deg'),
+        to: '8',
+        position: {
+          "yaw": "164.4deg",
+          "pitch": "-26.2deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 9AG',
+        tooltipTitle: 'Volver a Bloque D',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),
   createNeivaNode({
     id: '11TV',
-    caption: 'Bloque D · 11TV',
-    description: 'Rama de television del Bloque D.',
+    caption: 'Estudio de Radio y TV',
+    description: 'Estudio de Radio y TV.',
     gpsIndex: 11,
     links: [
       createTourLink({
         from: '11TV',
         to: '8',
-        position: backPosition('-150deg'),
+        position: {
+          "yaw": "91.6deg",
+          "pitch": "-11.9deg"
+      },
         label: 'Regresar',
         tooltipTitle: 'Volver a Bloque D',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '11TV',
         to: '12A',
-        position: forwardPosition('30deg'),
-        label: 'Avanzar',
-        tooltipTitle: 'Ir a 12A',
+        position: {
+          "yaw": "345.2deg",
+          "pitch": "-4.7deg"
+      },
+        label: 'Estudio Radio',
+        tooltipTitle: 'Ir a Estudio de radio',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
+      }),
+      createTourLink({
+        from: '11TV',
+        to: '12B',
+        position: {
+          "yaw": "245.9deg",
+          "pitch": "-2.5deg"
+      },
+        label: 'Estudio TV',
+        tooltipTitle: 'Ir a Estudio de televisión',
+        direction: 'forward',
+        styleVariant: 'three-d-arrow',
+        rotationDeg: 0,
       }),
     ],
   }),
   createNeivaNode({
     id: '12A',
-    caption: 'Bloque D · 12A',
-    description: 'Continuacion de la rama 11TV.',
+    caption: 'Estudio de radio',
+    description: 'Estudio de radio.',
     gpsIndex: 12,
     links: [
       createTourLink({
         from: '12A',
         to: '11TV',
-        position: backPosition('-145deg'),
+        position: {
+          "yaw": "142.6deg",
+          "pitch": "-29.8deg"
+      },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 11TV',
+        tooltipTitle: 'Volver a Estudio de Radio y TV',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
-      }),
-      createTourLink({
-        from: '12A',
-        to: '12B',
-        position: forwardPosition('35deg'),
-        label: 'Avanzar',
-        tooltipTitle: 'Ir a 12B',
-        direction: 'forward',
-        styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
   createNeivaNode({
     id: '12B',
-    caption: 'Bloque D · 12B',
-    description: 'Final de la rama 11TV → 12B.',
+    caption: 'Estudio de televisión',
+    description: 'Estudio de televisión.',
     gpsIndex: 13,
     links: [
       createTourLink({
         from: '12B',
-        to: '12A',
-        position: backPosition('-140deg'),
+        to: '11TV',
+        position: { yaw: '-140deg', pitch: '-18deg' },
         label: 'Regresar',
-        tooltipTitle: 'Volver a 12A',
+        tooltipTitle: 'Volver a Estudio de radio',
         direction: 'back',
         styleVariant: 'three-d-arrow',
         rotationDeg: 220,
@@ -500,68 +554,83 @@ export const neivaSedeANodes: Tour360Node[] = [
       createTourLink({
         from: '14',
         to: '3',
-        position: backPosition('-155deg'),
+        position: {
+          "yaw": "205.2deg",
+          "pitch": "-16.7deg"
+      },
         label: 'Volver a Telecampus',
         tooltipTitle: 'Volver a Telecampus',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '14',
         to: '15A',
-        position: forwardPosition('30deg'),
-        label: 'Avanzar',
-        tooltipTitle: 'Ir a 15A',
+        position: {
+          "yaw": "11.6deg",
+          "pitch": "-16.6deg"
+      },
+        label: 'Salón',
+        tooltipTitle: 'Ingresar a Salon de clase',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
   createNeivaNode({
     id: '15A',
-    caption: 'Bloque A · 15A',
+    caption: 'Salon de clase',
     description: 'Interior Bloque A, punto 15A.',
     gpsIndex: 15,
     links: [
       createTourLink({
         from: '15A',
         to: '14',
-        position: backPosition('-150deg'),
+        position: {
+          "yaw": "172.1deg",
+          "pitch": "-10.2deg"
+      },
         label: 'Regresar',
         tooltipTitle: 'Volver a Bloque A',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
       createTourLink({
         from: '15A',
         to: '15B',
-        position: forwardPosition('35deg'),
-        label: 'Avanzar',
-        tooltipTitle: 'Ir a 15B',
+        position: {
+          "yaw": "265.1deg",
+          "pitch": "-11.3deg"
+      },
+        label: 'Salon de musica',
+        tooltipTitle: 'Ingresar a Salon de musica',
         direction: 'forward',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 110,
+        rotationDeg: 0,
       }),
     ],
   }),
   createNeivaNode({
     id: '15B',
-    caption: 'Bloque A · 15B',
+    caption: 'Salon de musica',
     description: 'Ultima estacion del Bloque A.',
     gpsIndex: 16,
     links: [
       createTourLink({
         from: '15B',
         to: '15A',
-        position: backPosition('-145deg'),
+        position: {
+          "yaw": "172.4deg",
+          "pitch": "-25.5deg"
+      },
         label: 'Regresar',
         tooltipTitle: 'Volver a 15A',
         direction: 'back',
         styleVariant: 'three-d-arrow',
-        rotationDeg: 220,
+        rotationDeg: 0,
       }),
     ],
   }),

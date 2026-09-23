@@ -1,4 +1,3 @@
-import { tour360MediaMarkersByNode } from '../../tour360MediaHotspots';
 import { resolveLegacyPanoramaUrl, KNOWN_GOOD_PLACEHOLDER_PANORAMA } from '../panoramaUrls';
 import type { GpsPosition, Tour360Config, Tour360Node } from '../types';
 
@@ -10,16 +9,19 @@ const EntradaLobbySA = resolveLegacyPanoramaUrl('Sede_A/LobbySA.png');
 const MarcoInfo = resolveLegacyPanoramaUrl('MARCO.png');
 const GuiaAS = resolveLegacyPanoramaUrl('AS.png');
 const GuiaEntradaSA = resolveLegacyPanoramaUrl('panoramas/iconos/alizon.png');
-const SphereTestImage = resolveLegacyPanoramaUrl('sede_test.png');
 
+// gps de cada nodo: se conserva por compatibilidad de tipos (Tour360Node.gps
+// es obligatorio) y por si en el futuro se usa un mapa/plano, pero ya NO se
+// usa para ubicar las flechas: este tour usa positionMode "manual"
+// (yaw/pitch directos en cada link, ver mas abajo), no "gps". Con gps había
+// que inventar un segundo punto lat/lon solo para fijar el rumbo de cada
+// flecha (rebuscado y dificil de ajustar); con yaw/pitch se edita
+// directamente el angulo en grados de cada flecha en su propio link.
 const calleAGps: GpsPosition = [-75.0819, 4.64802, 0];
 const entradaAGps: GpsPosition = [-74.07184, 4.64802, 0];
 const entradaLobbySAGps: GpsPosition = [-74.0818, 4.648055, 0];
 const descansoSAGps: GpsPosition = [-74.08176, 4.64809, 0];
 const bibliotecaSAGps: GpsPosition = [-74.08171, 4.64813, 0];
-const sphereTestGps: GpsPosition = [-74.08196, 4.64796, 0];
-const entradaLobbyBackArrowGps: GpsPosition = [-74.08168, 4.648, 0];
-const entradaLobbyNextArrowGps: GpsPosition = [-74.08192, 4.64812, 0];
 
 export const BOGOTA_SEDE_1_START_NODE_ID = 'CalleA';
 
@@ -65,7 +67,9 @@ export const bogotaSede1Nodes: Tour360Node[] = [
     links: [
       {
         nodeId: 'Entrada_A',
-        gps: entradaAGps,
+        // yaw/pitch manual: mismo angulo que daba el gps anterior (~90°),
+        // ahora escrito directo en grados en vez de un segundo punto lat/lon.
+        position: { yaw: '90deg', pitch: '0deg' },
         data: {
           id: 'CalleA-to-Entrada_A',
           originSceneId: 'CalleA',
@@ -107,10 +111,27 @@ export const bogotaSede1Nodes: Tour360Node[] = [
         },
       },
     ],
+    // Guia rapida de parametros para las flechas (links) de este nodo:
+    // - data.position: UBICACION de la flecha en la escena, como
+    //   { yaw, pitch } en grados (ej. '90deg'). yaw = izquierda/derecha
+    //   alrededor del panorama (0-360\u00b0), pitch = arriba/abajo (negativo =
+    //   hacia el piso). Cambia estos dos numeros para DESPLAZAR la flecha;
+    //   ya no hace falta inventar un segundo punto gps como antes.
+    // - data.rotationDeg: ROTA el icono de la flecha sobre si mismo (grados),
+    //   sin mover su posicion en la escena. Se aplica como
+    //   `--hotspot-rotation` en createTourArrowElement (VirtualTour360.tsx).
+    // - data.direction / data.styleVariant: ORIENTACION/estilo visual del
+    //   hotspot ('forward'|'back' cambia el look de ida/regreso;
+    //   'floor-arrow'|'three-d-arrow' cambia la plantilla del icono). No
+    //   afectan la posicion, solo la apariencia.
+    // - data.scale: tamano del hotspot.
     links: [
       {
         nodeId: 'EntradaLobbySA',
-        gps: calleAGps,
+        // UBICACION (antes: gps `entradaANextArrowGps`). Mismo yaw que daba
+        // ese punto (~0\u00b0); pitch a -10\u00b0 para que la flecha "floor-arrow"
+        // quede mirando mas hacia el piso.
+        position: { yaw: '0deg', pitch: '-10deg' },
         data: {
           id: 'Entrada_A-to-EntradaLobbySA',
           originSceneId: 'Entrada_A',
@@ -119,15 +140,29 @@ export const bogotaSede1Nodes: Tour360Node[] = [
           visibleText: 'ENTRADA ( da clic aqu\u00ed ).',
           tooltipTitle: 'Lobby de la sede principal',
           tooltipImage: EntradaLobbySA,
-          rotationDeg: 0,
+          // ROTACION del icono (no mueve la flecha, solo la gira).
+          rotationDeg: -90,
           scale: 1,
+          // ORIENTACION/estilo: 'forward' = flecha de avance (ver TOUR_NODE_ORDER
+          // en VirtualTour360.tsx si se omite, para el calculo automatico).
           direction: 'forward',
+          // ORIENTACION/estilo: plantilla visual del icono.
           styleVariant: 'floor-arrow',
         },
       },
       {
         nodeId: 'CalleA',
-        gps: entradaLobbySAGps,
+        // UBICACION (antes: gps `entradaABackArrowGps`). Esta es la flecha
+        // de prueba pedida: mismo yaw que daba ese punto (180\u00b0, opuesto a la
+        // de arriba, asi siguen sin pegarse) pero ahora se ajusta con dos
+        // numeros directos en vez de coordenadas gps inventadas. pitch a
+        // -10\u00b0 por la misma razon que la flecha de arriba (mirar al piso).
+        // Para moverla: sube/baja `yaw` (izquierda/derecha) o `pitch`
+        // (arriba/abajo).
+        position: {
+          "yaw": "81.7deg",
+          "pitch": "-0.7deg"
+      },
         data: {
           id: 'Entrada_A-to-CalleA',
           originSceneId: 'Entrada_A',
@@ -136,9 +171,12 @@ export const bogotaSede1Nodes: Tour360Node[] = [
           visibleText: 'ENTRADA ( da clic aqu\u00ed ).',
           tooltipTitle: 'Volver a la primera calle',
           tooltipImage: CalleA,
-          rotationDeg: 290,
+          // ROTACION del icono (no mueve la flecha, solo la gira).
+          rotationDeg: -90,
           scale: 1,
+          // ORIENTACION/estilo: 'back' = flecha de regreso.
           direction: 'back',
+          // ORIENTACION/estilo: plantilla visual del icono.
           styleVariant: 'floor-arrow',
         },
       },
@@ -154,11 +192,13 @@ export const bogotaSede1Nodes: Tour360Node[] = [
     defaultYaw: '0deg',
     defaultPitch: '0deg',
     gps: entradaLobbySAGps,
-    markers: [...(tour360MediaMarkersByNode.EntradaLobbySA ?? [])],
+    // Igual que en Entrada_A: `position: { yaw, pitch }` ubica la flecha,
+    // `data.rotationDeg` solo la rota sobre si misma.
     links: [
       {
         nodeId: 'Entrada_A',
-        gps: entradaLobbyBackArrowGps,
+        // yaw/pitch equivalente al gps anterior (`entradaLobbyBackArrowGps`, ~115°).
+        position: { yaw: '115deg', pitch: '0deg' },
         data: {
           id: 'EntradaLobbySA-to-Entrada_A',
           originSceneId: 'EntradaLobbySA',
@@ -175,7 +215,8 @@ export const bogotaSede1Nodes: Tour360Node[] = [
       },
       {
         nodeId: 'DescansoSA',
-        gps: entradaLobbyNextArrowGps,
+        // yaw/pitch equivalente al gps anterior (`entradaLobbyNextArrowGps`, ~299°).
+        position: { yaw: '299deg', pitch: '0deg' },
         data: {
           id: 'EntradaLobbySA-to-DescansoSA',
           originSceneId: 'EntradaLobbySA',
@@ -205,7 +246,8 @@ export const bogotaSede1Nodes: Tour360Node[] = [
     links: [
       {
         nodeId: 'EntradaLobbySA',
-        gps: entradaLobbySAGps,
+        // yaw/pitch equivalente al gps anterior (`entradaLobbySAGps`, ~229°).
+        position: { yaw: '229deg', pitch: '0deg' },
         data: {
           id: 'DescansoSA-to-EntradaLobbySA',
           originSceneId: 'DescansoSA',
@@ -222,7 +264,8 @@ export const bogotaSede1Nodes: Tour360Node[] = [
       },
       {
         nodeId: 'BibliotecaSA',
-        gps: bibliotecaSAGps,
+        // yaw/pitch equivalente al gps anterior (`bibliotecaSAGps`, ~51°).
+        position: { yaw: '51deg', pitch: '0deg' },
         data: {
           id: 'DescansoSA-to-BibliotecaSA',
           originSceneId: 'DescansoSA',
@@ -252,7 +295,8 @@ export const bogotaSede1Nodes: Tour360Node[] = [
     links: [
       {
         nodeId: 'DescansoSA',
-        gps: descansoSAGps,
+        // yaw/pitch equivalente al gps anterior (`descansoSAGps`, ~231°).
+        position: { yaw: '231deg', pitch: '0deg' },
         data: {
           id: 'BibliotecaSA-to-DescansoSA',
           originSceneId: 'BibliotecaSA',
@@ -265,36 +309,6 @@ export const bogotaSede1Nodes: Tour360Node[] = [
           scale: 0.95,
           direction: 'back',
           styleVariant: 'three-d-arrow',
-        },
-      },
-    ],
-  },
-  {
-    id: 'SphereTest',
-    panorama: SphereTestImage,
-    thumbnail: SphereTestImage,
-    name: 'Modo test',
-    caption: 'Imagen de prueba',
-    description: 'Vista temporal para pruebas del tour.',
-    defaultYaw: '0deg',
-    defaultPitch: '0deg',
-    gps: sphereTestGps,
-    links: [
-      {
-        nodeId: 'CalleA',
-        gps: calleAGps,
-        data: {
-          id: 'SphereTest-to-CalleA',
-          originSceneId: 'SphereTest',
-          destinationSceneId: 'CalleA',
-          label: 'Volver al tour',
-          visibleText: 'Volver',
-          tooltipTitle: 'Volver a CalleA',
-          tooltipImage: CalleA,
-          rotationDeg: 180,
-          scale: 1,
-          direction: 'back',
-          styleVariant: 'floor-arrow',
         },
       },
     ],
@@ -317,5 +331,4 @@ export const bogotaSede1AvailablePanoramaFiles = [
   { id: 'EntradaLobbySA', panorama: EntradaLobbySA, name: 'EntradaLobbySA', fileName: 'LobbySA.png' },
   { id: 'DescansoSA', panorama: DescansoSA, name: 'DescansoSA', fileName: '5SA.png' },
   { id: 'BibliotecaSA', panorama: BibliotecaSA, name: 'BibliotecaSA', fileName: '6SA.png' },
-  { id: 'SphereTest', panorama: SphereTestImage, name: 'Modo test', fileName: 'sede_test.png' },
 ];
