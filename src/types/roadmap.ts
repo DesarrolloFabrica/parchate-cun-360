@@ -1,6 +1,12 @@
 import type { HubTab } from '../navigation';
 
-export type RoadmapVariant = 'cun360' | 'cdigital' | 'soporte-cami' | 'parche-virtual';
+export type RoadmapVariant =
+  | 'cun360'
+  | 'cdigital'
+  | 'soporte-cami'
+  | 'parche-virtual'
+  | 'servicio-complementario'
+  | 'sinu';
 
 export type RoadmapUnlockMode = 'sequential' | 'free';
 
@@ -19,6 +25,8 @@ export const roadmapUnlockModeByVariant: Record<RoadmapVariant, RoadmapUnlockMod
   cdigital: 'sequential',
   'soporte-cami': 'sequential',
   'parche-virtual': 'sequential',
+  'servicio-complementario': 'sequential',
+  sinu: 'sequential',
 };
 
 export const SEQUENTIAL_ROADMAP_VARIANTS = (
@@ -32,6 +40,8 @@ export const roadmapVariantIdPrefix: Record<RoadmapVariant, string> = {
   cdigital: 'cdig',
   'soporte-cami': 'cami',
   'parche-virtual': 'parche',
+  'servicio-complementario': 'servicio',
+  sinu: 'sinu',
 };
 
 export const defaultCompletedStationIdsByVariant: Record<RoadmapVariant, string[]> = {
@@ -39,6 +49,8 @@ export const defaultCompletedStationIdsByVariant: Record<RoadmapVariant, string[
   cdigital: [],
   'soporte-cami': [],
   'parche-virtual': [],
+  'servicio-complementario': [],
+  sinu: [],
 };
 
 const ALL_ROADMAP_VARIANTS: RoadmapVariant[] = [
@@ -46,6 +58,8 @@ const ALL_ROADMAP_VARIANTS: RoadmapVariant[] = [
   'cdigital',
   'soporte-cami',
   'parche-virtual',
+  'servicio-complementario',
+  'sinu',
 ];
 
 export function isSequentialRoadmapVariant(variant: RoadmapVariant): boolean {
@@ -162,7 +176,14 @@ export function resolveRoadmapNodeStatus(
   return stationIndex === activeIndex ? 'active' : 'available';
 }
 
-const ROUTE_MAP_TABS: HubTab[] = ['cun360', 'cdigital', 'soporteCami', 'virtual'];
+const ROUTE_MAP_TABS: HubTab[] = [
+  'cun360',
+  'cdigital',
+  'soporteCami',
+  'virtual',
+  'servicioComplementario',
+  'sinu',
+];
 
 export const isRouteMapHubTab = (tab: HubTab): tab is (typeof ROUTE_MAP_TABS)[number] =>
   ROUTE_MAP_TABS.includes(tab);
@@ -177,6 +198,10 @@ export const hubTabToRoadmapVariant = (tab: HubTab): RoadmapVariant | null => {
       return 'soporte-cami';
     case 'virtual':
       return 'parche-virtual';
+    case 'servicioComplementario':
+      return 'servicio-complementario';
+    case 'sinu':
+      return 'sinu';
     default:
       return null;
   }

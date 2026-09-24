@@ -1,13 +1,23 @@
 import type { MarkerConfig } from '@photo-sphere-viewer/markers-plugin';
 
 export type GpsPosition = [number, number, number?];
+export type Tour360ManualPosition =
+  | {
+      yaw: string | number;
+      pitch: string | number;
+    }
+  | {
+      textureX: number;
+      textureY: number;
+    };
 
 export type TourHotspotDirection = 'forward' | 'back';
-export type TourHotspotStyleVariant = 'floor-arrow' | 'three-d-arrow';
+export type TourHotspotStyleVariant = 'floor-arrow' | 'three-d-arrow' | 'up-arrow' | 'down-arrow';
 
 export type Tour360Link = {
   nodeId: string;
-  gps: GpsPosition;
+  gps?: GpsPosition;
+  position?: Tour360ManualPosition;
   data: {
     id: string;
     originSceneId: string;
@@ -32,7 +42,8 @@ export type Tour360Node = {
   description: string;
   defaultYaw: string;
   defaultPitch: string;
-  gps: GpsPosition;
+  /** Solo requerido cuando el tour usa positionMode "gps"; en modo manual (yaw/pitch por link) no hace falta. */
+  gps?: GpsPosition;
   links: Tour360Link[];
   markers?: MarkerConfig[];
 };
@@ -65,6 +76,11 @@ export type Tour360Campus = {
   title: string;
   thumbnail: string;
   tourConfigId: string;
+  /** Posición opcional del pin en el mapa estilizado del TourMapSelector (porcentaje 0–100). */
+  marker?: {
+    x: number;
+    y: number;
+  };
 };
 
 export type Tour360Location = {

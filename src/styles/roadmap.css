@@ -111,32 +111,62 @@
 
 .roadmap-view--soporte-cami,
 .roadmap--soporte-cami {
-  --roadmap-accent: rgba(74, 222, 128, 1);
-  --roadmap-accent-soft: rgba(74, 222, 128, 0.15);
-  --roadmap-accent-glow: rgba(74, 222, 128, 0.4);
-  --roadmap-secondary: rgba(20, 184, 166, 0.42);
+  --roadmap-accent: rgba(168, 85, 247, 1);
+  --roadmap-accent-soft: rgba(168, 85, 247, 0.16);
+  --roadmap-accent-glow: rgba(168, 85, 247, 0.44);
+  --roadmap-secondary: rgba(196, 181, 253, 0.38);
   --roadmap-glow-strength: 0.85;
   --roadmap-path-width: 0.42;
   --roadmap-path-dash: 1.2 1.3;
   --roadmap-path-flow-duration: 12s;
-  --roadmap-panel-tint: rgba(10, 18, 24, 0.96);
-  --roadmap-panel-deep: rgba(8, 14, 22, 0.98);
+  --roadmap-panel-tint: rgba(28, 16, 44, 0.96);
+  --roadmap-panel-deep: rgba(12, 10, 28, 0.98);
   --roadmap-grid-opacity: 0.22;
 }
 
 .roadmap-view--parche-virtual,
 .roadmap--parche-virtual {
-  --roadmap-accent: rgba(163, 230, 53, 1);
-  --roadmap-accent-soft: rgba(163, 230, 53, 0.16);
-  --roadmap-accent-glow: rgba(163, 230, 53, 0.5);
-  --roadmap-secondary: rgba(56, 189, 248, 0.38);
+  --roadmap-accent: rgba(251, 146, 60, 1);
+  --roadmap-accent-soft: rgba(251, 146, 60, 0.16);
+  --roadmap-accent-glow: rgba(251, 146, 60, 0.48);
+  --roadmap-secondary: rgba(253, 186, 116, 0.36);
   --roadmap-glow-strength: 1;
   --roadmap-path-width: 0.43;
   --roadmap-path-dash: 0.95 1.05;
   --roadmap-path-flow-duration: 10s;
-  --roadmap-panel-tint: rgba(12, 16, 22, 0.96);
-  --roadmap-panel-deep: rgba(10, 12, 20, 0.98);
+  --roadmap-panel-tint: rgba(40, 18, 10, 0.96);
+  --roadmap-panel-deep: rgba(24, 14, 8, 0.98);
   --roadmap-grid-opacity: 0.28;
+}
+
+.roadmap-view--servicio-complementario,
+.roadmap--servicio-complementario {
+  --roadmap-accent: rgba(45, 212, 191, 1);
+  --roadmap-accent-soft: rgba(45, 212, 191, 0.16);
+  --roadmap-accent-glow: rgba(45, 212, 191, 0.48);
+  --roadmap-secondary: rgba(94, 234, 212, 0.4);
+  --roadmap-glow-strength: 0.92;
+  --roadmap-path-width: 0.42;
+  --roadmap-path-dash: 1.1 1.25;
+  --roadmap-path-flow-duration: 11s;
+  --roadmap-panel-tint: rgba(6, 30, 28, 0.96);
+  --roadmap-panel-deep: rgba(4, 20, 22, 0.98);
+  --roadmap-grid-opacity: 0.26;
+}
+
+.roadmap-view--sinu,
+.roadmap--sinu {
+  --roadmap-accent: rgba(250, 204, 21, 1);
+  --roadmap-accent-soft: rgba(250, 204, 21, 0.16);
+  --roadmap-accent-glow: rgba(250, 204, 21, 0.46);
+  --roadmap-secondary: rgba(253, 224, 71, 0.36);
+  --roadmap-glow-strength: 0.95;
+  --roadmap-path-width: 0.42;
+  --roadmap-path-dash: 1 1.3;
+  --roadmap-path-flow-duration: 10.5s;
+  --roadmap-panel-tint: rgba(36, 28, 4, 0.96);
+  --roadmap-panel-deep: rgba(22, 18, 4, 0.98);
+  --roadmap-grid-opacity: 0.27;
 }
 
 .roadmap__grid {
@@ -612,6 +642,143 @@
   animation-duration: 1.9s;
 }
 
+/* PORTAL DE PAGOS (variante interna "servicio-complementario") — decoración cálida y contenida */
+.roadmap--servicio-complementario .roadmap-decor--one {
+  left: 16%;
+  bottom: 22%;
+  top: auto;
+  width: 70px;
+  height: 70px;
+  opacity: 0.32;
+}
+
+.roadmap--servicio-complementario .roadmap-decor--two {
+  right: 12%;
+  top: 16%;
+  opacity: 0.3;
+}
+
+.roadmap--servicio-complementario .roadmap-decor--three {
+  left: 46%;
+  top: 12%;
+  animation-delay: 0.3s;
+}
+
+.roadmap--servicio-complementario .roadmap-decor--four {
+  right: 30%;
+  bottom: 30%;
+  top: auto;
+  animation-delay: 0.9s;
+}
+
+.roadmap--servicio-complementario .roadmap-decor--five {
+  left: 68%;
+  top: 42%;
+  animation-delay: 1.2s;
+}
+
+.roadmap--servicio-complementario .roadmap-decor--six {
+  left: 10%;
+  top: 46%;
+  opacity: 0.26;
+}
+
+.roadmap--servicio-complementario .roadmap-decor--seven {
+  right: 20%;
+  bottom: 14%;
+  top: auto;
+}
+
+.roadmap--servicio-complementario .roadmap-decor--eight {
+  left: 30%;
+  bottom: 10%;
+  top: auto;
+  opacity: 0.34;
+}
+
+.roadmap--servicio-complementario .roadmap-decor--nine {
+  right: 48%;
+  top: 30%;
+}
+
+.roadmap--servicio-complementario .roadmap-decor--ten {
+  right: 6%;
+  bottom: 40%;
+  top: auto;
+  animation-delay: 1.5s;
+}
+
+.roadmap--servicio-complementario .roadmap__ambient {
+  opacity: 0.2;
+}
+
+/* SINU — plataforma académica virtual, decoración precisa tipo panel */
+.roadmap--sinu .roadmap-decor--one {
+  right: 16%;
+  top: 20%;
+}
+
+.roadmap--sinu .roadmap-decor--two {
+  left: 12%;
+  bottom: 18%;
+  top: auto;
+  width: 68px;
+  height: 68px;
+}
+
+.roadmap--sinu .roadmap-decor--three {
+  right: 40%;
+  top: 10%;
+  animation-delay: 0.25s;
+}
+
+.roadmap--sinu .roadmap-decor--four {
+  left: 36%;
+  bottom: 34%;
+  top: auto;
+  animation-delay: 0.7s;
+}
+
+.roadmap--sinu .roadmap-decor--five {
+  right: 14%;
+  bottom: 28%;
+  top: auto;
+  animation-delay: 1.3s;
+}
+
+.roadmap--sinu .roadmap-decor--six {
+  right: 8%;
+  top: 10%;
+  opacity: 0.3;
+}
+
+.roadmap--sinu .roadmap-decor--seven {
+  left: 20%;
+  top: 22%;
+}
+
+.roadmap--sinu .roadmap-decor--eight {
+  right: 34%;
+  bottom: 12%;
+  top: auto;
+}
+
+.roadmap--sinu .roadmap-decor--nine {
+  left: 50%;
+  bottom: 16%;
+  top: auto;
+}
+
+.roadmap--sinu .roadmap-decor--ten {
+  left: 54%;
+  top: 34%;
+  animation-delay: 1.1s;
+}
+
+.roadmap--sinu .roadmap__blueprint-shapes {
+  stroke: color-mix(in srgb, var(--roadmap-accent) 12%, transparent);
+}
+
 @keyframes roadmapSparkPulse {
   0%,
   100% {
@@ -760,6 +927,47 @@
     max-width: 180px;
     font-size: 11px;
   }
+
+  .roadmap--parche-virtual[data-station-count="4"] .roadmap-node__button {
+    width: 66px;
+    height: 66px;
+    font-size: 1.0625rem;
+  }
+
+  .roadmap--parche-virtual[data-station-count="4"] .roadmap-node__label {
+    max-width: 240px;
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  .roadmap--parche-virtual[data-station-count="4"] .roadmap-path--glow {
+    stroke-width: 2.3;
+  }
+
+  .roadmap--parche-virtual[data-station-count="4"] .roadmap-path--main {
+    stroke-width: 0.56;
+  }
+
+  .roadmap--servicio-complementario[data-station-count="2"] .roadmap-node__button {
+    width: 82px;
+    height: 82px;
+    font-size: 1.25rem;
+  }
+
+  .roadmap--servicio-complementario[data-station-count="2"] .roadmap-node__label {
+    max-width: 280px;
+    padding: 9px 14px;
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  .roadmap--servicio-complementario[data-station-count="2"] .roadmap-path--glow {
+    stroke-width: 2.8;
+  }
+
+  .roadmap--servicio-complementario[data-station-count="2"] .roadmap-path--main {
+    stroke-width: 0.68;
+  }
 }
 
 .roadmap-node__inner-ring {
@@ -799,9 +1007,9 @@
 
 .roadmap-node--completed .roadmap-node__button {
   background:
-    radial-gradient(circle at 35% 25%, rgba(34, 211, 238, 0.7), rgba(16, 185, 129, 0.9) 70%);
+  rgba(53, 53, 53, 0.137);
   border-color: color-mix(in srgb, var(--roadmap-accent) 95%, white 5%);
-  color: #06130c;
+  color: #ffffff;
   box-shadow:
     0 14px 34px rgba(0, 0, 0, 0.45),
     0 0 24px color-mix(in srgb, var(--roadmap-accent) 35%, transparent);
@@ -809,13 +1017,12 @@
 
 .roadmap-node--active .roadmap-node__button {
   border-color: var(--roadmap-accent);
-  background:
-    radial-gradient(circle at 35% 25%, color-mix(in srgb, var(--roadmap-accent) 75%, white 5%), rgba(16, 185, 129, 0.92) 70%);
+  background: radial-gradient(circle at 35% 25%, rgba(34, 211, 238, 0.7), rgba(16, 185, 129, 0.9) 70%);;
   color: #06130c;
   box-shadow:
-    0 16px 38px rgba(0, 0, 0, 0.48),
-    0 0 0 6px color-mix(in srgb, var(--roadmap-accent) 12%, transparent),
-    0 0 28px color-mix(in srgb, var(--roadmap-accent) 34%, transparent);
+    0 14px 32px rgba(0, 0, 0, 0.42),
+    0 0 0 1px color-mix(in srgb, var(--roadmap-accent) 45%, transparent),
+    0 0 16px color-mix(in srgb, var(--roadmap-accent) 22%, transparent);
   animation: roadmapActivePulse 1.9s ease-in-out infinite;
 }
 
@@ -824,17 +1031,17 @@
   100% {
     transform: scale(1);
     box-shadow:
-      0 16px 38px rgba(0, 0, 0, 0.48),
-      0 0 0 6px color-mix(in srgb, var(--roadmap-accent) 12%, transparent),
-      0 0 28px color-mix(in srgb, var(--roadmap-accent) 34%, transparent);
+      0 14px 32px rgba(0, 0, 0, 0.42),
+      0 0 0 1px color-mix(in srgb, var(--roadmap-accent) 45%, transparent),
+      0 0 16px color-mix(in srgb, var(--roadmap-accent) 22%, transparent);
   }
 
   50% {
-    transform: scale(1.07);
+    transform: scale(1.04);
     box-shadow:
-      0 18px 44px rgba(0, 0, 0, 0.52),
-      0 0 0 14px color-mix(in srgb, var(--roadmap-accent) 0%, transparent),
-      0 0 38px color-mix(in srgb, var(--roadmap-accent) 46%, transparent);
+      0 16px 36px rgba(0, 0, 0, 0.46),
+      0 0 0 1px color-mix(in srgb, var(--roadmap-accent) 55%, transparent),
+      0 0 22px color-mix(in srgb, var(--roadmap-accent) 30%, transparent);
   }
 }
 

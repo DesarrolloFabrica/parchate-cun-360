@@ -6,6 +6,7 @@ import { IntroLoader } from './components/IntroLoader';
 import { MonthlySmartAlerts } from './components/MonthlySmartAlerts';
 import { PresencialOnboarding } from './components/PresencialOnboarding';
 import { VirtualOnboarding } from './components/VirtualOnboarding';
+import { SedeSelectorMap } from './components/SedeSelectorMap';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { getPathForRoute, getRouteFromPathname, type AppRoute, type HubTab } from './navigation';
 
@@ -37,6 +38,8 @@ export default function App() {
         <Routes>
           
           <Route path="/" element={<UnifiedOnboardingHub />} />
+          <Route path="/hub" element={<UnifiedOnboardingHub />} />
+          <Route path="/sedes" element={<SedeSelectorMap />} />
           <Route path="/virtual" element={<VirtualOnboarding onBackToHome={() => handleRouteChange('home')} />} />
           <Route path="/presencial" element={<PresencialOnboarding onBackToHome={() => handleRouteChange('home')} />} />
           <Route path="*" element={<Navigate to={getPathForRoute(route)} replace />} />

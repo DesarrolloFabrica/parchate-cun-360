@@ -15,7 +15,7 @@ export const INTRO_PRESET_IMAGES = {
 };
 
 const googleDriveIntroVideoPreview =
-  'https://drive.google.com/file/d/1acJSNyQjCVQj_TOK-3DETg89c-q_n8jA/preview';
+  'https://drive.google.com/file/d/1eakx4PmsCcJgcDWySWb7EbZ9VYbU5qZu/preview';
 
 const INTRO_VIDEO_COUNTDOWN_SECONDS = 95;
 

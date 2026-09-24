@@ -84,7 +84,7 @@ export const ENABLE_MARKERS = true;
 export const ENABLE_GALLERY = true;
 export const ENABLE_CUSTOM_TOOLTIP = true;
 export const ENABLE_CUSTOM_ARROWS = true;
-export const ENABLE_MEDIA_MARKERS = true;
+export const ENABLE_MEDIA_MARKERS = false;
 
 const ENABLE_TOUR_NAVBAR = true;
 const ENABLE_REPOSITIONED_ARROWS = true;
@@ -207,14 +207,21 @@ const enhanceTourLinkTooltip = (
   return `${content}<p class="psv-virtual-tour-tooltip-desc">${node.description}</p>`;
 };
 
-// TEMP PSV DEFAULT TEST:
-// Se desactivan plugins, nodos, hotspots, galeria y rutas temporalmente para validar
-// Photo Sphere Viewer base en npm run preview. Restaurar la implementacion completa
-// despues de confirmar que este visor default carga correctamente.
+const normalizePanoramaUrlForCompare = (url: string) => {
+  try {
+    return decodeURIComponent(new URL(url, window.location.origin).pathname);
+  } catch {
+    return decodeURIComponent(url.split('?')[0]);
+  }
+};
+
+const isSamePanoramaUrl = (left: string, right: string) =>
+  normalizePanoramaUrlForCompare(left) === normalizePanoramaUrlForCompare(right);
+
 export const VirtualTour360: React.FC<VirtualTour360Props> = ({
   nodes: nodesProp,
   initialNodeId: initialNodeIdProp,
-  selectedCampus = null,
+  selectedCampus: _selectedCampus = null,
   tourConfig = null,
 }) => {
   const nodes = tourConfig?.nodes ?? nodesProp ?? tour360Nodes;
@@ -226,35 +233,6 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(initialNodeId ?? null);
   const [activeImagePopup, setActiveImagePopup] = useState<ImageMarkerPopup | null>(null);
   const [activeVideo, setActiveVideo] = useState<VideoMarkerPopup | null>(null);
-
-  const defaultPanorama =
-    tour360Nodes.find((node) => node.id === TOUR360_START_NODE_ID)?.panorama ??
-    tour360Nodes[0]?.panorama ??
-    DEPLOY_FALLBACK_PANORAMA ??
-    KNOWN_GOOD_PLACEHOLDER_PANORAMA;
-
-  const fallbackNode: TourNode = {
-    id: 'psv-test',
-    panorama: defaultPanorama,
-    thumbnail: defaultPanorama,
-    name: 'PSV Test',
-  };
-
-  const startNode = nodes.find((node) => node.id === initialNodeId) ?? nodes[0];
-  const safeStartNode = startNode ?? fallbackNode;
-  const safeNodes = (nodes.length > 0 ? nodes : [fallbackNode]).map((node) => ({
-    ...node,
-    thumbnail: node.thumbnail ?? node.panorama,
-  }));
-  const currentNode =
-    safeNodes.find((node) => node.id === currentNodeId) ??
-    safeStartNode;
-  const currentSectionTitle =
-    selectedCampus?.title ??
-    currentNode?.name ??
-    currentNode?.caption ??
-    currentNode?.id ??
-    'Ruta sede A';
 
   useEffect(() => {
     if (!activeVideo) return;
@@ -273,11 +251,23 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
   }, [activeVideo]);
 
   useEffect(() => {
-    if (!containerRef.current || viewerRef.current) return;
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      if (event.reason instanceof ProgressEvent) {
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
 
     const { width, height } = containerRef.current.getBoundingClientRect();
-
-    console.log('[PSV TEST] container size:', { width, height });
 
     if (width === 0 || height === 0) {
       setViewerError(`El contenedor no tiene tamano valido: ${width}x${height}`);
@@ -287,22 +277,93 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
     let viewer: Viewer | null = null;
     let virtualTourForCleanup: any = null;
     let handleNodeChanged: ((event: any) => void) | null = null;
-    let currentNodeFallbackId: number | null = null;
     let markersPluginForCleanup: any = null;
     let handleMarkerSelect: ((event: any) => void) | null = null;
     let handleVideoHotspotKeydown: ((event: KeyboardEvent) => void) | null = null;
+    let disposed = false;
+    // Contadores/registro de fallos locales a esta carga del tour: se
+    // recrean cada vez que el efecto corre (cambio de sede/nodo inicial),
+    // nunca persisten entre sedes distintas.
+    const panoramaErrorCounts: Record<string, number> = {};
+    const failedPanoramaUrls = new Set<string>();
+
+    // Fallback SIEMPRE dentro del tour actual (`nodes`/`initialNodeId` ya
+    // resueltos arriba desde tourConfig/nodesProp/tour360Nodes). Antes esto
+    // usaba directamente `tour360Nodes`/`TOUR360_START_NODE_ID` (el dataset
+    // legado de Bogota), asi que si un panorama de OTRA sede fallaba dos
+    // veces terminaba mostrando la Calle A de Bogota. Ahora el fallback sale
+    // siempre del propio tour activo.
+    const defaultPanorama =
+      nodes.find((node) => node.id === initialNodeId)?.panorama ??
+      nodes[0]?.panorama ??
+      DEPLOY_FALLBACK_PANORAMA ??
+      KNOWN_GOOD_PLACEHOLDER_PANORAMA;
+
+    const fallbackNode: TourNode = {
+      id: 'psv-test',
+      panorama: defaultPanorama,
+      thumbnail: defaultPanorama,
+      name: 'PSV Test',
+    };
+    const fallbackPanorama = defaultPanorama || DEPLOY_FALLBACK_PANORAMA || KNOWN_GOOD_PLACEHOLDER_PANORAMA;
+
+    const startNode = nodes.find((node) => node.id === initialNodeId) ?? nodes[0];
+    const safeStartNode = startNode ?? fallbackNode;
+
+    const buildResilientTourNodes = () =>
+      (nodes.length > 0 ? nodes : [fallbackNode]).map((node) => {
+        const nodePanoramaFailed = Array.from(failedPanoramaUrls).some((failedPanorama) =>
+          isSamePanoramaUrl(failedPanorama, node.panorama),
+        );
+        const patchedPanorama = nodePanoramaFailed ? fallbackPanorama : node.panorama;
+
+        return {
+          ...node,
+          panorama: patchedPanorama,
+          thumbnail: nodePanoramaFailed ? fallbackPanorama : node.thumbnail ?? patchedPanorama,
+          links: node.links?.map((link) => {
+            const destination = nodes.find((candidate) => candidate.id === link.nodeId);
+            const destinationFailed = destination
+              ? Array.from(failedPanoramaUrls).some((failedPanorama) =>
+                  isSamePanoramaUrl(failedPanorama, destination.panorama),
+                )
+              : false;
+
+            return destinationFailed
+              ? {
+                  ...link,
+                  data: {
+                    ...link.data,
+                    tooltipImage: fallbackPanorama,
+                  },
+                }
+              : link;
+          }),
+        };
+      });
+
+    const getMarkersForNode = (nodeId: string) => {
+      const nodeMarkers = nodes.find((node) => node.id === nodeId)?.markers ?? [];
+      const mediaMarkers = tour360MediaMarkersByNode[nodeId] ?? [];
+      const markersById = new Map<string, any>();
+
+      for (const marker of [...nodeMarkers, ...mediaMarkers]) {
+        const markerId = typeof marker?.id === 'string' ? marker.id : JSON.stringify(marker);
+        markersById.set(markerId, marker);
+      }
+
+      return Array.from(markersById.values());
+    };
 
     try {
       validateVirtualTourNodes(nodes, initialNodeId);
 
-      console.table(
-        safeNodes.map((node) => ({
-          id: node.id,
-          panorama: node.panorama,
-          thumbnail: node.thumbnail,
-          links: node.links?.map((link) => link.nodeId).join(', '),
-        })),
-      );
+      const initialResilientNodes = buildResilientTourNodes();
+      const virtualTourPositionMode = initialResilientNodes.some((node) =>
+        node.links?.some((link) => Boolean(link.position)),
+      )
+        ? 'manual'
+        : 'gps';
 
       let viewerConfig: any;
 
@@ -331,17 +392,46 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         plugins.push([
           VirtualTourPlugin,
           {
-            positionMode: 'gps',
+            positionMode: virtualTourPositionMode,
             renderMode: '3d',
-            nodes: safeNodes,
-            startNodeId: safeStartNode.id,
             preload: false,
             showLinkTooltip: true,
-            transitionOptions: {
-              showLoader: true,
-              effect: 'fade',
-              speed: '20rpm',
-              rotation: true,
+            // nodes/startNodeId se pasan aqui (en construccion) para que el plugin
+            // controle la carga inicial del panorama de punta a punta. Si en su
+            // lugar se llama a virtualTour.setNodes() despues de crear el Viewer,
+            // este ya arranco su propia carga via viewerConfig.panorama y ambas
+            // cargas compiten por el mismo panorama: la carga en curso se aborta
+            // para reiniciarla, lo que a veces dispara panorama-error de forma
+            // espuria (mas facil de reproducir con paneles pesados o lentos).
+            nodes: initialResilientNodes,
+            startNodeId: safeStartNode.id,
+            // Funcion en vez de objeto fijo: el plugin la llama con
+            // (toNode, fromNode, fromLink) en cada cambio de nodo. Solo
+            // forzamos `rotateTo` con defaultYaw/defaultPitch del nodo
+            // cuando NO venimos siguiendo una flecha (fromLink es null: es
+            // la carga inicial del tour o un salto directo, ej. desde el
+            // mapa). Si venimos de una flecha, no devolvemos `rotateTo` y el
+            // plugin sigue con su comportamiento normal: girar hacia el
+            // punto por donde "entraste" (continuidad del recorrido).
+            transitionOptions: (toNode: any, _fromNode: any, fromLink: any) => {
+              const base = {
+                showLoader: true,
+                effect: 'fade',
+                speed: '20rpm',
+                rotation: true,
+              };
+
+              if (!fromLink && (toNode?.defaultYaw || toNode?.defaultPitch)) {
+                return {
+                  ...base,
+                  rotateTo: {
+                    yaw: toNode.defaultYaw ?? '0deg',
+                    pitch: toNode.defaultPitch ?? '0deg',
+                  },
+                };
+              }
+
+              return base;
             },
             ...(ENABLE_CUSTOM_TOOLTIP
               ? { getLinkTooltip: enhanceTourLinkTooltip }
@@ -351,7 +441,9 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
                   arrowStyle: {
                     element: createTourArrowElement,
                     className: 'tour-hotspot-link',
-                    size: { width: 180, height: 150 },
+                    // Hitbox compacta: solo el círculo/chevron (~64px). El label
+                    // se dibuja fuera con overflow visible + pointer-events:none.
+                    size: { width: 64, height: 64 },
                   },
                 }
               : {}),
@@ -360,6 +452,10 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
 
         viewerConfig = {
           container: containerRef.current,
+          // Sin `panorama` aqui: VirtualTourPlugin ya recibio nodes/startNodeId
+          // arriba y carga el panorama inicial el mismo. Si tambien se define
+          // `panorama` en este nivel, el Viewer dispara una segunda carga del
+          // mismo archivo que compite con la del plugin (ver comentario arriba).
           navbar: ENABLE_TOUR_NAVBAR
             ? ['zoom', 'move', 'markers', 'gallery', 'fullscreen']
             : ['zoom', 'move', 'fullscreen'],
@@ -383,19 +479,39 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
       viewer = new Viewer(viewerConfig);
       viewerRef.current = viewer;
 
+      if (import.meta.env.DEV) {
+        // Ayuda para ubicar flechas manualmente (yaw/pitch): en DevTools,
+        // apunta la camara al punto exacto donde quieres la flecha y corre
+        // `psvAim()` en la consola. Imprime el { yaw, pitch } en grados listo
+        // para pegar en el campo `position` del link correspondiente.
+        (window as any).__psvViewer = viewer;
+        (window as any).psvAim = () => {
+          const pos = viewer?.getPosition();
+          if (!pos) return null;
+          const toDeg = (rad: number) => `${((rad * 180) / Math.PI).toFixed(1)}deg`;
+          const result = { yaw: toDeg(pos.yaw), pitch: toDeg(pos.pitch) };
+          console.log('[Tour360] position: { yaw, pitch } =', result);
+          return result;
+        };
+      }
+
       if (ENABLE_VIRTUAL_TOUR) {
         const virtualTour = viewer.getPlugin(VirtualTourPlugin) as any;
         virtualTourForCleanup = virtualTour;
 
-        console.log('[Tour360 TEST] VirtualTourPlugin:', virtualTour);
-        console.log('[Tour360 TEST] Current node:', virtualTour?.getCurrentNode?.());
-
+        // El plugin ya recibio nodes/startNodeId en su config de construccion
+        // (ver viewerConfig arriba), asi que el nodo inicial se carga una sola
+        // vez sin competir con ninguna otra carga. 'node-changed' cubre tanto
+        // ese primer nodo como las navegaciones posteriores.
         handleNodeChanged = (event: any) => {
           const nextNodeId = event?.node?.id ?? event?.nodeId ?? null;
 
           if (nextNodeId) {
-            console.log('[Tour360] node changed:', nextNodeId);
             setCurrentNodeId(nextNodeId);
+            if (ENABLE_MEDIA_MARKERS) {
+              const markersPlugin = viewer?.getPlugin(MarkersPlugin) as any;
+              markersPlugin?.setMarkers?.(getMarkersForNode(nextNodeId));
+            }
           }
 
           setViewerReady(true);
@@ -407,29 +523,8 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         if (ENABLE_MEDIA_MARKERS) {
           const markersPlugin = viewer.getPlugin(MarkersPlugin) as any;
           markersPluginForCleanup = markersPlugin;
-          const currentNode = virtualTour?.getCurrentNode?.();
-          const currentNodeId = currentNode?.id ?? safeStartNode.id;
-          const mediaMarkers = tour360MediaMarkersByNode[currentNodeId] ?? [];
-
-          console.log('[Tour360 TEST] Media markers:', {
-            currentNodeId,
-            count: mediaMarkers.length,
-            mediaMarkers,
-          });
-
-          markersPlugin?.setMarkers?.(mediaMarkers);
+          markersPlugin?.setMarkers?.(getMarkersForNode(safeStartNode.id));
         }
-
-        currentNodeFallbackId = window.setTimeout(() => {
-          const currentPluginNode = virtualTour?.getCurrentNode?.();
-
-          if (currentPluginNode?.id) {
-            console.log('[Tour360 TEST] Fallback ready:', currentPluginNode.id);
-            setCurrentNodeId(currentPluginNode.id);
-            setViewerReady(true);
-            setViewerError(null);
-          }
-        }, 1200);
       }
 
       const markersPlugin = viewer.getPlugin(MarkersPlugin) as any;
@@ -490,30 +585,106 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
       markersPluginForCleanup?.addEventListener?.('select-marker', handleMarkerSelect);
       viewer.container.addEventListener('keydown', handleVideoHotspotKeydown);
 
-      console.log('[PSV TEST] viewer creado correctamente');
-
       const handleReady = () => {
-        console.log('[PSV TEST] viewer ready');
+        // Reajustar canvas tras el layout/escala del stage (evita recorte y fallos).
+        requestAnimationFrame(() => {
+          try {
+            viewer?.autoSize?.();
+          } catch {
+            /* ignore */
+          }
+        });
         setViewerReady(true);
         setViewerError(null);
       };
 
       const handlePanoramaError = (event: any) => {
-        console.error('[PSV TEST] panorama-error:', event);
-        setViewerError(
-          event?.error instanceof Error
-            ? event.error.message
-            : 'No se pudo cargar el panorama de prueba',
-        );
+        if (disposed) {
+          return;
+        }
+
+        console.error('[Tour360] Panorama load failed:', event);
+        const failedPanorama =
+          typeof event?.panorama === 'string'
+            ? event.panorama
+            : typeof event?.node?.panorama === 'string'
+              ? event.node.panorama
+              : null;
+        const failedNode =
+          (failedPanorama
+            ? nodes.find((node) => isSamePanoramaUrl(node.panorama, failedPanorama))
+            : null) ??
+          (typeof event?.node?.id === 'string'
+            ? nodes.find((node) => node.id === event.node.id)
+            : null);
+        const recoveryNodeId = failedNode?.id ?? safeStartNode.id;
+
+        if (failedPanorama && !isSamePanoramaUrl(failedPanorama, fallbackPanorama)) {
+          const normalizedFailedPanorama = normalizePanoramaUrlForCompare(failedPanorama);
+          const nextCount = (panoramaErrorCounts[normalizedFailedPanorama] ?? 0) + 1;
+          panoramaErrorCounts[normalizedFailedPanorama] = nextCount;
+
+          // Solo se marca como "roto" (y se reemplaza por el fallback) tras
+          // el segundo fallo: evita descartar un panorama por un hipo
+          // transitorio de red y quedarse pegado al fallback innecesariamente.
+          if (nextCount >= 2) {
+            failedPanoramaUrls.add(failedPanorama);
+          }
+        }
+
+        // Recuperacion IN-PLACE sobre el mismo Viewer/plugin: nunca se
+        // destruye ni se recrea el visor completo aqui. Antes esto disparaba
+        // `setViewerRecoveryNonce`, que estaba en las deps del efecto y por
+        // lo tanto reconstruia TODO el visor en cada fallo; si esa
+        // reconstruccion volvia a fallar (o se abortaba a medio cargar por
+        // el siguiente cambio de estado) se generaba un bucle de fallos en
+        // cascada, visible como decenas de errores seguidos y dos paneles
+        // superpuestos ("las imagenes se fusionan").
+        try {
+          const virtualTour = virtualTourForCleanup;
+          const recoveryNodes = buildResilientTourNodes();
+
+          if (virtualTour?.setNodes && recoveryNodeId) {
+            virtualTour.setNodes(recoveryNodes, recoveryNodeId);
+            setCurrentNodeId(recoveryNodeId);
+            setViewerReady(true);
+            setViewerError(null);
+            return;
+          }
+
+          viewer?.setPanorama?.(fallbackPanorama);
+          setViewerReady(true);
+          setViewerError(null);
+        } catch (recoveryError) {
+          console.error('[Tour360] Error recuperando panorama fallido:', recoveryError);
+          setViewerError(
+            recoveryError instanceof Error
+              ? recoveryError.message
+              : 'No se pudo cargar el panorama 360',
+          );
+        }
       };
 
       viewer.addEventListener('ready', handleReady);
       viewer.addEventListener('panorama-error', handlePanoramaError);
 
+      const resizeObserver =
+        typeof ResizeObserver !== 'undefined' && containerRef.current
+          ? new ResizeObserver(() => {
+              try {
+                viewer?.autoSize?.();
+              } catch {
+                /* ignore */
+              }
+            })
+          : null;
+      if (containerRef.current && resizeObserver) {
+        resizeObserver.observe(containerRef.current);
+      }
+
       return () => {
-        if (currentNodeFallbackId !== null) {
-          window.clearTimeout(currentNodeFallbackId);
-        }
+        disposed = true;
+        resizeObserver?.disconnect();
         if (virtualTourForCleanup && handleNodeChanged) {
           virtualTourForCleanup.removeEventListener?.('node-changed', handleNodeChanged);
         }
@@ -529,7 +700,7 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         viewerRef.current = null;
       };
     } catch (error) {
-      console.error('[PSV TEST] error creando viewer:', error);
+      console.error('[Tour360] Error creando Photo Sphere Viewer:', error);
       setViewerError(
         error instanceof Error
           ? error.message
@@ -538,9 +709,7 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
     }
 
     return () => {
-      if (currentNodeFallbackId !== null) {
-        window.clearTimeout(currentNodeFallbackId);
-      }
+      disposed = true;
       if (virtualTourForCleanup && handleNodeChanged) {
         virtualTourForCleanup.removeEventListener?.('node-changed', handleNodeChanged);
       }
@@ -553,20 +722,11 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
       viewer?.destroy();
       viewerRef.current = null;
     };
-  }, []);
+  }, [tourConfig?.id, initialNodeId]);
 
   return (
         <div className="relative h-full w-full bg-black">
           <div ref={containerRef} className="h-full w-full bg-black" />
-    
-          <div className="pointer-events-none absolute left-3 top-3 z-20 max-w-[calc(100%-1.5rem)] rounded-2xl border border-white/10 bg-black/45 px-4 py-3 text-white shadow-xl backdrop-blur-md sm:left-4 sm:top-4 sm:max-w-[24rem] sm:px-5">
-            <p className="m-0 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/70 sm:text-xs">
-              {selectedCampus ? 'Recorrido activo' : 'Tour 360'}
-            </p>
-            <h2 className="m-0 mt-1 truncate font-['Montserrat'] text-lg font-black leading-tight text-white sm:text-xl md:text-2xl">
-              {currentSectionTitle}
-            </h2>
-          </div>
     
           <HudGlassModal
             isOpen={Boolean(activeVideo)}

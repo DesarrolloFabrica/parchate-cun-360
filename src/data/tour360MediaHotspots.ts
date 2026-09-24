@@ -1,11 +1,8 @@
 import type { MarkerConfig } from '@photo-sphere-viewer/markers-plugin';
 
-export const entradaLobbyVideoIframeSrc =
-  'https://drive.google.com/file/d/1p5_Mf2ZMYNl6SnllZaCTEsHTRndKpO54/preview';
-
 type Tour360MediaHotspot = {
   id: string;
-  type: 'video';
+  type: 'infografia' | 'video';
   title: string;
   description: string;
   iframeSrc: string;
@@ -18,6 +15,63 @@ type Tour360MediaHotspot = {
     height: number;
   };
 };
+
+const cun360Resources = [
+  {
+    id: 'cun360-infografia-1',
+    type: 'infografia',
+    title: 'CUN360 - Infografia 1',
+    description: 'Haz clic para consultar la infografia completa dentro del tour.',
+    iframeSrc: 'https://drive.google.com/file/d/1bTR8vK7o4YmvzoisVmRoVUyB2DIf58nc/preview',
+  },
+  {
+    id: 'cun360-infografia-2',
+    type: 'infografia',
+    title: 'CUN360 - Infografia 2',
+    description: 'Haz clic para consultar la infografia completa dentro del tour.',
+    iframeSrc: 'https://drive.google.com/file/d/1mz1UtwJ_3QrWdbDaHC8xMfRtLDB2zT3-/preview',
+  },
+  {
+    id: 'cun360-infografia-3',
+    type: 'infografia',
+    title: 'CUN360 - Infografia 3',
+    description: 'Haz clic para consultar la infografia completa dentro del tour.',
+    iframeSrc: 'https://drive.google.com/file/d/1WlYluPRG40Hp6fsOtHaLulnOMde1Vg90/preview',
+  },
+  {
+    id: 'cun360-video',
+    type: 'video',
+    title: 'CUN360 - Video',
+    description: 'Haz clic para reproducir el video dentro del tour.',
+    iframeSrc: 'https://drive.google.com/file/d/1EUFET7nY21WuybYa6INnEPw-7ja1ul8h/preview',
+  },
+  {
+    id: 'cun360-infografia-4',
+    type: 'infografia',
+    title: 'CUN360 - Infografia 4',
+    description: 'Haz clic para consultar la infografia completa dentro del tour.',
+    iframeSrc: 'https://drive.google.com/file/d/1_1z1ynY7f4xtqDaEOCyp0r1xBLGBWdT4/preview',
+  },
+  {
+    id: 'cun360-infografia-5',
+    type: 'infografia',
+    title: 'CUN360 - Infografia 5',
+    description: 'Haz clic para consultar la infografia completa dentro del tour.',
+    iframeSrc: 'https://drive.google.com/file/d/1GuURqHHuEe6vrqb5nFLzFn_ZfrE2QzS_/preview',
+  },
+] satisfies Array<Pick<Tour360MediaHotspot, 'id' | 'type' | 'title' | 'description' | 'iframeSrc'>>;
+
+const createCun360Hotspot = (
+  resource: (typeof cun360Resources)[number],
+  position: Tour360MediaHotspot['position'],
+): Tour360MediaHotspot => ({
+  ...resource,
+  position,
+  size: {
+    width: 240,
+    height: 140,
+  },
+});
 
 const escapeHtmlAttribute = (value: string) => {
   return value
@@ -44,6 +98,7 @@ const createVideoHotspotHtml = (hotspot: Tour360MediaHotspot) => {
       data-video-title="${escapeHtmlAttribute(hotspot.title)}"
       data-video-iframe-src="${escapeHtmlAttribute(hotspot.iframeSrc)}"
       data-video-description="${escapeHtmlAttribute(hotspot.description)}"
+      data-video-type="${escapeHtmlAttribute(hotspot.type)}"
     >
       <iframe
         class="tour-video-hotspot__video"
@@ -65,29 +120,42 @@ const createVideoHotspotHtml = (hotspot: Tour360MediaHotspot) => {
 };
 
 export const tour360MediaHotspots = {
+  CalleA: [
+    createCun360Hotspot(cun360Resources[0], {
+      yaw: 0.2,
+      pitch: -0.12,
+    }),
+  ],
+  Entrada_A: [
+    createCun360Hotspot(cun360Resources[1], {
+      yaw: -0.55,
+      pitch: -0.08,
+    }),
+  ],
   EntradaLobbySA: [
-    {
-      id: 'entrada-lobby-video',
-      type: 'video',
-      title: 'Video entrada lobby',
-      description: 'Haz clic para ver el video en grande.',
-      iframeSrc: entradaLobbyVideoIframeSrc,
-      // Para mover el video integrado:
+    createCun360Hotspot(cun360Resources[2], {
+      // Para mover el contenido integrado:
       // yaw controla izquierda/derecha dentro del panorama.
       // pitch controla arriba/abajo dentro del panorama.
       // Aumentar yaw mueve el elemento hacia la derecha.
       // Disminuir yaw mueve el elemento hacia la izquierda.
       // Aumentar pitch sube el elemento.
       // Disminuir pitch baja el elemento.
-      position: {
-        yaw: 2.50,
-        pitch: -0.15,
-      },
-      size: {
-        width: 360,
-        height: 210,
-      },
-    },
+      yaw: 0,
+      pitch: -0.15,
+    }),
+  ],
+  DescansoSA: [
+    createCun360Hotspot(cun360Resources[3], {
+      yaw: 0.35,
+      pitch: -0.1,
+    }),
+  ],
+  BibliotecaSA: [
+    createCun360Hotspot(cun360Resources[4], {
+      yaw: -0.25,
+      pitch: -0.1,
+    }),
   ],
 } satisfies Record<string, Tour360MediaHotspot[]>;
 
@@ -107,12 +175,16 @@ const createVideoMarker = (hotspot: Tour360MediaHotspot): MarkerConfig => ({
   data: {
     action: 'open-video-modal',
     videoHotspotId: hotspot.id,
+    type: hotspot.type,
     title: hotspot.title,
     description: hotspot.description,
     iframeSrc: hotspot.iframeSrc,
   },
 });
 
-export const tour360MediaMarkersByNode: Record<string, MarkerConfig[]> = {
-  EntradaLobbySA: tour360MediaHotspots.EntradaLobbySA.map(createVideoMarker),
-};
+export const tour360MediaMarkersByNode: Record<string, MarkerConfig[]> = Object.fromEntries(
+  Object.entries(tour360MediaHotspots).map(([nodeId, hotspots]) => [
+    nodeId,
+    hotspots.map(createVideoMarker),
+  ]),
+);

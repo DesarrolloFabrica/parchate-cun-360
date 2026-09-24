@@ -73,3 +73,75 @@
     drop-shadow(0 0 18px rgba(155, 255, 0, 0.32));
   opacity: 0.98;
 }
+
+.psv-container .psv-navbar {
+  --tour-navbar-trigger-height: 14px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(10, 11, 75, 0.35),
+    rgba(7, 32, 4, 0.4)
+  ) !important;
+  border-top: 0px solid rgba(110, 190, 255, 0.22);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  will-change: transform, opacity;
+  transition:
+    transform 0.35s ease,
+    opacity 0.35s ease;
+  animation: tourNavbarAutoHide 0.35s ease 3.2s forwards;
+}
+
+.psv-container .psv-navbar:hover,
+.psv-container .psv-navbar:focus-within {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  animation: none;
+}
+
+.psv-container .psv-navbar .psv-button {
+  color: #eaf6ff !important;
+  border-radius: 10px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.psv-container .psv-navbar .psv-button:hover,
+.psv-container .psv-navbar .psv-button:focus-visible {
+  background: rgba(100, 190, 255, 0.18) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.psv-container .psv-navbar .psv-button svg,
+.psv-container .psv-navbar .psv-button svg path {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+.psv-container .psv-navbar .psv-button--active {
+  background: rgba(100, 190, 255, 0.24) !important;
+  color: #ffffff !important;
+}
+
+@keyframes tourNavbarAutoHide {
+  to {
+    transform: translateY(calc(100% - var(--tour-navbar-trigger-height)));
+    opacity: 0;
+  }
+}
+
+@media (hover: none) {
+  .psv-container .psv-navbar {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+    animation: none;
+  }
+}

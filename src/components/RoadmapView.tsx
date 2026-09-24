@@ -44,6 +44,7 @@ export function RoadmapView<T extends RoadmapPoint>({
       <section
         className={`roadmap roadmap--${variant}`}
         data-roadmap-variant={variant}
+        data-station-count={stations.length}
         aria-label={`Mapa de ruta ${title}`}
       >
         <div className="roadmap__grid" aria-hidden="true" />
@@ -54,7 +55,7 @@ export function RoadmapView<T extends RoadmapPoint>({
 
         <div className="roadmap__hint">
           <p className="roadmap__hint-title">ESTACIONES DE LA RUTA</p>
-          <p className="roadmap__hint-copy">DEBES COMPLETAR EN ORDEN (1 al 9)</p>
+          <p className="roadmap__hint-copy">DEBES COMPLETAR EN ORDEN (1 al {stations.length})</p>
         </div>
 
         <div className="roadmap__stage">
