@@ -28,7 +28,7 @@ const REQUIRED_PUBLIC_FILES = [
   'public/panoramas/iconos/MARCO.png',
   'public/panoramas/iconos/AS.png',
   'public/panoramas/iconos/alizon.png',
-  'public/panoramas/sede_test.png',
+  'public/panoramas/Sede_Test.png',
   'public/panoramas/Sede FPH/1-InicioSf.jpg',
   'public/panoramas/Sede FPH/2-LlegadaSf.jpeg',
   'public/panoramas/Sede FPH/3-EntradaSf.jpeg',

@@ -245,7 +245,7 @@ const SINU_PLACEHOLDER_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1pVF
 const SINU_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1nuB0IT932-BLqU_XyG4-Z9Gltmdnx0sW/preview';
 const SINU_POINT_2_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1j-i-SH9xClMBsnInPP5QbFhPdjKZTGwq/preview';
 const SINU_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1BRO8TefKPv5QGPbixuyiPvs99_UVDMfq/preview';
-const SINU_POINT_4_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1bn3q-AxamR_GB7fynPFlkoF7IU7f61bg/preview';
+const SINU_POINT_4_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1bn3q-AxamR_GB7fynPFlkoF7IU7f61bg/preview';
 const SINU_POINT_5_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1TXZ3dEqeA3fQHvpD4uo35y0et3vKbRhh/preview';
 const SINU_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1Kt9eWVWNG5xR3yCutAWh2CTfa57aoqK8/preview';
 
@@ -780,17 +780,10 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     },
     {
       id: 'sinu-4', number: 4,
-      title: 'Plataforma explicacion - Sinu', subtitle: 'Infografia',
-      description: 'Infografía de explicación general sobre la navegación y uso de la plataforma SINU.',
-      type: 'drive-image',
-      driveImagePreviewUrl: SINU_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
-      driveImageSlides: [
-        {
-          title: 'Plataforma explicacion - Sinu',
-          driveImagePreviewUrl: SINU_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
-          alt: 'Infografía Plataforma explicación SINU',
-        },
-      ],
+      title: 'Plataforma explicacion - Sinu', subtitle: 'Video',
+      description: 'Video de explicación general sobre la navegación y uso de la plataforma SINU.',
+      type: 'drive-video',
+      driveVideoPreviewUrl: SINU_POINT_4_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#FF2D55', extraTip: 'Verifica siempre el mensaje de confirmación tras subir un archivo.',
       coordinateX: 56, coordinateY: 65
     },
