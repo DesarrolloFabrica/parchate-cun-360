@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Building, Monitor, FileText, LifeBuoy, Users, Heart, 
   Play, ExternalLink, ArrowRight, Clock, Calendar, HelpCircle, 
-  MapPin, Compass, ChevronRight, Eye, ChevronLeft, Lock, Check
+  MapPin, Compass, GraduationCap, ChevronRight, Eye, ChevronLeft, Lock, Check
 } from 'lucide-react';
 import lottie from 'lottie-web/build/player/lottie_light';
 import { DEFAULT_HUB_TAB, isHubTab, type HubTab } from '../navigation';
@@ -104,11 +104,6 @@ interface HubTabDefinition {
   isLockedOption: boolean;
   drivePublicUrl?: string;
 }
-
-/** Logo oficial CUN (public/panoramas/iconos/Logo.svg) usado como icono de pestaña. */
-const CunLogoTabIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <img src="/panoramas/iconos/Logo.svg" alt="" className={className} />
-);
 
 interface UnifiedOnboardingHubProps {
 }
@@ -235,7 +230,9 @@ const PARCHE_POINT_2_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/
 const PARCHE_POINT_3_DRIVE_PDF_PREVIEW_URL = 'https://drive.google.com/file/d/14aFszFMefV7viEKBV-0oK2uGxGh2o5Jd/preview';
 const PARCHE_POINT_3_DRIVE_AUDIO_URL = '';
 const PARCHE_POINT_3_DRIVE_AUDIO_PREVIEW_URL = 'https://drive.google.com/file/d/102meBF98jMBNCiRpM__9QKygEC_NTgVO/preview';
+const PARCHE_EXPLICACION_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1GGuof6V9b5KCGqoFPq-kg8iJ9O870iBJ/preview';
 const PARCHE_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1jYcr6MYG-hnlByqc8_9XpSyrM28IucfC/preview';
+const PARCHE_FIMA_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1VEBJP5-_fBRzR4X7-0SonH4lDOzLt77R/preview';
 const PARCHE_POINT_4_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1lsgL_ryBaVYa_Kk03XzVyETUNjEPJ0OC/preview';
 const PARCHE_POINT_5_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1-HdT-Hr-9U8sJ_roBtn8-BUJ2PfKngfl/preview';
 const PARCHE_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1QwLCyNyXaCcv4I5qHqFE8FhGEygzFR8m/preview';
@@ -615,19 +612,28 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     }
   ];
 
-  // 4 estaciones para CTAYUDA
+  // 6 estaciones para CTAYUDA
   const parcheVirtualStations: Station[] = [
     {
-      id: 'parche-1', number: 1,
-      title: 'Video CTAYUDA', subtitle: 'Inicio de la ruta',
+      id: 'parche-explicacion', number: 1,
+      title: 'Explicacion Video', subtitle: 'Inicio de la ruta',
+      description: 'Video de explicación inicial para abrir la ruta CTAYUDA.',
+      type: 'drive-video',
+      driveVideoPreviewUrl: PARCHE_EXPLICACION_DRIVE_VIDEO_PREVIEW_URL,
+      accentColor: '#9BFF00', extraTip: 'Mira esta explicación antes de continuar con las estaciones de CTAYUDA.',
+      coordinateX: 10, coordinateY: 60
+    },
+    {
+      id: 'parche-1', number: 2,
+      title: 'Credito', subtitle: 'Inicio de la ruta',
       description: 'Video introductorio para reconocer el proceso CTAYUDA y sus recursos de apoyo.',
       type: 'drive-video',
       driveVideoPreviewUrl: PARCHE_POINT_1_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#9BFF00', extraTip: 'Participa con respeto y actitud colaborativa.',
-      coordinateX: 12, coordinateY: 62
+      coordinateX: 24, coordinateY: 34
     },
     {
-      id: 'parche-2', number: 2,
+      id: 'parche-2', number: 3,
       title: 'Financiación', subtitle: 'Comunicación de comunidad',
       description: 'Visualizador con tres infografías y podcast de apoyo para el proceso de financiación.',
       type: 'drive-pdf-audio',
@@ -653,10 +659,10 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
       driveAudioPreviewUrl: PARCHE_POINT_3_DRIVE_AUDIO_PREVIEW_URL,
       audioTitle: 'Podcast',
       accentColor: '#35B84A', extraTip: 'Guarda los canales oficiales para no perder comunicaciones importantes.',
-      coordinateX: 38, coordinateY: 34
+      coordinateX: 38, coordinateY: 64
     },
     {
-      id: 'parche-3', number: 3,
+      id: 'parche-3', number: 4,
       title: 'Documentación', subtitle: 'Primer contacto social',
       description: 'Visualizador con tres infografías para revisar documentación, capacidad y aprobación.',
       type: 'drive-image',
@@ -679,11 +685,11 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
         },
       ],
       accentColor: '#FF9500', extraTip: 'Una buena presentación ayuda a crear red desde el primer día.',
-      coordinateX: 64, coordinateY: 64
+      coordinateX: 56, coordinateY: 36
     },
     {
-      id: 'parche-4', number: 4,
-      title: 'Credito', subtitle: 'Comunidades académicas',
+      id: 'parche-4', number: 5,
+      title: 'Infografia Credito', subtitle: 'Comunidades académicas',
       description: 'Visualizador con tres infografías para consultar crédito, gestión y beneficios.',
       type: 'drive-image',
       driveImagePreviewUrl: PARCHE_POINT_7_DRIVE_IMAGE_PREVIEW_URL,
@@ -705,7 +711,16 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
         },
       ],
       accentColor: '#FF2D55', extraTip: 'Los grupos por carrera son útiles para resolver dudas rápidas.',
-      coordinateX: 88, coordinateY: 36
+      coordinateX: 76, coordinateY: 66
+    },
+    {
+      id: 'parche-fima', number: 6,
+      title: 'Firma', subtitle: 'Video',
+      description: 'Video de cierre para la ruta CTAYUDA.',
+      type: 'drive-video',
+      driveVideoPreviewUrl: PARCHE_FIMA_DRIVE_VIDEO_PREVIEW_URL,
+      accentColor: '#00E5FF', extraTip: 'Revisa este cierre para completar la ruta CTAYUDA.',
+      coordinateX: 92, coordinateY: 38
     }
   ];
 
@@ -1000,7 +1015,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     {
       id: 'sinu',
       label: 'SINU',
-      icon: CunLogoTabIcon,
+      icon: GraduationCap,
       isLockedOption: true,
       drivePublicUrl: toGoogleDrivePublicViewUrl(SINU_POINT_1_DRIVE_VIDEO_PREVIEW_URL),
     },
