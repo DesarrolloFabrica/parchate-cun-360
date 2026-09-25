@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Mouse, MousePointerClick, Eye, Smartphone } from 'lucide-react';
 import { Viewer } from '@photo-sphere-viewer/core';
 import '@photo-sphere-viewer/core/index.css';
 import { VirtualTourPlugin } from '@photo-sphere-viewer/virtual-tour-plugin';
@@ -218,6 +219,43 @@ const normalizePanoramaUrlForCompare = (url: string) => {
 const isSamePanoramaUrl = (left: string, right: string) =>
   normalizePanoramaUrlForCompare(left) === normalizePanoramaUrlForCompare(right);
 
+// Aviso de controles: se muestra una sola vez por navegador (persiste en
+// localStorage), la primera vez que el usuario entra a CUALQUIER recorrido,
+// sin importar la sede que elija despues.
+const TOUR360_ONBOARDING_HINT_STORAGE_KEY = 'parchate-cun-tour360-onboarding-hint-seen';
+
+const hasSeenTour360OnboardingHint = (): boolean => {
+  try {
+    return window.localStorage.getItem(TOUR360_ONBOARDING_HINT_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+const markTour360OnboardingHintSeen = (): void => {
+  try {
+    window.localStorage.setItem(TOUR360_ONBOARDING_HINT_STORAGE_KEY, '1');
+  } catch {
+    // fallback silencioso: si localStorage no esta disponible, el aviso
+    // simplemente se repetira en la siguiente sesion.
+  }
+};
+
+// Dispositivo de puntero primario tipo touch (celular/tablet). Se usa para
+// mostrar el aviso de controles correcto (touch vs. mouse) y para acelerar
+// el movimiento de camara en PSV, que por defecto se siente lento al
+// arrastrar con el dedo.
+const isTouchPrimaryDevice = (): boolean => {
+  try {
+    return window.matchMedia('(pointer: coarse)').matches;
+  } catch {
+    return false;
+  }
+};
+
+/** @default 1 en PSV; en touch se siente lento, así que se sube un poco. */
+const TOUR360_TOUCH_MOVE_SPEED = 1.6;
+
 export const VirtualTour360: React.FC<VirtualTour360Props> = ({
   nodes: nodesProp,
   initialNodeId: initialNodeIdProp,
@@ -233,6 +271,13 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(initialNodeId ?? null);
   const [activeImagePopup, setActiveImagePopup] = useState<ImageMarkerPopup | null>(null);
   const [activeVideo, setActiveVideo] = useState<VideoMarkerPopup | null>(null);
+  const [showOnboardingHint, setShowOnboardingHint] = useState(() => !hasSeenTour360OnboardingHint());
+  const [isTouchPrimary] = useState(isTouchPrimaryDevice);
+
+  const dismissOnboardingHint = () => {
+    setShowOnboardingHint(false);
+    markTour360OnboardingHintSeen();
+  };
 
   useEffect(() => {
     if (!activeVideo) return;
@@ -249,6 +294,22 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
       window.removeEventListener('keydown', handleEscape);
     };
   }, [activeVideo]);
+
+  useEffect(() => {
+    if (!showOnboardingHint) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        dismissOnboardingHint();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [showOnboardingHint]);
 
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -460,6 +521,7 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
             ? ['zoom', 'move', 'markers', 'gallery', 'fullscreen']
             : ['zoom', 'move', 'fullscreen'],
           mousewheel: true,
+          moveSpeed: isTouchPrimary ? TOUR360_TOUCH_MOVE_SPEED : 1,
           size: {
             width: '100%',
             height: '100%',
@@ -727,7 +789,66 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
   return (
         <div className="relative h-full w-full bg-black">
           <div ref={containerRef} className="h-full w-full bg-black" />
-    
+
+          {showOnboardingHint && (
+            <div
+              className="tour-onboarding-hint"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Como controlar el recorrido 360"
+              onClick={dismissOnboardingHint}
+            >
+              <div
+                className="tour-onboarding-hint__panel"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <p className="tour-onboarding-hint__eyebrow">Bienvenido al recorrido 360°</p>
+
+                <ul className="tour-onboarding-hint__list">
+                  {isTouchPrimary ? (
+                    <>
+                      <li>
+                        <Smartphone className="tour-onboarding-hint__icon" aria-hidden="true" />
+                        <span>Desliza la pantalla con el dedo para girar la vista y desplazarte por el espacio.</span>
+                      </li>
+                      <li>
+                        <MousePointerClick className="tour-onboarding-hint__icon" aria-hidden="true" />
+                        <span>Toca las flechas para desplazarte de un lugar a otro.</span>
+                      </li>
+                      <li>
+                        <Eye className="tour-onboarding-hint__icon" aria-hidden="true" />
+                        <span>Mantén presionada una flecha para ver hacia dónde te vas a desplazar.</span>
+                      </li>
+                    </>
+                  ) : (
+                    <>
+                      <li>
+                        <Mouse className="tour-onboarding-hint__icon" aria-hidden="true" />
+                        <span>Usa el mouse para girar la pantalla y desplazarte por el espacio.</span>
+                      </li>
+                      <li>
+                        <MousePointerClick className="tour-onboarding-hint__icon" aria-hidden="true" />
+                        <span>Da click a las flechas para desplazarte de un lugar a otro.</span>
+                      </li>
+                      <li>
+                        <Eye className="tour-onboarding-hint__icon" aria-hidden="true" />
+                        <span>Haz hover sobre una flecha para ver hacia dónde te vas a desplazar.</span>
+                      </li>
+                    </>
+                  )}
+                </ul>
+
+                <button
+                  type="button"
+                  className="tour-onboarding-hint__cta"
+                  onClick={dismissOnboardingHint}
+                >
+                  Entendido, comenzar recorrido
+                </button>
+              </div>
+            </div>
+          )}
+
           <HudGlassModal
             isOpen={Boolean(activeVideo)}
             onClose={() => setActiveVideo(null)}

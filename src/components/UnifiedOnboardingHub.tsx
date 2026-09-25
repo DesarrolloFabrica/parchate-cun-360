@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Building, Monitor, FileText, LifeBuoy, Users, Heart, 
   Play, ExternalLink, ArrowRight, Clock, Calendar, HelpCircle, 
-  MapPin, Compass, GraduationCap, ChevronRight, Eye, ChevronLeft, Lock, Check
+  MapPin, Compass, ChevronRight, Eye, ChevronLeft, Lock, Check
 } from 'lucide-react';
 import lottie from 'lottie-web/build/player/lottie_light';
 import { DEFAULT_HUB_TAB, isHubTab, type HubTab } from '../navigation';
@@ -100,10 +100,15 @@ interface CalendarActivity {
 interface HubTabDefinition {
   id: HubTab;
   label: string;
-  icon: typeof Compass;
+  icon: React.ComponentType<{ className?: string }>;
   isLockedOption: boolean;
   drivePublicUrl?: string;
 }
+
+/** Logo oficial CUN (public/panoramas/iconos/Logo.svg) usado como icono de pestaña. */
+const CunLogoTabIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <img src="/panoramas/iconos/Logo.svg" alt="" className={className} />
+);
 
 interface UnifiedOnboardingHubProps {
 }
@@ -178,6 +183,7 @@ const AnimatedEarthIcon: React.FC<{ className?: string }> = ({ className }) => {
 // Para videos de Google Drive usar formato:
 // https://drive.google.com/file/d/ID_DEL_ARCHIVO/preview
 // El archivo debe estar compartido como "Cualquier persona con el enlace puede ver".
+const CUN360_INTRO_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1KVw_e2FlsG4E-KAzx1mRDdtQ11BtbVEd/preview';
 const CUN360_POINT_1_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1EUFET7nY21WuybYa6INnEPw-7ja1ul8h/preview';
 
 // Para imágenes de Google Drive:
@@ -381,27 +387,20 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     setTourMapMessage(null);
   };
 
-  // 9 Stations for CUN 360 (Physical Campus Track)
+  // 8 Stations for CUN 360 (Physical Campus Track)
   const cun360Stations: Station[] = [
     {
       id: 'c360-1', number: 1,
-      title: 'Consulta', subtitle: 'Consulta inicial',
-      description: 'Visualizador de infografía para iniciar la ruta CUN 360.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
-      driveImageSlides: [
-        {
-          title: 'Infografía CUN 360',
-          driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
-          alt: 'Infografía CUN 360 estación 1',
-        },
-      ],
+      title: 'Introduccion CUN 360', subtitle: 'Video introductorio',
+      description: 'Video introductorio para iniciar la ruta CUN 360.',
+      type: 'drive-video',
+      driveVideoPreviewUrl: CUN360_INTRO_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#9BFF00', extraTip: 'El carnet digital es obligatorio para ingresar de forma veloz al campus.',
       coordinateX: 8, coordinateY: 68
     },
     {
       id: 'c360-2', number: 2,
-      title: 'Financiera - Video de informacion financiera', subtitle: 'Orientación CUN 360',
+      title: 'Video', subtitle: 'Orientación CUN 360',
       description: 'Video de orientación para reconocer la ruta y sus contenidos principales.',
       type: 'drive-video',
       driveVideoPreviewUrl: CUN360_POINT_1_DRIVE_VIDEO_PREVIEW_URL,
@@ -410,85 +409,89 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     },
     {
       id: 'c360-3', number: 3,
-      title: 'Notas - Historico de notas y promedio total', subtitle: 'Video tutorial',
-      description: 'Video guía para consultar horarios dentro de CUN 360.',
-      type: 'drive-video',
-      driveVideoPreviewUrl: CUN360_POINT_3_DRIVE_VIDEO_PREVIEW_URL,
+      title: 'Consulta', subtitle: 'Slider de infografías',
+      description: 'Visualizador con dos infografías para consulta dentro de CUN 360.',
+      type: 'drive-image',
+      driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
+      driveImageSlides: [
+        {
+          title: 'Consulta 1',
+          driveImagePreviewUrl: CUN360_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
+          alt: 'Infografía CUN 360 consulta 1',
+        },
+        {
+          title: 'Consulta 2',
+          driveImagePreviewUrl: CUN360_POINT_5_DRIVE_VIDEO_PREVIEW_URL,
+          alt: 'Infografía CUN 360 consulta 2',
+        },
+      ],
       accentColor: '#FF9500', coordinateX: 32, coordinateY: 66
     },
     {
       id: 'c360-4', number: 4,
-      title: 'Horario 360', subtitle: 'Video',
-      description: 'Visualizador de video para consultar Horario 360.',
+      title: 'Notas', subtitle: 'Video',
+      description: 'Video guía para consultar notas dentro de CUN 360.',
       type: 'drive-video',
-      driveVideoPreviewUrl: CUN360_POINT_3_DRIVE_AUDIO_PREVIEW_URL,
+      driveVideoPreviewUrl: CUN360_POINT_3_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#FF2D55', extraTip: 'Inscríbete gratis los primeros 10 días hábiles del semestre.',
       coordinateX: 45, coordinateY: 42
     },
     {
       id: 'c360-5', number: 5,
-      title: 'Notas y promedio', subtitle: 'Infografía',
-      description: 'Visualizador de infografía para consultar notas y promedio.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CUN360_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
-      driveImageSlides: [
-        {
-          title: 'Notas y promedio',
-          driveImagePreviewUrl: CUN360_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
-          alt: 'Infografía CUN 360 notas y promedio',
-        },
-      ],
+      title: 'Horario Academico', subtitle: 'Video',
+      description: 'Video guía para consultar el horario académico.',
+      type: 'drive-video',
+      driveVideoPreviewUrl: CUN360_POINT_5_UPDATED_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#5856D6', extraTip: 'Evita perder materias por fallas, tu asistencia cuenta en la nota virtual.',
       coordinateX: 58, coordinateY: 70
     },
     {
       id: 'c360-6', number: 6,
-      title: 'Horario - Consulta de horario academico', subtitle: 'Video tutorial',
-      description: 'Video guía para consultar información financiera.',
-      type: 'drive-video',
-      driveVideoPreviewUrl: CUN360_POINT_5_UPDATED_DRIVE_VIDEO_PREVIEW_URL,
-      accentColor: '#007AFF', coordinateX: 68, coordinateY: 36
+      title: 'Horario y Notas', subtitle: 'Slider de infografías + podcast',
+      description: 'Visualizador con dos infografías y podcast de apoyo para horario y notas.',
+      type: 'drive-pdf-audio',
+      drivePdfPreviewUrl: CUN360_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
+      driveDocumentSlides: [
+        {
+          title: 'Horario',
+          drivePdfPreviewUrl: CUN360_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
+          alt: 'Infografía CUN 360 horario',
+        },
+        {
+          title: 'Notas',
+          drivePdfPreviewUrl: CUN360_POINT_3_DRIVE_PDF_PREVIEW_URL,
+          alt: 'Infografía CUN 360 notas',
+        },
+      ],
+      driveAudioUrl: CUN360_POINT_3_DRIVE_AUDIO_URL,
+      driveAudioPreviewUrl: CUN360_POINT_3_DRIVE_AUDIO_PREVIEW_URL,
+      audioTitle: 'Podcast',
+      accentColor: '#007AFF', coordinateX: 70, coordinateY: 34
     },
     {
       id: 'c360-7', number: 7,
-      title: 'Panel financiero', subtitle: 'Infografía',
-      description: 'Infografía para consultar asignaturas dentro de CUN 360.',
-      type: 'drive-image',
-      driveImagePreviewUrl: CUN360_POINT_5_DRIVE_VIDEO_PREVIEW_URL,
-      driveImageSlides: [
-        {
-          title: 'Consulta de asignaturas',
-          driveImagePreviewUrl: CUN360_POINT_5_DRIVE_VIDEO_PREVIEW_URL,
-          alt: 'Infografía CUN 360 consulta de asignaturas',
-        },
-      ],
+      title: 'Servicios y links de interes', subtitle: 'Video',
+      description: 'Video guía para revisar servicios y links de interés.',
+      type: 'drive-video',
+      driveVideoPreviewUrl: CUN360_POINT_7_DRIVE_VIDEO_PREVIEW_URL,
       accentColor: '#AF52DE', extraTip: 'Revisa periódicamente tus novedades académicas.',
       coordinateX: 78, coordinateY: 62
     },
     {
       id: 'c360-8', number: 8,
-      title: 'Links de interes', subtitle: 'Video tutorial',
-      description: 'Video guía para continuar el seguimiento de procesos académicos.',
-      type: 'drive-video',
-      driveVideoPreviewUrl: CUN360_POINT_7_DRIVE_VIDEO_PREVIEW_URL,
-      accentColor: '#FFCC00', extraTip: 'Guarda los enlaces relevantes para consultarlos durante el semestre.',
-      coordinateX: 88, coordinateY: 38
-    },
-    {
-      id: 'c360-9', number: 9,
-      title: 'Servicios', subtitle: 'Infografía final',
-      description: 'Infografía final de apoyo para cerrar la ruta CUN 360.',
+      title: 'Servicios infografia', subtitle: 'Infografía',
+      description: 'Infografía de servicios para cerrar la ruta CUN 360.',
       type: 'drive-image',
       driveImagePreviewUrl: CUN360_POINT_8_DRIVE_IMAGE_PREVIEW_URL,
       driveImageSlides: [
         {
-          title: 'Servicios',
+          title: 'Servicios infografia',
           driveImagePreviewUrl: CUN360_POINT_8_DRIVE_IMAGE_PREVIEW_URL,
           alt: 'Infografía CUN 360 servicios',
         },
       ],
       accentColor: '#00E5FF', extraTip: 'Guarda esta información como referencia durante el semestre.',
-      coordinateX: 96, coordinateY: 68
+      coordinateX: 94, coordinateY: 32
     }
   ];
 
@@ -997,7 +1000,7 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
     {
       id: 'sinu',
       label: 'SINU',
-      icon: GraduationCap,
+      icon: CunLogoTabIcon,
       isLockedOption: true,
       drivePublicUrl: toGoogleDrivePublicViewUrl(SINU_POINT_1_DRIVE_VIDEO_PREVIEW_URL),
     },

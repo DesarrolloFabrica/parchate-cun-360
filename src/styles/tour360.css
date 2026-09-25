@@ -145,3 +145,119 @@
     animation: none;
   }
 }
+
+/* —— Aviso de controles (primera vez que se abre un recorrido) —— */
+.tour-onboarding-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: radial-gradient(circle at 50% 32%, rgba(2, 6, 23, 0.38), rgba(2, 6, 23, 0.74));
+  backdrop-filter: blur(2px);
+  animation: tourOnboardingHintFadeIn 0.35s ease both;
+  cursor: pointer;
+}
+
+.tour-onboarding-hint__panel {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px 22px 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.94), rgba(2, 6, 23, 0.96));
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  text-align: left;
+  cursor: default;
+}
+
+.tour-onboarding-hint__eyebrow {
+  margin: 0 0 14px;
+  color: #9bff00;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tour-onboarding-hint__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.tour-onboarding-hint__list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.tour-onboarding-hint__icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  color: #9bff00;
+}
+
+.tour-onboarding-hint__cta {
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #9bff00;
+  color: #06130d;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.tour-onboarding-hint__cta:hover,
+.tour-onboarding-hint__cta:focus-visible {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+@keyframes tourOnboardingHintFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .tour-onboarding-hint {
+    padding: 14px;
+  }
+
+  .tour-onboarding-hint__panel {
+    padding: 16px;
+  }
+
+  .tour-onboarding-hint__list li {
+    font-size: 12px;
+  }
+}
