@@ -859,9 +859,12 @@
     min-width: 0;
   }
 
-  /* ---- Videos: en móvil solo el reproductor, a todo el ancho y en 16:9 ----
-     Todos los videos son horizontales; en la caja vertical que quedaba antes
-     el reproductor de Drive los recortaba. */
+  /* ---- Videos: en móvil solo el reproductor, a todo el ancho ----
+     Todos los videos son horizontales (16:9). Al reproducir, el reproductor
+     móvil de Drive reserva una barra de 56 px arriba (progreso y botón de
+     abrir), dibuja el video debajo a todo el ancho y sus controles (pausa,
+     volumen, pantalla completa) sobresalen ~40 px por debajo del video; por
+     eso la caja mide 16:9 + 100 px. Con solo 16:9 el video quedaba cortado. */
   .hud-glass-modal__panel.hud-glass-modal__panel--roadmap.hud-glass-modal__panel--roadmap-drive-video {
     height: auto;
   }
@@ -872,6 +875,7 @@
   }
 
   .hud-glass-modal__media:has(> .lazy-media--media) {
+    container-type: inline-size;
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -881,10 +885,10 @@
   .hud-glass-modal__media > .lazy-media--media {
     flex: 0 0 auto !important;
     width: 100% !important;
-    height: auto !important;
+    height: calc(100cqw * 9 / 16 + 100px) !important;
     min-height: 0 !important;
     max-height: none !important;
-    aspect-ratio: 16 / 9 !important;
+    aspect-ratio: auto !important;
     border-radius: 0 !important;
   }
 
