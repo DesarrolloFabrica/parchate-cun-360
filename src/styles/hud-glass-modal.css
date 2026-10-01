@@ -858,6 +858,95 @@
   .hud-glass-modal__panel--roadmap .hud-glass-modal__audio-copy {
     min-width: 0;
   }
+
+  /* ---- Videos: en móvil solo el reproductor, a todo el ancho y en 16:9 ----
+     Todos los videos son horizontales; en la caja vertical que quedaba antes
+     el reproductor de Drive los recortaba. */
+  .hud-glass-modal__panel.hud-glass-modal__panel--roadmap.hud-glass-modal__panel--roadmap-drive-video {
+    height: auto;
+  }
+
+  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__content--iframe {
+    height: auto;
+    padding: 0;
+  }
+
+  .hud-glass-modal__media:has(> .lazy-media--media) {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .hud-glass-modal__media > .lazy-media--media {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    aspect-ratio: 16 / 9 !important;
+    border-radius: 0 !important;
+  }
+
+  /* ---- Documentos e infografías: aprovechar todo el ancho ---- */
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__media--iframe,
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__media--drive-image,
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__media--pdf-audio {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .hud-glass-modal__panel.hud-glass-modal__panel--roadmap.hud-glass-modal__panel--roadmap-drive-image .hud-glass-modal__media--drive-image,
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__media--drive-image {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+
+  /* Flechas y contador del carrusel en una fila propia bajo el visor, para no
+     tapar la infografía. */
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__drive-slider:has(.hud-glass-modal__drive-slider-button) {
+    padding-bottom: 46px;
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__drive-slider-button {
+    top: auto;
+    bottom: 4px;
+    width: 38px;
+    height: 38px;
+    transform: none;
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__drive-slider-button--prev {
+    left: calc(50% - 92px);
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__drive-slider-button--next {
+    right: calc(50% - 92px);
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__drive-slider-counter {
+    bottom: 14px;
+  }
+
+  /* Podcast: alto suficiente para que se vean los controles del reproductor. */
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__podcast-compact--mini {
+    width: 100%;
+    max-height: none;
+  }
+
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__podcast-compact--mini .hud-glass-modal__podcast-iframe {
+    height: 150px;
+  }
+
+  /* El marco blanco solo tiene sentido detrás de un PDF; con la fila de
+     flechas debajo quedaba una franja blanca. */
+  .hud-glass-modal__panel--roadmap .hud-glass-modal__pdf-audio-frame {
+    background: transparent;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

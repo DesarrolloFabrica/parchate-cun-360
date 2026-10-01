@@ -21,7 +21,7 @@ import { neivaSedeATourConfig } from './tours/neiva-sede-a';
 import { santaMartaSedeATourConfig } from './tours/santa-marta-sede-a';
 import { sincelejoSedeATourConfig } from './tours/sincelejo-sede-a';
 import { createPlaceholderTourConfig } from './tours/createPlaceholderTour';
-import { KNOWN_GOOD_PLACEHOLDER_PANORAMA } from './panoramaUrls';
+import { getPanoramaThumbnailUrl, KNOWN_GOOD_PLACEHOLDER_PANORAMA } from './panoramaUrls';
 
 const bogotaPlaceholderTours = [3, 4, 5, 6, 7, 8].map((sedeNumber) =>
   createPlaceholderTourConfig({
@@ -52,12 +52,12 @@ export const getTour360ConfigById = (tourConfigId: string): Tour360Config | null
 };
 
 export const getTour360ConfigThumbnail = (config: Tour360Config): string => {
-  if (config.thumbnail) return config.thumbnail;
+  if (config.thumbnail) return getPanoramaThumbnailUrl(config.thumbnail);
 
   const startNode =
     config.nodes.find((node) => node.id === config.startNodeId) ?? config.nodes[0];
 
-  return startNode?.thumbnail ?? startNode?.panorama ?? KNOWN_GOOD_PLACEHOLDER_PANORAMA;
+  return getPanoramaThumbnailUrl(startNode?.thumbnail ?? startNode?.panorama ?? KNOWN_GOOD_PLACEHOLDER_PANORAMA);
 };
 
 export type { Tour360Campus, Tour360Config, Tour360Link, Tour360Location, Tour360Node } from './types';
@@ -66,6 +66,7 @@ export {
   DEPLOY_FALLBACK_PANORAMA,
   KNOWN_GOOD_PLACEHOLDER_PANORAMA,
   getBundledPanoramaUrl,
+  getPanoramaThumbnailUrl,
   getPublicPanoramaUrl,
   getPublicTourPanoramaUrl,
   resolveLegacyPanoramaUrl,

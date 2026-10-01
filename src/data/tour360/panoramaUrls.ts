@@ -37,9 +37,11 @@ const PUBLIC_PANORAMA_ALIASES: Record<string, string> = {
   '5SA.png': 'Sede_A_optimized/5SA.jpg',
   '6SA.png': 'Sede_A_optimized/6SA.jpg',
   'Sede_A/LobbySA.png': 'Sede_A_optimized/LobbySA.jpg',
-  'MARCO.png': 'iconos/MARCO.png',
-  'AS.png': 'iconos/AS.png',
-  'iconos/alizon.png': 'iconos/alizon.png',
+  // WebP reducidos (~70 KB) de los PNG originales (~3 MB). Regenerar con:
+  // npx sharp-cli@5 -i public/panoramas/iconos/X.png -o public/panoramas/iconos_optimized/X.webp -f webp -q 82 resize 1400 1400 --fit inside --withoutEnlargement
+  'MARCO.png': 'iconos_optimized/MARCO.webp',
+  'AS.png': 'iconos_optimized/AS.webp',
+  'iconos/alizon.png': 'iconos_optimized/alizon.webp',
   'sede_test.png': 'test_optimized/sede_test.jpg',
 };
 
@@ -85,6 +87,26 @@ export function getBundledPanoramaUrl(assetPath: string): string | null {
   const normalizedPath = normalizeAssetPath(assetPath);
   const moduleKey = `../../assets/imagenes/${normalizedPath}`;
   return bundledImageModules[moduleKey] ?? null;
+}
+
+/**
+ * Miniatura liviana (512 px, JPG) de un panorama de public/panoramas/.
+ * Las genera `scripts/generate-panorama-thumbs.ps1` en public/panoramas/_thumbs/.
+ * Para URLs fuera de public/panoramas/ devuelve la URL original.
+ */
+export function getPanoramaThumbnailUrl(panoramaUrl: string): string {
+  if (!panoramaUrl.startsWith(PANORAMA_PUBLIC_ROOT)) return panoramaUrl;
+
+  const relativePath = panoramaUrl.slice(PANORAMA_PUBLIC_ROOT.length).split(/[?#]/)[0];
+  if (relativePath.startsWith('_thumbs/')) return panoramaUrl;
+
+  const segments = relativePath.split('/').map((segment) => decodeURIComponent(segment));
+  const fileName = segments.pop() ?? '';
+  const extensionMatch = fileName.match(/^(.*)\.(png|jpe?g|webp)$/i);
+  if (!extensionMatch) return panoramaUrl;
+
+  const thumbName = `${extensionMatch[1]}_${extensionMatch[2].toLowerCase()}.jpg`;
+  return `${PANORAMA_PUBLIC_ROOT}_thumbs/${[...segments, thumbName].map((segment) => encodeURIComponent(segment)).join('/')}`;
 }
 
 /** URL estable en public/panoramas/ (codifica espacios y caracteres especiales por segmento). */

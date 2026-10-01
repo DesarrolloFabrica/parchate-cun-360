@@ -1,0 +1,164 @@
+/* Visor de documentos/infografías con controles propios (DocumentViewer.tsx). */
+.doc-viewer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.doc-viewer--pdf {
+  background: #ffffff;
+}
+
+.doc-viewer:fullscreen {
+  border-radius: 0;
+  background: #020617;
+}
+
+.doc-viewer--pdf:fullscreen {
+  background: #ffffff;
+}
+
+.doc-viewer__toolbar {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 6px 8px;
+  background: rgba(2, 6, 23, 0.88);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.doc-viewer__separator {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.doc-viewer__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.doc-viewer__button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.doc-viewer__button:hover:not(:disabled),
+.doc-viewer__button:focus-visible {
+  border-color: #9bff00;
+  background: rgba(155, 255, 0, 0.14);
+}
+
+.doc-viewer__button:focus-visible,
+.doc-viewer__viewport:focus-visible {
+  outline: 2px solid #9bff00;
+  outline-offset: 2px;
+}
+
+.doc-viewer__button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.doc-viewer__zoom-value {
+  min-width: 56px;
+}
+
+.doc-viewer__viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.doc-viewer__viewport:focus-visible {
+  outline-offset: -2px;
+}
+
+.doc-viewer__viewport--pannable {
+  cursor: grab;
+  touch-action: pan-x pan-y;
+}
+
+.doc-viewer__viewport--pannable:active {
+  cursor: grabbing;
+}
+
+.doc-viewer__canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.doc-viewer__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  user-select: none;
+}
+
+.doc-viewer__scaled {
+  transform-origin: 0 0;
+}
+
+.doc-viewer__frame {
+  width: 100%;
+  height: 100%;
+}
+
+/* En móvil la imagen se ajusta al ancho y se desplaza verticalmente: las
+   infografías son altas y, ajustadas a la pantalla completa, quedaban ilegibles. */
+@media (max-width: 768px) {
+  .doc-viewer--image .doc-viewer__canvas {
+    display: flex;
+    align-items: center;
+    height: auto !important;
+    min-height: 100%;
+  }
+
+  .doc-viewer--image .doc-viewer__image {
+    height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .doc-viewer__toolbar {
+    justify-content: center;
+    gap: 2px;
+    padding: 4px;
+  }
+
+  .doc-viewer__button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 6px;
+  }
+}

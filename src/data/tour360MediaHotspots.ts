@@ -1,4 +1,5 @@
 import type { MarkerConfig } from '@photo-sphere-viewer/markers-plugin';
+import { getDriveThumbnailUrl } from '../utils/driveMedia';
 
 type Tour360MediaHotspot = {
   id: string;
@@ -88,7 +89,12 @@ const escapeHtmlText = (value: string) => {
     .replace(/>/g, '&gt;');
 };
 
+// La vista previa del hotspot es una miniatura estática: antes era un iframe de
+// Drive por hotspot, lo que cargaba varios reproductores completos a la vez
+// dentro del panorama. El reproductor real solo se monta al abrir el modal.
 const createVideoHotspotHtml = (hotspot: Tour360MediaHotspot) => {
+  const thumbnailUrl = getDriveThumbnailUrl(hotspot.iframeSrc, 480);
+
   return `
     <div
       class="tour-video-hotspot"
@@ -100,13 +106,16 @@ const createVideoHotspotHtml = (hotspot: Tour360MediaHotspot) => {
       data-video-description="${escapeHtmlAttribute(hotspot.description)}"
       data-video-type="${escapeHtmlAttribute(hotspot.type)}"
     >
-      <iframe
+      ${thumbnailUrl ? `
+      <img
         class="tour-video-hotspot__video"
-        src="${escapeHtmlAttribute(hotspot.iframeSrc)}"
-        title="${escapeHtmlAttribute(hotspot.title)}"
-        allow="autoplay; fullscreen"
-        allowfullscreen
-      ></iframe>
+        src="${escapeHtmlAttribute(thumbnailUrl)}"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        referrerpolicy="no-referrer"
+        onerror="this.remove()"
+      />` : ''}
 
       <span class="tour-video-hotspot__overlay">
         <span class="tour-video-hotspot__zoom-icon" aria-hidden="true"></span>

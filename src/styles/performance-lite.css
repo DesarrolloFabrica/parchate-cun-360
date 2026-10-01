@@ -1,0 +1,29 @@
+/* Modo liviano: se activa desde src/utils/performanceMode.ts cuando no hay
+   aceleración gráfica (o en equipos de pocos recursos), y también para
+   quienes piden menos movimiento en su sistema operativo. */
+
+.perf-lite *,
+.perf-lite *::before,
+.perf-lite *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Brillos decorativos (círculos con filtro blur grande): muy costosos sin GPU. */
+.perf-lite .rounded-full[class*='blur-']:not([class*='backdrop-blur']) {
+  display: none !important;
+}
+
+.perf-lite .animate-pulse,
+.perf-lite .animate-ping,
+.perf-lite .animate-bounce {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce {
+    animation: none !important;
+  }
+}

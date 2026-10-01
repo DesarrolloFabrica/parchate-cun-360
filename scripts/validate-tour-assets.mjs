@@ -26,6 +26,9 @@ const REQUIRED_PUBLIC_FILES = [
   'public/panoramas/Sede_A_optimized/6SA.jpg',
   'public/panoramas/Sede_A_optimized/LobbySA.jpg',
   'public/panoramas/iconos/MARCO.png',
+  'public/panoramas/iconos_optimized/MARCO.webp',
+  'public/panoramas/iconos_optimized/AS.webp',
+  'public/panoramas/iconos_optimized/alizon.webp',
   'public/panoramas/iconos/AS.png',
   'public/panoramas/iconos/alizon.png',
   'public/panoramas/Sede_Test.png',
@@ -263,7 +266,30 @@ function validateTourDataImports() {
   }
 }
 
+function validatePanoramaThumbnails() {
+  const panoramasDir = path.join(rootDir, 'public/panoramas');
+  const skippedDirs = new Set(['_thumbs', 'iconos', 'iconos_optimized', 'maps']);
+
+  for (const relativePath of REQUIRED_PUBLIC_FILES) {
+    if (!relativePath.startsWith('public/panoramas/')) continue;
+
+    const panoramaRelative = relativePath.slice('public/panoramas/'.length);
+    if (skippedDirs.has(panoramaRelative.split('/')[0])) continue;
+
+    const match = panoramaRelative.match(/^(.*)\.(png|jpe?g|webp)$/i);
+    if (!match) continue;
+
+    const thumbRelative = `_thumbs/${match[1]}_${match[2].toLowerCase()}.jpg`;
+    if (!fs.existsSync(path.join(panoramasDir, thumbRelative))) {
+      warnings.push(
+        `Falta miniatura public/panoramas/${thumbRelative} (ejecutar scripts/generate-panorama-thumbs.ps1)`,
+      );
+    }
+  }
+}
+
 validatePublicAssets();
+validatePanoramaThumbnails();
 validateSourcePatterns();
 validateMapSelectorIndependence();
 validateTourDataImports();

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeftRight, Volume2, SkipForward, Tv, Maximize2, X } from "lucide-react";
+import { LazyMediaEmbed } from "./LazyMediaEmbed";
 
 // ==========================================================================
 // CONFIGURACIÓN DE FOTOS DE INTRO PREESTABLECIDAS (CUN ONBOARDING)
@@ -158,13 +159,13 @@ export const IntroLoader: React.FC = () => {
                     </div>
 
                     <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-[0_0_30px_rgba(0,255,102,0.15)] ring-1 ring-[#00ff66]/30 transition-all duration-300">
-                      <div className="absolute inset-0 bg-black/10 mix-blend-color-burn z-10 pointer-events-none rounded-2xl" />
-                      <iframe
+                      {/* El video (270 MB en Drive) solo se carga si el usuario lo pide: no frena la entrada a la página. */}
+                      <LazyMediaEmbed
                         className="absolute inset-0 h-full w-full rounded-2xl"
                         src={googleDriveIntroVideoPreview}
                         title="Video de introducción"
-                        allow="autoplay; fullscreen"
-                        allowFullScreen
+                        mode="facade"
+                        facadeLabel="Ver video de bienvenida"
                       />
                     </div>
 

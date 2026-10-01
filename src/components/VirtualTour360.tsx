@@ -13,6 +13,7 @@ import '@photo-sphere-viewer/gallery-plugin/index.css';
 import '../styles/tour360.css';
 import '../styles/tour360-hotspots.css';
 import { HudGlassModal } from './HudGlassModal';
+import { LazyMediaEmbed } from './LazyMediaEmbed';
 
 import {
   TOUR360_START_NODE_ID,
@@ -22,6 +23,7 @@ import {
 } from '../data/tour360Nodes';
 import {
   DEPLOY_FALLBACK_PANORAMA,
+  getPanoramaThumbnailUrl,
   KNOWN_GOOD_PLACEHOLDER_PANORAMA,
   type Tour360Campus,
   type Tour360Config,
@@ -381,7 +383,10 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
         return {
           ...node,
           panorama: patchedPanorama,
-          thumbnail: nodePanoramaFailed ? fallbackPanorama : node.thumbnail ?? patchedPanorama,
+          // Galeria y tooltips usan la miniatura liviana, no el panorama completo.
+          thumbnail: getPanoramaThumbnailUrl(
+            nodePanoramaFailed ? fallbackPanorama : node.thumbnail ?? patchedPanorama,
+          ),
           links: node.links?.map((link) => {
             const destination = nodes.find((candidate) => candidate.id === link.nodeId);
             const destinationFailed = destination
@@ -864,12 +869,10 @@ export const VirtualTour360: React.FC<VirtualTour360Props> = ({
             )}
             {activeVideo && (
               <div className="hud-glass-modal__media">
-                <iframe
+                <LazyMediaEmbed
                   className="hud-glass-modal__iframe"
                   src={activeVideo.iframeSrc}
                   title={activeVideo.title}
-                  allow="autoplay; fullscreen"
-                  allowFullScreen
                 />
               </div>
             )}

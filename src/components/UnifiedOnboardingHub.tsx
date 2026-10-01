@@ -1,17 +1,18 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Building, Monitor, FileText, LifeBuoy, Users, Heart, 
   Play, ExternalLink, ArrowRight, Clock, Calendar, HelpCircle, 
   MapPin, Compass, GraduationCap, ChevronRight, Eye, ChevronLeft, Lock, Check
 } from 'lucide-react';
-import lottie from 'lottie-web/build/player/lottie_light';
 import { DEFAULT_HUB_TAB, isHubTab, type HubTab } from '../navigation';
 import { useSearchParams } from 'react-router-dom';
-import VirtualTour360 from './VirtualTour360';
 import { TourMapSelector } from './TourMapSelector';
 import { ColombiaMapSvg } from './ColombiaMapSvg';
 import { HudGlassModal } from './HudGlassModal';
+import { LazyMediaEmbed } from './LazyMediaEmbed';
+import { DocumentViewer } from './DocumentViewer';
+import { getDriveFileId } from '../utils/driveMedia';
 import { RoadmapView } from './RoadmapView';
 import { getTour360ConfigById, tourLocations, type Tour360Campus } from '../data/tour360Locations';
 import { getMapCityPins } from '../data/sedes';
@@ -21,6 +22,10 @@ import { useActiveSede } from '../hooks/useActiveSede';
 import { tour360Nodes } from '../data/tour360Nodes';
 import EarthAnimation from '../assets/lottie/Earth.json';
 import '../styles/hub-tabs.css';
+
+// El visor 360 (Photo Sphere Viewer + three.js) es la dependencia más pesada:
+// se descarga solo cuando el usuario entra a un recorrido.
+const VirtualTour360 = lazy(() => import('./VirtualTour360'));
 
 type StationType = 'video' | 'pdf' | 'infografia' | 'drive-video' | 'drive-image' | 'drive-pdf' | 'drive-pdf-audio';
 
@@ -148,21 +153,30 @@ const AnimatedEarthIcon: React.FC<{ className?: string }> = ({ className }) => {
   const containerRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    const animation = lottie.loadAnimation({
-      container: containerRef.current,
-      renderer: 'svg',
-      loop: true,
-      autoplay: true,
-      animationData: EarthAnimation as object,
-      rendererSettings: {
-        preserveAspectRatio: 'xMidYMid meet',
-      },
+    // lottie (~170 KB) se descarga aparte para no frenar la carga inicial.
+    let disposed = false;
+    let animation: { destroy: () => void } | null = null;
+
+    import('lottie-web/build/player/lottie_light').then(({ default: lottie }) => {
+      if (disposed) return;
+      animation = lottie.loadAnimation({
+        container,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: EarthAnimation as object,
+        rendererSettings: {
+          preserveAspectRatio: 'xMidYMid meet',
+        },
+      });
     });
 
     return () => {
-      animation.destroy();
+      disposed = true;
+      animation?.destroy();
     };
   }, []);
 
@@ -251,6 +265,22 @@ const SINU_POINT_3_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1B
 const SINU_POINT_4_DRIVE_VIDEO_PREVIEW_URL = 'https://drive.google.com/file/d/1bn3q-AxamR_GB7fynPFlkoF7IU7f61bg/preview';
 const SINU_POINT_5_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1TXZ3dEqeA3fQHvpD4uo35y0et3vKbRhh/preview';
 const SINU_POINT_6_DRIVE_IMAGE_PREVIEW_URL = 'https://drive.google.com/file/d/1Kt9eWVWNG5xR3yCutAWh2CTfa57aoqK8/preview';
+
+// Archivos de Drive que son PDF (pueden tener varias páginas): se muestran con
+// el visor de Drive. El resto de documentos/infografías son imágenes JPG/PNG
+// (aunque estén en campos "pdf") y se muestran como imagen con zoom propio.
+// Al agregar un PDF nuevo, inclúyelo aquí.
+const DRIVE_PDF_FILE_IDS = new Set(
+  [
+    CUN360_POINT_6_DRIVE_IMAGE_PREVIEW_URL,
+    CDIGITAL_POINT_4_DRIVE_IMAGE_PREVIEW_URL,
+    CDIGITAL_POINT_7_DRIVE_IMAGE_PREVIEW_URL,
+    CAMI_POINT_2_DRIVE_IMAGE_PREVIEW_URL,
+  ].map(getDriveFileId),
+);
+
+const getDriveDocumentKind = (url: string | undefined): 'image' | 'pdf' =>
+  DRIVE_PDF_FILE_IDS.has(getDriveFileId(url)) ? 'pdf' : 'image';
 
 export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -1453,11 +1483,19 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                     </div>
 
                     <div className="tour-viewer-scaled">
-                      <VirtualTour360
-                        key={selectedCampus.id}
-                        tourConfig={activeTourConfig}
-                        selectedCampus={selectedCampus}
-                      />
+                      <Suspense
+                        fallback={
+                          <div className="flex h-full min-h-[320px] items-center justify-center text-xs font-semibold text-white/70">
+                            Cargando recorrido 360…
+                          </div>
+                        }
+                      >
+                        <VirtualTour360
+                          key={selectedCampus.id}
+                          tourConfig={activeTourConfig}
+                          selectedCampus={selectedCampus}
+                        />
+                      </Suspense>
                     </div>
 
                     <div className="pointer-events-none absolute left-3 bottom-14 z-30 hidden max-w-[15rem] items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-sm md:flex">
@@ -1805,39 +1843,24 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                 )}
 
                 {activePopupStation.type === 'drive-video' && activePopupStation.driveVideoPreviewUrl && (
-                  <iframe
+                  <LazyMediaEmbed
                     src={activePopupStation.driveVideoPreviewUrl}
                     title={activePopupStation.title}
                     className="hud-glass-modal__iframe"
-                    allow="autoplay; fullscreen"
-                    allowFullScreen
                   />
                 )}
 
                 {activePopupStation.type === 'drive-image' && activeDriveImageSlide && (
                   <div className="hud-glass-modal__drive-slider">
                     <div className="hud-glass-modal__drive-slider-frame">
-                      {activeDriveImageSlide.driveImageUrl && (
-                        <img
-                          key={`drive-slide-img-${activePopupStation.id}-${activeDriveImageSlideIndex}-${activeDriveImageSlide.driveImageUrl}`}
-                          src={activeDriveImageSlide.driveImageUrl}
-                          alt={activeDriveImageSlide.alt ?? activeDriveImageSlide.title ?? activePopupStation.title}
-                          className="hud-glass-modal__image"
-                          onError={(event) => {
-                            event.currentTarget.classList.add('hidden');
-                            event.currentTarget.nextElementSibling?.classList.remove('hidden');
-                          }}
-                        />
-                      )}
-                      {activeDriveImageSlide.driveImagePreviewUrl && (
-                        <iframe
-                          key={`drive-slide-iframe-${activePopupStation.id}-${activeDriveImageSlideIndex}-${activeDriveImageSlide.driveImagePreviewUrl}`}
-                          src={activeDriveImageSlide.driveImagePreviewUrl}
-                          title={activeDriveImageSlide.title ?? activePopupStation.title}
-                          className={`${activeDriveImageSlide.driveImageUrl ? 'hidden ' : ''}hud-glass-modal__iframe`}
-                          allow="autoplay"
-                        />
-                      )}
+                      <DocumentViewer
+                        key={`drive-slide-${activePopupStation.id}-${activeDriveImageSlideIndex}`}
+                        src={activeDriveImageSlide.driveImagePreviewUrl ?? activeDriveImageSlide.driveImageUrl ?? ''}
+                        imageUrl={activeDriveImageSlide.driveImageUrl}
+                        kind={getDriveDocumentKind(activeDriveImageSlide.driveImagePreviewUrl)}
+                        alt={activeDriveImageSlide.alt ?? activeDriveImageSlide.title ?? activePopupStation.title}
+                        title={activeDriveImageSlide.title ?? activePopupStation.title}
+                      />
                     </div>
 
                     {hasMultipleDriveImageSlides && (
@@ -1871,12 +1894,12 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                     <div className="hud-glass-modal__pdf-audio-frame hud-glass-modal__pdf-podcast-main">
                       <div className="hud-glass-modal__drive-slider hud-glass-modal__drive-slider--document">
                         <div className="hud-glass-modal__drive-slider-frame">
-                          <iframe
+                          <DocumentViewer
                             key={`drive-doc-slide-${activePopupStation.id}-${activeDriveDocumentSlideIndex}-${activeDriveDocumentSlide.drivePdfPreviewUrl}`}
                             src={activeDriveDocumentSlide.drivePdfPreviewUrl}
+                            kind={getDriveDocumentKind(activeDriveDocumentSlide.drivePdfPreviewUrl)}
+                            alt={activeDriveDocumentSlide.alt}
                             title={activeDriveDocumentSlide.title ?? activePopupStation.title}
-                            className="hud-glass-modal__iframe hud-glass-modal__iframe--document"
-                            allow="autoplay"
                           />
                         </div>
 
@@ -1935,13 +1958,12 @@ export const UnifiedOnboardingHub: React.FC<UnifiedOnboardingHubProps> = () => {
                     <div className="hud-glass-modal__pdf-audio-frame hud-glass-modal__pdf-podcast-main">
                       <div className="hud-glass-modal__drive-slider hud-glass-modal__drive-slider--document">
                         <div className="hud-glass-modal__drive-slider-frame">
-                          <iframe
+                          <DocumentViewer
                             key={`drive-doc-slide-${activePopupStation.id}-${activeDriveDocumentSlideIndex}-${activeDriveDocumentSlide.drivePdfPreviewUrl}`}
                             src={activeDriveDocumentSlide.drivePdfPreviewUrl}
+                            kind={getDriveDocumentKind(activeDriveDocumentSlide.drivePdfPreviewUrl)}
+                            alt={activeDriveDocumentSlide.alt}
                             title={activeDriveDocumentSlide.title ?? `${activePopupStation.title} - Infografia`}
-                            className="hud-glass-modal__iframe hud-glass-modal__iframe--document"
-                            allow="autoplay; fullscreen"
-                            allowFullScreen
                           />
                         </div>
 
