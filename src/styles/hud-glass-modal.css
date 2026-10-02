@@ -865,15 +865,6 @@
      abrir), dibuja el video debajo a todo el ancho y sus controles (pausa,
      volumen, pantalla completa) sobresalen ~40 px por debajo del video; por
      eso la caja mide 16:9 + 100 px. Con solo 16:9 el video quedaba cortado. */
-  .hud-glass-modal__panel.hud-glass-modal__panel--roadmap.hud-glass-modal__panel--roadmap-drive-video {
-    height: auto;
-  }
-
-  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__content--iframe {
-    height: auto;
-    padding: 0;
-  }
-
   .hud-glass-modal__media:has(> .lazy-media--media) {
     container-type: inline-size;
     padding: 0;
@@ -890,6 +881,63 @@
     max-height: none !important;
     aspect-ratio: auto !important;
     border-radius: 0 !important;
+  }
+
+  /* ---- Estaciones de video del roadmap: modal a pantalla completa ----
+     Una caja de alto fijo recortaba los controles del reproductor de Drive
+     (el botón de pausa quedaba debajo del botón "Completar"). A pantalla
+     completa el iframe toma todo el alto libre y Drive acomoda su barra
+     superior, el video centrado y sus controles sin cortes. */
+  .hud-glass-modal__overlay--roadmap:has(.hud-glass-modal__panel--roadmap-drive-video) {
+    padding:
+      env(safe-area-inset-top, 0px)
+      0
+      env(safe-area-inset-bottom, 0px);
+  }
+
+  .hud-glass-modal__panel.hud-glass-modal__panel--roadmap.hud-glass-modal__panel--roadmap-drive-video {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__stack {
+    max-height: none;
+  }
+
+  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__header {
+    padding: 10px 12px 8px 20px;
+  }
+
+  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__title {
+    font-size: 1rem;
+  }
+
+  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__meta {
+    margin-top: 2px;
+    font-size: 0.625rem;
+  }
+
+  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__content--iframe {
+    height: 100%;
+    padding: 0;
+  }
+
+  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__media--iframe {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__media > .lazy-media--media {
+    flex: 1 1 auto !important;
+    height: 100% !important;
+  }
+
+  .hud-glass-modal__panel--roadmap-drive-video .hud-glass-modal__footer {
+    padding: 10px 12px;
   }
 
   /* ---- Documentos e infografías: aprovechar todo el ancho ---- */

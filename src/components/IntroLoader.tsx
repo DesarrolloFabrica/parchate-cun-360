@@ -113,23 +113,25 @@ export const IntroLoader: React.FC = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
-                className="absolute inset-0 bg-[#020704] bg-radial from-[#041d11] via-[#010603] to-black z-[10000] flex flex-col items-center justify-center p-3 sm:p-6 overflow-y-auto"
+                className="absolute inset-0 bg-[#020704] bg-radial from-[#041d11] via-[#010603] to-black z-[10000] flex flex-col items-center justify-center p-3 sm:p-6 overflow-y-auto max-md:items-stretch max-md:p-0 max-md:pt-[env(safe-area-inset-top,0px)] max-md:pb-[env(safe-area-inset-bottom,0px)] max-md:overflow-hidden"
               >
+                {/* En móvil el video ocupa toda la pantalla: el reproductor de Drive
+                    necesita alto libre para su barra superior y sus controles. */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[650px] h-[350px] sm:h-[650px] rounded-full bg-[#00ff66]/10 blur-[120px] pointer-events-none animate-pulse duration-[8s]" />
                 <div className="absolute top-1/4 left-1/4 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] rounded-full bg-teal-500/5 blur-[100px] pointer-events-none" />
 
-                <div className={`w-full ${isExpanded ? 'max-w-5xl' : 'max-w-3xl'} transition-all duration-500 ease-out flex flex-col items-center relative z-10 p-1 sm:p-2`}>
-                  <div className="w-full backdrop-blur-xl bg-black/45 border-2 border-white/10 rounded-[32px] p-3 sm:p-4 shadow-[0_0_80px_rgba(155,255,0,0.15)] flex flex-col relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-30 rounded-[30px] pointer-events-none shadow-inner" />
+                <div className={`w-full ${isExpanded ? 'max-w-5xl' : 'max-w-3xl'} transition-all duration-500 ease-out flex flex-col items-center relative z-10 p-1 sm:p-2 max-md:max-w-none max-md:flex-1 max-md:min-h-0 max-md:p-0`}>
+                  <div className="w-full backdrop-blur-xl bg-black/45 border-2 border-white/10 rounded-[32px] p-3 sm:p-4 shadow-[0_0_80px_rgba(155,255,0,0.15)] flex flex-col relative overflow-hidden max-md:flex-1 max-md:min-h-0 max-md:rounded-none max-md:border-0 max-md:p-2">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-30 rounded-[30px] pointer-events-none shadow-inner max-md:rounded-none" />
 
-                    <div className="flex items-center justify-between w-full bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 px-3.5 py-2.5 mb-3.5 shadow-md">
-                      <div className="flex items-center gap-2.5 shrink-0">
+                    <div className="flex items-center justify-between w-full bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 px-3.5 py-2.5 mb-3.5 shadow-md shrink-0 max-md:mb-2 max-md:px-2.5 max-md:py-2">
+                      <div className="flex items-center gap-2.5 shrink-0 max-md:hidden">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F56] opacity-90 hover:opacity-100 transition-opacity" />
                         <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E] opacity-90 hover:opacity-100 transition-opacity" />
                         <span className="w-2.5 h-2.5 rounded-full bg-[#27C93F] opacity-90 hover:opacity-100 transition-opacity" />
                       </div>
 
-                      <div className="flex-1 max-w-[45%] bg-black/40 border border-white/5 rounded-xl px-3 py-1 text-center font-mono text-[9px] text-zinc-300 tracking-wider truncate flex items-center justify-center gap-1.5 select-none md:flex">
+                      <div className="flex-1 max-w-[45%] bg-black/40 border border-white/5 rounded-xl px-3 py-1 text-center font-mono text-[9px] text-zinc-300 tracking-wider truncate flex items-center justify-center gap-1.5 select-none max-md:hidden">
                         <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00ff66] animate-ping" />
                         <span>onboarding.cun.edu.co/virtual_ar_hud</span>
                       </div>
@@ -142,7 +144,7 @@ export const IntroLoader: React.FC = () => {
 
                         <button
                           onClick={() => setIsExpanded(prev => !prev)}
-                          className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-lg transition-all border-none bg-transparent cursor-pointer flex items-center justify-center"
+                          className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-lg transition-all border-none bg-transparent cursor-pointer flex items-center justify-center max-md:hidden"
                           title={isExpanded ? "Reducir" : "Ampliar"}
                         >
                           <Maximize2 className="w-3.5 h-3.5" />
@@ -158,10 +160,10 @@ export const IntroLoader: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-[0_0_30px_rgba(0,255,102,0.15)] ring-1 ring-[#00ff66]/30 transition-all duration-300">
+                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-[0_0_30px_rgba(0,255,102,0.15)] ring-1 ring-[#00ff66]/30 transition-all duration-300 max-md:aspect-auto max-md:flex-1 max-md:min-h-0 max-md:rounded-xl">
                       {/* El video (270 MB en Drive) solo se carga si el usuario lo pide: no frena la entrada a la página. */}
                       <LazyMediaEmbed
-                        className="absolute inset-0 h-full w-full rounded-2xl"
+                        className="absolute inset-0 h-full w-full rounded-2xl max-md:rounded-xl"
                         src={googleDriveIntroVideoPreview}
                         title="Video de introducción"
                         mode="facade"
@@ -169,8 +171,8 @@ export const IntroLoader: React.FC = () => {
                       />
                     </div>
 
-                    <div className="w-full bg-slate-950/85 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col sm:flex-row items-center justify-between gap-4 mt-3">
-                      <div className="flex items-center gap-3.5 text-left w-full sm:w-auto">
+                    <div className="w-full bg-slate-950/85 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex flex-col sm:flex-row items-center justify-between gap-4 mt-3 shrink-0 max-md:mt-2 max-md:p-2.5 max-md:gap-0">
+                      <div className="flex items-center gap-3.5 text-left w-full sm:w-auto max-md:hidden">
                         <div className="p-2.5 rounded-xl bg-[#00ff66]/10 text-[#00ff66] border border-[#00ff66]/20">
                           <Tv className="w-5 h-5 animate-pulse" />
                         </div>
@@ -180,15 +182,15 @@ export const IntroLoader: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto mt-1 sm:mt-0 pt-3 sm:pt-0 border-t border-white/5 sm:border-t-0 shrink-0">
-                        <span className="text-[9px] font-mono text-zinc-400 font-bold uppercase flex items-center gap-1.5 bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 select-none">
+                      <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto mt-1 sm:mt-0 pt-3 sm:pt-0 border-t border-white/5 sm:border-t-0 shrink-0 max-md:mt-0 max-md:pt-0 max-md:border-t-0">
+                        <span className="text-[9px] font-mono text-zinc-400 font-bold uppercase flex items-center gap-1.5 bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 select-none max-md:hidden">
                           <Volume2 className="w-3.5 h-3.5 text-[#00ff66]" />
                           Audio Recom.
                         </span>
 
                         <button
                           onClick={handleSkipVideo}
-                          className="px-4 py-2 bg-gradient-to-r from-[#9BFF00] to-[#00ff66] hover:from-white hover:to-white text-black font-black text-[10px] uppercase tracking-wider rounded-xl shadow-[0_0_15px_rgba(155,255,0,0.25)] border-none transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
+                          className="px-4 py-2 bg-gradient-to-r from-[#9BFF00] to-[#00ff66] hover:from-white hover:to-white text-black font-black text-[10px] uppercase tracking-wider rounded-xl shadow-[0_0_15px_rgba(155,255,0,0.25)] border-none transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 max-md:w-full max-md:justify-center max-md:py-3"
                         >
                           <span>SALTAR E IR AL INTRO</span>
                           <SkipForward className="w-3.5 h-3.5" />
